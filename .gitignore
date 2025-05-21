@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+
+# Virtualenv
+venv/
+
+# VS Code
+.vscode/
+
+# Django migrations
+*/migrations/__pycache__/
+*/migrations/*.pyc
+
+# Env files (for secrets, API keys, etc.)
+.env
+
+# Node stuff (if you later add frontend in same repo)
+node_modules/
+
+# OS-specific
+.DS_Store
+Thumbs.db
