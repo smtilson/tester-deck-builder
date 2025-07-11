@@ -1,5 +1,7 @@
 from .decks import Deck
-from .cards import Cards
+from .cards import Card
+from .deck_cards import DeckCard
+#from .users import User
 
 # You can optionally define the many-to-many through table explicitly here if needed,
 # though Tortoise handles it automatically when you define ManyToManyField.

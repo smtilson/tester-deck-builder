@@ -1,30 +1,7 @@
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
-from .cards import Card
-
-
-class DeckCardBase(BaseModel):
-    card_id: int
-    quantity: int = 1
-
-
-class DeckCardCreate(DeckCardBase):
-    pass
-
-
-class DeckCardUpdate(DeckCardBase):
-    quantity: Optional[int] = None
-
-
-class DeckCardInDB(DeckCardBase):
-    id: int
-    deck_id: int
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        orm_mode = True
+from .deck_cards import CardInDeckResponse
 
 
 class DeckBase(BaseModel):
@@ -34,14 +11,13 @@ class DeckBase(BaseModel):
 
 
 class DeckCreate(DeckBase):
-    cards: List[DeckCardCreate]
+    pass
 
 
-class DeckUpdate(BaseModel):
+class DeckUpdate(DeckBase):
     name: Optional[str] = None
     description: Optional[str] = None
     is_valid: Optional[bool] = None
-    cards: Optional[List[DeckCardCreate]] = None
 
 
 class DeckInDB(DeckBase):
@@ -50,9 +26,10 @@ class DeckInDB(DeckBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
+class DeckResponse(DeckInDB):
+    pass
 
-class Deck(DeckInDB):
-    cards: List[Card] = []
+class DeckResponseWithCards(DeckResponse):
+    cards: List[CardInDeckResponse] = Field(default_factory=list)

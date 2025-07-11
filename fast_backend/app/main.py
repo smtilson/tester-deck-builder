@@ -4,29 +4,44 @@ from fastapi.middleware.cors import CORSMiddleware
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
+from contextlib import asynccontextmanager
+from tortoise import Tortoise
 
-from .core.auth import get_auth_router
-from .core.config import Environment, settings
-from .db.config import register_db
-from .health import router as health_check_router
-from .lifetime import startup
-from .users.routes import router as users_router
-from .api.routes import router as api_router
+from app.core.auth import get_auth_router
+from app.core.config import Environment, settings
+from app.db.config import register_db, TORTOISE_ORM
+from app.health import router as health_check_router
+from app.users.routes import router as users_router
+from app.api.routes import router as api_router
+from app.api.routes import test
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Connecting to database...")
+    await Tortoise.init(config=TORTOISE_ORM)
+    await Tortoise.generate_schemas()
+    yield # app starts processing here,
+    print("Closing connection to database...")
+    await Tortoise.close_connections()
 
 def get_application() -> FastAPI:
     _app = FastAPI(
         title="fast-backend",
         description="This is a backend for a card management system. The idea is that it be useable by playtesters and game developers alike.",
         debug=settings.DEBUG,
+        lifespan=lifespan,
     )
     _app.include_router(get_auth_router())
     _app.include_router(users_router)
     _app.include_router(health_check_router)
+    #_app.include_router(test.router, prefix="/test")
     _app.include_router(api_router, prefix="/api/v1")
     _app.add_middleware(
         CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_origins=["*"],
+        # below is for non testing I think
+        # allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -40,13 +55,11 @@ def get_application() -> FastAPI:
         )
         _app.add_middleware(SentryAsgiMiddleware)
 
-    register_db(_app)
-    _app.on_event("startup")(startup)
-
     return _app
 
 
 app = get_application()
+
 
 @app.get("/")
 async def root():

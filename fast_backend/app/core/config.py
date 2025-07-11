@@ -5,13 +5,13 @@ from typing import Any
 
 from pydantic import (
     AnyHttpUrl,
-    BaseSettings,
     EmailStr,
     HttpUrl,
     PostgresDsn,
-    RedisDsn,
     validator,
 )
+
+from pydantic_settings import BaseSettings
 
 try:
     from enum import StrEnum
@@ -40,15 +40,40 @@ class Settings(BaseSettings):
     def PATHS(self) -> Paths:
         return Paths()
 
+    APP_NAME: str = "test"
+    DEBUG: bool = True
+    ADMIN_EMAIL: str = "seantilson@gmail.com"
+    DATABASE_URI: str = "postgres://s_user:yadda@localhost:5432/tester_deck_builder"
+    DEFAULT_FROM_EMAIL: EmailStr = "seantilson@gmail.com"
+    DEFAULT_FROM_NAME: str | None = None
+
+    @validator("DATABASE_URI")
+    def assemble_db_connection(cls, v: Any) -> str:
+        if isinstance(v, str):
+            return v
+        return str(v)
+
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
+
+
+class PreSettings(BaseSettings):
+    @property
+    def PATHS(self) -> Paths:
+        return Paths()
+
     ENVIRONMENT: Environment = "dev"
-    SECRET_KEY: str
-    DEBUG: bool = False
-    AUTH_TOKEN_LIFETIME_SECONDS = 3600
+    SECRET_KEY: str = "yadda"
+    DEBUG: bool = True
+    AUTH_TOKEN_LIFETIME_SECONDS: int = 3600
     SERVER_HOST: AnyHttpUrl = "http://localhost:8000"  # type:ignore
     SENTRY_DSN: HttpUrl | None = None
     PAGINATION_PER_PAGE: int = 20
+    ADMIN_EMAIL: str = "seantilson@gmail.com"
+    DATABASE_URI: str = "postgres://s_user:yadda@localhost:5432/tester_deck_builder"
 
-    REDIS_URL: RedisDsn
+    REDIS_URL: str = "redis://dummy"
 
     BACKEND_CORS_ORIGINS: list[AnyHttpUrl] = []
 
@@ -60,14 +85,12 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
 
-    DATABASE_URI: PostgresDsn
-    
-
+    DATABASE_URI: str = "postgres://s_user:yadda@localhost:5432/tester_deck_builder"
 
     SES_ACCESS_KEY: str | None = None
     SES_SECRET_KEY: str | None = None
     SES_REGION: str | None = None
-    DEFAULT_FROM_EMAIL: EmailStr
+    DEFAULT_FROM_EMAIL: EmailStr = "seantilson@gmail.com"
     DEFAULT_FROM_NAME: str | None = None
     EMAILS_ENABLED: bool = False
 
@@ -79,11 +102,11 @@ class Settings(BaseSettings):
             and values.get("DEFAULT_FROM_EMAIL")
         )
 
-    FIRST_SUPERUSER_EMAIL: EmailStr
-    FIRST_SUPERUSER_PASSWORD: str
+    FIRST_SUPERUSER_EMAIL: EmailStr = "seantilson@gmail.com"
+    FIRST_SUPERUSER_PASSWORD: str = "yadda"
 
     class Config:
         env_file = ".env"
 
 
-settings = Settings()
+settings = PreSettings()

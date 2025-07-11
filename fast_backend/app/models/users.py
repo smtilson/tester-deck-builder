@@ -6,10 +6,10 @@ from fastapi_users_tortoise import (
 )
 from tortoise import fields
 
-from app.db.models import TimeStampedModel
+from app.models.base import BasicModel
 
 
-class User(TortoiseBaseUserAccountModelUUID, TimeStampedModel):
+class User(TortoiseBaseUserAccountModelUUID, BasicModel):
     short_name = fields.CharField(max_length=255, null=True)
     full_name = fields.CharField(max_length=255, null=True)
 
