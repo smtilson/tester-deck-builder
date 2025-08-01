@@ -1,5 +1,6 @@
-from app.schemas.decks import Deck, DeckCreate
+from app.schemas.decks import DeckCreate
 from app.models.decks import Deck as DeckModel, DeckCard as DeckCardModel
+from app.crud.decks import DeckCrud
 
 async def create_deck(deck_data: DeckCreate, owner_id: int = 1):
     """

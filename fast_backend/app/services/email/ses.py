@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from aioaws.ses import SesClient, SesConfig, SesRecipient
 from httpx import AsyncClient, RequestError
 
-from app.core.logger import logger
+from ...core.logger import logger
 
 from .errors import SendEmailError
 

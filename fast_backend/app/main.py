@@ -1,5 +1,5 @@
 import sentry_sdk
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from sentry_sdk.integrations.logging import LoggingIntegration
@@ -11,6 +11,8 @@ from app.core.auth import get_auth_router
 from app.core.config import Environment, settings
 from app.db.config import register_db, TORTOISE_ORM
 from app.health import router as health_check_router
+from app.auth.fast_api_users_instance import fastapi_users
+from app.models.users import User
 from app.users.routes import router as users_router
 from app.api.routes import router as api_router
 from app.api.routes import test

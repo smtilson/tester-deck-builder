@@ -4,7 +4,7 @@ from saq.worker import async_check_health as saq_check_health
 from tortoise.exceptions import DBConnectionError
 
 from app.core.logger import logger
-from app.worker import queue
+from fast_backend.app.services.worker import queue
 
 from .users.models import User
 

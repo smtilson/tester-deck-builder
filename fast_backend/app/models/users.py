@@ -6,19 +6,17 @@ from fastapi_users_tortoise import (
 )
 from tortoise import fields
 
-from app.models.base import BasicModel
+from .base import BasicModel
 
 
 class User(TortoiseBaseUserAccountModelUUID, BasicModel):
-    short_name = fields.CharField(max_length=255, null=True)
-    full_name = fields.CharField(max_length=255, null=True)
-
+    username = fields.CharField(max_length=255, unique=True)
+    # email, is_superuser, is_active, is_verified,
+    # and hashed_password are inherited from TortoiseBaseUserAccountModelUUID
+    name = fields.CharField(max_length=255, null=True)
+    is_admin = fields.BooleanField(default=False)
     class Meta:
         table = "users"
 
     def __str__(self):
-        return self.short_name or self.full_name or self.email
-
-
-async def get_user_db():
-    yield TortoiseUserDatabase(User)
+        return self.username or self.name or self.email

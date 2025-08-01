@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 from .deck_cards import CardInDeckResponse
@@ -28,8 +28,10 @@ class DeckInDB(DeckBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class DeckResponse(DeckInDB):
     pass
 
+
 class DeckResponseWithCards(DeckResponse):
-    cards: List[CardInDeckResponse] = Field(default_factory=list)
+    cards: list[CardInDeckResponse] = Field(default_factory=list)

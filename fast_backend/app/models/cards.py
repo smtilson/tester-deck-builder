@@ -4,7 +4,7 @@ from .base import BasicModel
 
 
 class Card(BasicModel):
-    id = fields.IntField(pk=True)
+    id = fields.IntField(primary_key=True)
     name = fields.CharField(max_length=255)
     text = fields.TextField(null=True)
     # more to come

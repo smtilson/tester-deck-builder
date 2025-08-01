@@ -3,7 +3,7 @@ from tortoise import fields
 
 
 class DeckCard(BasicModel):
-    id = fields.IntField(pk=True)
+    id = fields.IntField(primary_key=True)
     deck: fields.ForeignKeyRelation["Deck"] = fields.ForeignKeyField(
         "models.Deck", related_name="deck_cards", on_delete=fields.CASCADE
     )

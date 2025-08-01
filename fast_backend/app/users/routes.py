@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 
 from app.core.auth import current_user, fastapi_users
 from app.core.pagination import Page, Params, paginate
-from app.worker import queue
+from fast_backend.app.services.worker import queue
 
 from .models import User
 from .schemas import UserRead, UserUpdate

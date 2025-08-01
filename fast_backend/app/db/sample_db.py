@@ -2,7 +2,7 @@ import asyncio
 from tortoise import Tortoise
 
 
-async def test_connection():
+async def sample_connection():
     # Replace with your actual URI
     db_url = "postgres://s_user:yadda@localhost:5432/tester_deck_builder"
 
@@ -18,4 +18,4 @@ async def test_connection():
 
 
 if __name__ == "__main__":
-    asyncio.run(test_connection())
+    asyncio.run(sample_connection())

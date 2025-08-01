@@ -8,9 +8,9 @@ from fastapi_users_tortoise import TortoiseUserDatabase
 
 from app.core.config import Environment, settings
 from app.services.email import render_email_template
-from app.worker import queue
+from fast_backend.app.services.worker import queue
 
-from .models import User, get_user_db
+from ..models.users import User, get_user_db
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
@@ -21,7 +21,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
     async def on_after_register(
         self, user: User, request: Request | None = None
     ) -> None:
-        name = user.full_name or user.short_name
+        name = user.name
         subject = f"Welcome to {name}!" if name else "Welcome!"
         await queue.enqueue(
             "send_email_task",

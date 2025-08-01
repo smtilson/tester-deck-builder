@@ -9,11 +9,12 @@ class DeckCardBase(BaseModel):
     # because they aren't properties of the relation, they will
     # be included when we create the relationship.
     quantity: int = 1
-    
 
-class DeckCardCreate(BaseModel):
+
+class DeckCardCreate(DeckCardBase):
     card_id: int
-    # deck_id is not included as it will be provided by the url        
+    # deck_id is not included as it will be provided by the url
+
 
 class DeckCardUpdate(DeckCardBase):
     quantity: Optional[int] = None
@@ -28,18 +29,16 @@ class DeckCardInDB(DeckCardBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 # Schema for the response when showing cards within a deck
 class DeckCardResponse(DeckCardInDB):
     pass
 
+
 class DeckCardResponseWithCard(DeckCardResponse):
     card: CardResponse
-    
+
+
 class CardInDeckResponse(CardResponse):
     deck_card_id: int
     model_config = ConfigDict(from_attributes=True)
-
-
-
-
-

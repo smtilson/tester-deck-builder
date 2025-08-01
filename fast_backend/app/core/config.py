@@ -92,7 +92,7 @@ class PreSettings(BaseSettings):
     SES_REGION: str | None = None
     DEFAULT_FROM_EMAIL: EmailStr = "seantilson@gmail.com"
     DEFAULT_FROM_NAME: str | None = None
-    EMAILS_ENABLED: bool = False
+    EMAILS_ENABLED: bool = True #False true put in for testing purposes?
 
     @validator("EMAILS_ENABLED", pre=True)
     def get_emails_enabled(cls, _: bool, values: dict[str, Any]) -> bool:

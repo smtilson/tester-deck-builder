@@ -2,12 +2,12 @@ from pydantic.utils import import_string
 from saq import Queue
 from tortoise import Tortoise
 
-from .core.config import settings
-from .db.config import TORTOISE_ORM
+from ..core.config import settings
+from ..db.config import TORTOISE_ORM
 
 BACKGROUND_FUNCTIONS = [
-    "app.users.tasks.log_user_email",
-    "app.services.email.send_email_task",
+    "fast_backend.app.services.tasks.log_user_email",
+    "fast_backend.app.services.email.send_email_task",
 ]
 FUNCTIONS = [import_string(bg_func) for bg_func in BACKGROUND_FUNCTIONS]
 
