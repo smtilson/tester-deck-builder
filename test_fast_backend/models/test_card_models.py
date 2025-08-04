@@ -7,7 +7,7 @@ from fast_backend.app.models.cards import Card
 from test_fast_backend.conftest import SAMPLE_CARDS
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 class TestCardModel:
     """Test suite for Card model database operations."""

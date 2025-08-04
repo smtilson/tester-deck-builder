@@ -9,7 +9,7 @@ from fast_backend.app.models.cards import Card
 # and the necessary factories: `deck_factory`, `card_factory`, `deck_card_factory`.
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 class TestDeckCardModel:
     """

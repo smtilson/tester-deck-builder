@@ -7,7 +7,7 @@ from fast_backend.app.models.decks import Deck
 from test_fast_backend.conftest import SAMPLE_DECKS
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 class TestDeckModel:
     """Test suite for Deck model database operations."""

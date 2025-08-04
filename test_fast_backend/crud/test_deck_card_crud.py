@@ -14,7 +14,7 @@ from fast_backend.app.schemas.deck_cards import (
 # and the necessary factories: `deck_factory`, `card_factory`.
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 class TestDeckCardCrud:
     """

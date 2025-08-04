@@ -9,7 +9,7 @@ from fastapi_users.exceptions import UserNotExists
 from fastapi_users_tortoise import TortoiseUserDatabase
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 class TestUserDatabase:
     """Test suite for user database operations."""

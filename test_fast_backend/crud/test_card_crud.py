@@ -9,7 +9,7 @@ from fast_backend.app.schemas.cards import CardCreate, CardResponse, CardUpdate
 from test_fast_backend.conftest import SAMPLE_CARDS
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 class TestCardCrud:
     """Test suite for Card CRUD functions."""

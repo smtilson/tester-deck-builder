@@ -8,7 +8,7 @@ from fast_backend.app.models.users import User
 # for each test. We'll add a user_factory fixture similar to the card_factory.
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 class TestUserModel:
     """

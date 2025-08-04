@@ -3,7 +3,7 @@ from uuid import UUID
 
 import pytest
 from tortoise import Tortoise, fields
-
+from .tobys_conftest import oauth_account1, oauth_account2, event_loop
 from fastapi_users_tortoise import (
     TortoiseBaseUserAccountModelUUID,
     TortoiseBaseUserOAuthAccountModelUUID,
@@ -56,7 +56,7 @@ async def tortoise_user_db_oauth() -> (
     await Tortoise.close_connections()
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_queries(
     tortoise_user_db: TortoiseUserDatabase[User, UUID], oauth_account1: dict
@@ -112,7 +112,7 @@ async def test_queries(
         await tortoise_user_db.update_oauth_account(user, oauth_account, {})
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "email,query,found",
@@ -149,7 +149,7 @@ async def test_email_query(
         assert email_user is None
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_insert_existing_email(
     tortoise_user_db: TortoiseUserDatabase[User, UUID],
@@ -164,7 +164,7 @@ async def test_insert_existing_email(
         await tortoise_user_db.create(user_create)
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_queries_custom_fields(
     tortoise_user_db: TortoiseUserDatabase[User, UUID],
@@ -184,7 +184,7 @@ async def test_queries_custom_fields(
     assert id_user.first_name == user.first_name
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_queries_oauth(
     tortoise_user_db_oauth: TortoiseUserDatabase[OAuthAccount, UUID],

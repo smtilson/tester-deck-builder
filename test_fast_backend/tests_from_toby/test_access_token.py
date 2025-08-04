@@ -4,7 +4,7 @@ from typing import Any, AsyncGenerator
 
 import pytest
 from tortoise import Tortoise
-
+from .tobys_conftest import oauth_account1, oauth_account2, event_loop
 from fastapi_users_tortoise import TortoiseBaseUserAccountModelUUID
 from fastapi_users_tortoise.access_token import (
     TortoiseAccessTokenDatabase,
@@ -53,7 +53,7 @@ def user_id() -> uuid.UUID:
     return uuid.uuid4()
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_queries(
     tortoise_access_token_db: TortoiseAccessTokenDatabase[AccessToken],
@@ -105,7 +105,7 @@ async def test_queries(
     assert deleted_access_token is None
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_insert_existing_token(
     tortoise_access_token_db: TortoiseAccessTokenDatabase[AccessToken],

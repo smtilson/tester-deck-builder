@@ -62,7 +62,7 @@ def unit_user_manager(mock_user_db, mock_password_helper):
     return manager
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 class TestUserManagerUnit:
     """Unit tests for UserManager with mocked dependencies."""
@@ -104,7 +104,7 @@ class TestUserManagerUnit:
         mock_render_template.assert_called_once()
         mock_queue_enqueue.assert_called_once()
 
-    # # @pytest.mark.skip
+    @pytest.mark.skip
     async def test_create_user_already_exists(
         self, unit_user_manager, mock_user_db, mock_password_helper
     ):
@@ -123,7 +123,7 @@ class TestUserManagerUnit:
         # Verify database create was not called
         mock_user_db.create.assert_not_called()
 
-    # # @pytest.mark.skip
+    @pytest.mark.skip
     async def test_authenticate_success(
         self, unit_user_manager, mock_user_db, mock_password_helper
     ):

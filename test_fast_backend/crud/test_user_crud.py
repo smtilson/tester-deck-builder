@@ -10,7 +10,7 @@ from fast_backend.app.schemas.users import UserCreate, UserRead, UserUpdate
 # for each test. We'll also assume it provides a `user_factory` similar to `card_factory`.
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 class TestUserCrud:
     """

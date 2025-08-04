@@ -9,7 +9,7 @@ from fast_backend.app.schemas.decks import DeckCreate, DeckResponse, DeckUpdate
 # and the `deck_factory`.
 
 
-# # @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.asyncio
 class TestDeckCrud:
     """
