@@ -19,8 +19,8 @@ from tortoise import Tortoise, connections
 
 from app.core.config import settings
 from app.db.config import TORTOISE_ORM
-from app.users import utils
-from app.users.schemas import UserCreate
+from app import user_utils
+from app.schemas.users import UserCreate
 
 cli = typer.Typer()
 
@@ -116,7 +116,7 @@ def create_user(
 
     async def _create_user():
         await Tortoise.init(config=TORTOISE_ORM)
-        await utils.create_user(
+        await user_utils.create_user(
             UserCreate(
                 email=email,
                 password=password,

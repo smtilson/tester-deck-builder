@@ -15,9 +15,9 @@ from ..schemas.users import UserRead, UserCreate, UserUpdate # Import your Pydan
 fastapi_users = FastAPIUsers[UserRead, UUID](
     get_user_db,
     [auth_backend],
-    UserRead,
-    UserCreate,
-    UserUpdate,
+    #UserRead,
+    #UserCreate,
+    #UserUpdate,
 )
 
 current_active_user = fastapi_users.current_user(active=True)

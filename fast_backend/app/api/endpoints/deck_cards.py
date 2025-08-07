@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, status
 
-from app.models.deck_cards import DeckCard as DeckCardModel
-from app.schemas.deck_cards import DeckCardResponse, DeckCardCreate, DeckCardUpdate
-from app.models.decks import Deck as DeckModel
-from app.models.cards import Card as CardModel
+from ...models.deck_cards import DeckCard as DeckCardModel
+from ...schemas.deck_cards import DeckCardResponse, DeckCardCreate, DeckCardUpdate
+from ...models.decks import Deck as DeckModel
+from ...models.cards import Card as CardModel
 
 router = APIRouter()
 

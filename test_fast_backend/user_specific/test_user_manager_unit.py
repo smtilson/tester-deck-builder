@@ -4,7 +4,7 @@ import pytest
 from uuid import UUID
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from fast_backend.app.services.user_services.manager import UserManager
+from fast_backend.app.auth.manager import UserManager
 from fast_backend.app.schemas.users import UserCreate, UserUpdate
 from fast_backend.app.models.users import User
 from fastapi_users.exceptions import UserAlreadyExists
@@ -67,7 +67,7 @@ def unit_user_manager(mock_user_db, mock_password_helper):
 class TestUserManagerUnit:
     """Unit tests for UserManager with mocked dependencies."""
 
-    @patch("fast_backend.app.services.user_services.manager.render_email_template")
+    @patch("fast_backend.app.auth.manager.render_email_template")
     @patch("fast_backend.app.services.worker.queue.enqueue")
     async def test_create_user_success(
         self,

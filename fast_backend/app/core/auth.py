@@ -9,9 +9,9 @@ from fastapi_users.authentication import (
     JWTStrategy,
 )
 
-from app.users.manager import get_user_manager
-from app.users.models import User
-from app.users.schemas import UserCreate, UserRead
+from ..auth.manager import get_user_manager
+from ..models.users import User
+from ..schemas.users import UserCreate, UserRead
 
 from .config import settings
 
@@ -31,6 +31,13 @@ auth_backend = AuthenticationBackend(
     get_strategy=get_jwt_strategy,
 )
 
+# The line `fastapi_users = FastAPIUsers[User, uuid.UUID](get_user_manager,
+# [auth_backend])` is creating an instance of the `FastAPIUsers` class with the
+# specified user model `User` and user ID type `uuid.UUID`. It is initializing
+# the `FastAPIUsers` instance with the user manager obtained from
+# `get_user_manager` function and the authentication backend `auth_backend`. This
+# instance will be used to handle user authentication and authorization within
+# the FastAPI application.
 fastapi_users = FastAPIUsers[User, uuid.UUID](get_user_manager, [auth_backend])
 
 

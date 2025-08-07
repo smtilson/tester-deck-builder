@@ -4,8 +4,8 @@ from app.core.auth import current_user, fastapi_users
 from app.core.pagination import Page, Params, paginate
 from fast_backend.app.services.worker import queue
 
-from ...models import User
-from ...schemas import UserRead, UserUpdate
+from ...models.users import User
+from ...schemas.users import UserRead, UserUpdate
 
 users_router = APIRouter(prefix="/users", tags=["users"])
 

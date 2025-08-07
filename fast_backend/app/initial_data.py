@@ -1,12 +1,11 @@
 from fastapi_users.exceptions import UserAlreadyExists
 
-from app.core.logger import logger
+from .core.logger import logger
 
 from .core.config import settings
-from .users.schemas import UserCreate
-from .users.utils import create_user
-
-
+from .schemas.users import UserCreate
+from .user_utils import create_user
+        
 async def create_superuser() -> None:
     try:
         user = await create_user(

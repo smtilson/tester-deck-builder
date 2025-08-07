@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 
-import app.crud.decks as crud
-from app.schemas.decks import (
+from ...crud import decks as crud
+from ...schemas.decks import (
     DeckResponse,
     DeckCreate,
     DeckUpdate,

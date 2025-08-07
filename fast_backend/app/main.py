@@ -7,15 +7,14 @@ from sentry_sdk.integrations.redis import RedisIntegration
 from contextlib import asynccontextmanager
 from tortoise import Tortoise
 
-from app.core.auth import get_auth_router
-from app.core.config import Environment, settings
-from app.db.config import register_db, TORTOISE_ORM
-from app.health import router as health_check_router
-from app.auth.fast_api_users_instance import fastapi_users
-from app.models.users import User
-from app.users.routes import router as users_router
-from app.api.routes import router as api_router
-from app.api.routes import test
+#from app.core.auth import get_auth_router
+from .core.config import Environment, settings
+from .db.config import register_db, TORTOISE_ORM
+from .health import router as health_check_router
+from .auth.fast_api_users_instance import fastapi_users
+#from app.users.routes import router as users_router
+from .api.routes import router as api_router
+from .api.routes import test
 
 
 @asynccontextmanager
@@ -34,11 +33,11 @@ def get_application() -> FastAPI:
         debug=settings.DEBUG,
         lifespan=lifespan,
     )
-    _app.include_router(get_auth_router())
-    _app.include_router(users_router)
+    #_app.include_router(get_auth_router())
+    #_app.include_router(users_router)
     _app.include_router(health_check_router)
     #_app.include_router(test.router, prefix="/test")
-    _app.include_router(api_router, prefix="/api/v1")
+    _app.include_router(api_router, prefix="/api")
     _app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 
-from .manager import get_user_manager
-from .models import User, get_user_db
+from .auth.manager import get_user_manager
+from .models.users import User
+from .db.users_db import get_user_db
 from .schemas import UserCreate
 
 get_user_db_context = asynccontextmanager(get_user_db)
