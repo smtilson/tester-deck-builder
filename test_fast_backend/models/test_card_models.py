@@ -9,11 +9,12 @@ from test_fast_backend.conftest import SAMPLE_CARDS
 
 @pytest.mark.skip
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("initialize_database")
 class TestCardModel:
     """Test suite for Card model database operations."""
 
     @pytest.mark.parametrize("card_data", SAMPLE_CARDS)
-    async def test_create_card(self, card_factory, card_data):
+    async def test_create_card(self, initialize_database, card_factory, card_data):
         """Verify that a Card can be created in the database."""
         created_card = await card_factory(card_data)
 
@@ -27,14 +28,14 @@ class TestCardModel:
         db_card = await Card.get(id=created_card.id)
         assert db_card is not None
 
-    async def test_card_name_is_required(self, card_factory):
+    async def test_card_name_is_required(self, initialize_database, card_factory):
         """Verify that a Card cannot be created without a name."""
         card_data = {"text": "This card has no name"}
 
         with pytest.raises(ValidationError):
             await card_factory(card_data)
 
-    async def test_card_text_is_optional(self, card_factory):
+    async def test_card_text_is_optional(self, initialize_database, card_factory):
         """Verify that a Card can be created without text."""
         card_data = {"name": "Card without text"}
 
@@ -45,7 +46,7 @@ class TestCardModel:
         assert created_card.text is None
 
     @pytest.mark.parametrize("card_data", SAMPLE_CARDS)
-    async def test_read_card(self, card_factory, card_data):
+    async def test_read_card(self, initialize_database, card_factory, card_data):
         """Verify that a Card can be read from the database."""
         created_card = await card_factory(card_data)
 
@@ -56,7 +57,7 @@ class TestCardModel:
         assert read_card.text == card_data["text"]
 
     @pytest.mark.parametrize("card_data", SAMPLE_CARDS)
-    async def test_update_card(self, card_factory, card_data):
+    async def test_update_card(self, initialize_database, card_factory, card_data):
         """Verify that a Card's attributes can be updated."""
         card = await card_factory(card_data)
         original_updated_at = card.updated_at
@@ -75,7 +76,7 @@ class TestCardModel:
         assert updated_card.updated_at > original_updated_at
 
     @pytest.mark.parametrize("card_data", SAMPLE_CARDS)
-    async def test_delete_card(self, card_factory, card_data):
+    async def test_delete_card(self, initialize_database, card_factory, card_data):
         """Verify that a Card can be deleted from the database."""
         card_to_delete = await card_factory(card_data)
         card_id = card_to_delete.id

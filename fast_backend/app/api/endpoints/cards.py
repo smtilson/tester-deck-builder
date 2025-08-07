@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 
 from ...schemas.cards import CardCreate, CardUpdate, CardResponse
-from ...crud import cards as crud  # Import the crud module
+from ...crud.cards import CardRepo as crud  # Import the crud module
 
 router = APIRouter()
 

@@ -11,6 +11,7 @@ from fast_backend.app.models.cards import Card
 
 @pytest.mark.skip
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("initialize_database")
 class TestDeckCardModel:
     """
     Test suite for the DeckCard model, which links Decks and Cards.
@@ -25,7 +26,13 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("card_data", CARD_DATA)
     @pytest.mark.parametrize("deck_data", DECK_DATA)
     async def test_create_deck_card_link_object(
-        self, deck_factory, card_factory, deck_card_factory, card_data, deck_data
+        self,
+        initialize_database,
+        deck_factory,
+        card_factory,
+        deck_card_factory,
+        card_data,
+        deck_data,
     ):
         """Verify that a DeckCard object can be created in the database."""
         # Arrange
@@ -54,7 +61,13 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("card_data", CARD_DATA)
     @pytest.mark.parametrize("deck_data", DECK_DATA)
     async def test_deck_sees_linked_card_after_creation(
-        self, deck_factory, card_factory, deck_card_factory, card_data, deck_data
+        self,
+        initialize_database,
+        deck_factory,
+        card_factory,
+        deck_card_factory,
+        card_data,
+        deck_data,
     ):
         """Verify that a Deck's relationship field contains the linked card."""
         # Arrange
@@ -77,7 +90,13 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("card_data", CARD_DATA)
     @pytest.mark.parametrize("deck_data", DECK_DATA)
     async def test_card_sees_linked_deck_after_creation(
-        self, deck_factory, card_factory, deck_card_factory, card_data, deck_data
+        self,
+        initialize_database,
+        deck_factory,
+        card_factory,
+        deck_card_factory,
+        card_data,
+        deck_data,
     ):
         """Verify that a Card's relationship field contains the linked deck."""
         # Arrange
@@ -100,7 +119,13 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("deck_data", DECK_DATA)
     @pytest.mark.parametrize("card_data", CARD_DATA)
     async def test_read_deck_card_link(
-        self, deck_factory, card_factory, deck_card_factory, deck_data, card_data
+        self,
+        initialize_database,
+        deck_factory,
+        card_factory,
+        deck_card_factory,
+        deck_data,
+        card_data,
     ):
         """Verify that a DeckCard link can be read from the database."""
         # Arrange: Create a card, a deck, and a link using factories.
@@ -120,7 +145,13 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("deck_data", DECK_DATA)
     @pytest.mark.parametrize("card_data", CARD_DATA)
     async def test_update_deck_card_quantity(
-        self, deck_factory, card_factory, deck_card_factory, deck_data, card_data
+        self,
+        initialize_database,
+        deck_factory,
+        card_factory,
+        deck_card_factory,
+        deck_data,
+        card_data,
     ):
         """Verify that a DeckCard link's quantity can be updated."""
         # Arrange: Create a card, a deck, and a link with an initial quantity.
@@ -139,7 +170,13 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("deck_data", DECK_DATA)
     @pytest.mark.parametrize("card_data", CARD_DATA)
     async def test_deck_sees_updated_quantity(
-        self, deck_factory, card_factory, deck_card_factory, deck_data, card_data
+        self,
+        initialize_database,
+        deck_factory,
+        card_factory,
+        deck_card_factory,
+        deck_data,
+        card_data,
     ):
         """Verify a Deck sees the updated quantity after its linked card is changed."""
         # Arrange
@@ -160,7 +197,13 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("deck_data", DECK_DATA)
     @pytest.mark.parametrize("card_data", CARD_DATA)
     async def test_card_sees_updated_quantity(
-        self, deck_factory, card_factory, deck_card_factory, deck_data, card_data
+        self,
+        initialize_database,
+        deck_factory,
+        card_factory,
+        deck_card_factory,
+        deck_data,
+        card_data,
     ):
         """Verify a Card sees the updated quantity after its linked deck is changed."""
         # Arrange
@@ -181,7 +224,13 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("deck_data", DECK_DATA)
     @pytest.mark.parametrize("card_data", CARD_DATA)
     async def test_deck_card_uniqueness(
-        self, deck_factory, card_factory, deck_card_factory, card_data, deck_data
+        self,
+        initialize_database,
+        deck_factory,
+        card_factory,
+        deck_card_factory,
+        card_data,
+        deck_data,
     ):
         """Verify that the same card cannot be linked to the same deck twice."""
         # Arrange: Create a card and a deck.
@@ -199,7 +248,13 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("deck_data", DECK_DATA)
     @pytest.mark.parametrize("card_data", CARD_DATA)
     async def test_delete_deck_card_link(
-        self, deck_factory, card_factory, deck_card_factory, deck_data, card_data
+        self,
+        initialize_database,
+        deck_factory,
+        card_factory,
+        deck_card_factory,
+        deck_data,
+        card_data,
     ):
         """Verify deleting a DeckCard link removes it and updates relationships."""
         # Arrange
@@ -225,7 +280,7 @@ class TestDeckCardModel:
         assert len(db_card.deck_cards) == 0
 
     async def test_deleting_deck_cascades_to_deck_card(
-        self, deck_factory, card_factory, deck_card_factory
+        self, initialize_database, deck_factory, card_factory, deck_card_factory
     ):
         """Verify that deleting a Deck also deletes its DeckCard links."""
         # Arrange
@@ -244,7 +299,7 @@ class TestDeckCardModel:
         assert len(db_card.deck_cards) == 0
 
     async def test_deleting_card_cascades_to_deck_card(
-        self, deck_factory, card_factory, deck_card_factory
+        self, initialize_database, deck_factory, card_factory, deck_card_factory
     ):
         """Verify that deleting a Card also deletes its DeckCard links."""
         # Arrange
@@ -263,7 +318,7 @@ class TestDeckCardModel:
         assert len(db_deck.deck_cards) == 0
 
     async def test_deck_can_see_its_cards(
-        self, deck_factory, card_factory, deck_card_factory
+        self, initialize_database, deck_factory, card_factory, deck_card_factory
     ):
         """Verify that a Deck can access its linked Cards through the relationship."""
         # Arrange: Create a deck, a card, and link them.

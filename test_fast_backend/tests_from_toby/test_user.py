@@ -59,7 +59,9 @@ async def tortoise_user_db_oauth() -> (
 @pytest.mark.skip
 @pytest.mark.asyncio
 async def test_queries(
-    tortoise_user_db: TortoiseUserDatabase[User, UUID], oauth_account1: dict
+    initialize_database,
+    tortoise_user_db: TortoiseUserDatabase[User, UUID],
+    oauth_account1: dict,
 ):
     user_create = {
         "email": "lancelot@camelot.bt",
@@ -128,6 +130,7 @@ async def test_queries(
         # ("квіточка@пошта.укр", "КВІТОЧКА@ПОШТА.УКР", True),
     ],
 )
+@pytest.mark.usefixtures("initialize_database")
 async def test_email_query(
     tortoise_user_db: TortoiseUserDatabase[User, UUID],
     email: str,
@@ -152,6 +155,7 @@ async def test_email_query(
 @pytest.mark.skip
 @pytest.mark.asyncio
 async def test_insert_existing_email(
+    initialize_database,
     tortoise_user_db: TortoiseUserDatabase[User, UUID],
 ):
     user_create = {
@@ -167,6 +171,7 @@ async def test_insert_existing_email(
 @pytest.mark.skip
 @pytest.mark.asyncio
 async def test_queries_custom_fields(
+    initialize_database,
     tortoise_user_db: TortoiseUserDatabase[User, UUID],
 ):
     """It should output custom fields in query result."""
@@ -187,6 +192,7 @@ async def test_queries_custom_fields(
 @pytest.mark.skip
 @pytest.mark.asyncio
 async def test_queries_oauth(
+    initialize_database,
     tortoise_user_db_oauth: TortoiseUserDatabase[OAuthAccount, UUID],
     oauth_account1: Dict[str, Any],
     oauth_account2: Dict[str, Any],

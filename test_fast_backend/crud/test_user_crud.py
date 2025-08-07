@@ -12,6 +12,7 @@ from fast_backend.app.schemas.users import UserCreate, UserRead, UserUpdate
 
 @pytest.mark.skip
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("initialize_database")
 class TestUserCrud:
     """
     Test suite for the User CRUD functions.
@@ -30,7 +31,7 @@ class TestUserCrud:
         for i in range(1, 4)
     ]
 
-    async def test_create_user(self):
+    async def test_create_user(self, initialize_database):
         """Verify that crud.create_user correctly creates a user."""
         # Arrange: Create a Pydantic schema for the new user.
         user_to_create = UserCreate(**self.USER_DATA[0])
@@ -62,7 +63,7 @@ class TestUserCrud:
         with pytest.raises(ValidationError):
             UserCreate(**invalid_data)
 
-    async def test_get_user(self, user_factory):
+    async def test_get_user(self, initialize_database, user_factory):
         """Verify that crud.get_user retrieves a user by its ID."""
         # Arrange: Create a user in the DB to retrieve.
         db_user = await user_factory(self.USER_DATA[0])
@@ -77,7 +78,7 @@ class TestUserCrud:
         assert retrieved_user.email == db_user.email
         assert retrieved_user.name == db_user.name
 
-    async def test_get_user_not_found(self):
+    async def test_get_user_not_found(self, initialize_database):
         """Verify that crud.get_user returns None for a non-existent ID."""
         # Act: Attempt to retrieve a user that doesn't exist.
         non_existent_id = UUID("00000000-0000-0000-0000-000000000000")
@@ -86,7 +87,7 @@ class TestUserCrud:
         # Assert: The function should return None.
         assert retrieved_user is None
 
-    async def test_get_user_by_email(self, user_factory):
+    async def test_get_user_by_email(self, initialize_database, user_factory):
         """Verify that crud.get_user_by_email retrieves a user by its email."""
         # Arrange: Create a user in the DB to retrieve.
         db_user = await user_factory(self.USER_DATA[0])
@@ -100,7 +101,7 @@ class TestUserCrud:
         assert retrieved_user.username == db_user.username
         assert retrieved_user.email == db_user.email
 
-    async def test_get_user_by_email_not_found(self):
+    async def test_get_user_by_email_not_found(self, initialize_database):
         """Verify that crud.get_user_by_email returns None for a non-existent email."""
         # Act: Attempt to retrieve a user that doesn't exist.
         retrieved_user = await crud.get_user_by_email("nonexistent@example.com")
@@ -108,7 +109,7 @@ class TestUserCrud:
         # Assert: The function should return None.
         assert retrieved_user is None
 
-    async def test_get_user_by_username(self, user_factory):
+    async def test_get_user_by_username(self, initialize_database, user_factory):
         """Verify that crud.get_user_by_username retrieves a user by its username."""
         # Arrange: Create a user in the DB to retrieve.
         db_user = await user_factory(self.USER_DATA[0])
@@ -122,7 +123,7 @@ class TestUserCrud:
         assert retrieved_user.username == db_user.username
         assert retrieved_user.email == db_user.email
 
-    async def test_get_user_by_username_not_found(self):
+    async def test_get_user_by_username_not_found(self, initialize_database):
         """Verify that crud.get_user_by_username returns None for a non-existent username."""
         # Act: Attempt to retrieve a user that doesn't exist.
         retrieved_user = await crud.get_user_by_username("nonexistent_username")
@@ -130,7 +131,7 @@ class TestUserCrud:
         # Assert: The function should return None.
         assert retrieved_user is None
 
-    async def test_get_all_users(self, user_factory):
+    async def test_get_all_users(self, initialize_database, user_factory):
         """Verify that crud.get_all_users retrieves all users."""
         # Arrange: Create multiple users in the DB.
         for user_data in self.USER_DATA:
@@ -144,7 +145,7 @@ class TestUserCrud:
         assert len(all_users) == len(self.USER_DATA)
         assert all(isinstance(user, UserRead) for user in all_users)
 
-    async def test_update_user(self, user_factory):
+    async def test_update_user(self, initialize_database, user_factory):
         """Verify that crud.update_user correctly updates a user."""
         # Arrange: Create a user to update.
         db_user = await user_factory(self.USER_DATA[0])
@@ -170,7 +171,7 @@ class TestUserCrud:
         assert db_user_after_update.email == update_data.email
         assert db_user_after_update.name == update_data.name
 
-    async def test_update_user_not_found(self):
+    async def test_update_user_not_found(self, initialize_database):
         """Verify that crud.update_user returns None for a non-existent ID."""
         # Arrange
         non_existent_id = UUID("00000000-0000-0000-0000-000000000000")
@@ -182,7 +183,7 @@ class TestUserCrud:
         # Assert
         assert result is None
 
-    async def test_delete_user(self, user_factory):
+    async def test_delete_user(self, initialize_database, user_factory):
         """Verify that crud.delete_user correctly deletes a user."""
         # Arrange: Create a user to delete.
         db_user = await user_factory(self.USER_DATA[0])
@@ -196,7 +197,7 @@ class TestUserCrud:
         assert await UserModel.all().count() == 0
         assert await UserModel.get_or_none(id=db_user.id) is None
 
-    async def test_delete_user_not_found(self):
+    async def test_delete_user_not_found(self, initialize_database):
         """Verify that crud.delete_user returns False for a non-existent ID."""
         # Act
         non_existent_id = UUID("00000000-0000-0000-0000-000000000000")
@@ -205,7 +206,7 @@ class TestUserCrud:
         # Assert
         assert result is False
 
-    async def test_is_admin(self, user_factory):
+    async def test_is_admin(self, initialize_database, user_factory):
         """Verify that crud.is_admin correctly checks admin status."""
         # Arrange: Create a regular user and an admin user
         user_data = self.USER_DATA[0].copy()
@@ -220,7 +221,7 @@ class TestUserCrud:
         assert await crud.is_admin(regular_user.id) is False
         assert await crud.is_admin(admin_user.id) is True
 
-    async def test_is_admin_user_not_found(self):
+    async def test_is_admin_user_not_found(self, initialize_database):
         """Verify that crud.is_admin returns False for a non-existent ID."""
         # Act
         non_existent_id = UUID("00000000-0000-0000-0000-000000000000")
@@ -229,7 +230,7 @@ class TestUserCrud:
         # Assert
         assert result is False
 
-    async def test_set_admin_status(self, user_factory):
+    async def test_set_admin_status(self, initialize_database, user_factory):
         """Verify that crud.set_admin_status correctly updates admin status."""
         # Arrange: Create a user
         user_data = self.USER_DATA[0].copy()
@@ -258,7 +259,7 @@ class TestUserCrud:
         db_user_after_update = await UserModel.get(id=db_user.id)
         assert db_user_after_update.is_admin is False
 
-    async def test_set_admin_status_user_not_found(self):
+    async def test_set_admin_status_user_not_found(self, initialize_database):
         """Verify that crud.set_admin_status returns None for a non-existent ID."""
         # Act
         non_existent_id = UUID("00000000-0000-0000-0000-000000000000")

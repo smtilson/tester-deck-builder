@@ -10,6 +10,7 @@ from fast_backend.app.models.users import User
 
 @pytest.mark.skip
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("initialize_database")
 class TestUserModel:
     """
     Test suite for the User model's database operations (CRUD).
@@ -26,7 +27,7 @@ class TestUserModel:
     ]
 
     @pytest.mark.parametrize("user_data", USER_DATA)
-    async def test_create_user(self, user_factory, user_data):
+    async def test_create_user(self, initialize_database, user_factory, user_data):
         """Verify that a User can be created in the database."""
         # Arrange: Use the factory to create the user in the database.
         created_user = await user_factory(user_data)
@@ -46,7 +47,7 @@ class TestUserModel:
         db_user = await User.get(id=created_user.id)
         assert db_user is not None
 
-    async def test_email_is_required(self, user_factory):
+    async def test_email_is_required(self, initialize_database, user_factory):
         """Verify that a User cannot be created without an email."""
         # Arrange: Define user data without the 'email' field.
         user_data = {
@@ -59,7 +60,7 @@ class TestUserModel:
         with pytest.raises(ValidationError):
             await user_factory(user_data)
 
-    async def test_username_is_required(self, user_factory):
+    async def test_username_is_required(self, initialize_database, user_factory):
         """Verify that a User cannot be created without a username."""
         # Arrange: Define user data without the 'username' field.
         user_data = {
@@ -72,7 +73,7 @@ class TestUserModel:
         with pytest.raises(ValidationError):
             await user_factory(user_data)
 
-    async def test_hashed_password_is_required(self, user_factory):
+    async def test_hashed_password_is_required(self, initialize_database, user_factory):
         """Verify that a User cannot be created without a hashed_password."""
         # Arrange: Define user data without the 'hashed_password' field.
         user_data = {
@@ -85,7 +86,7 @@ class TestUserModel:
         with pytest.raises(ValidationError):
             await user_factory(user_data)
 
-    async def test_name_is_optional(self, user_factory):
+    async def test_name_is_optional(self, initialize_database, user_factory):
         """Verify that a User can be created without a name."""
         # Arrange: Define user data without the 'name' field.
         user_data = {
@@ -104,7 +105,7 @@ class TestUserModel:
         assert created_user.name is None
 
     @pytest.mark.parametrize("user_data", USER_DATA)
-    async def test_read_user(self, user_factory, user_data):
+    async def test_read_user(self, initialize_database, user_factory, user_data):
         """Verify that a User can be read from the database."""
         # Arrange: Create a user to be read.
         created_user = await user_factory(user_data)
@@ -119,7 +120,7 @@ class TestUserModel:
         assert read_user.name == user_data["name"]
 
     @pytest.mark.parametrize("user_data", USER_DATA)
-    async def test_update_user(self, user_factory, user_data):
+    async def test_update_user(self, initialize_database, user_factory, user_data):
         """Verify that a User's attributes can be updated."""
         # Arrange: Create a user.
         user = await user_factory(user_data)
@@ -137,7 +138,7 @@ class TestUserModel:
         assert updated_user.updated_at > original_updated_at
 
     @pytest.mark.parametrize("user_data", USER_DATA)
-    async def test_delete_user(self, user_factory, user_data):
+    async def test_delete_user(self, initialize_database, user_factory, user_data):
         """Verify that a User can be deleted from the database."""
         # Arrange: Create a user to be deleted.
         user_to_delete = await user_factory(user_data)
@@ -154,7 +155,7 @@ class TestUserModel:
         with pytest.raises(DoesNotExist):
             await User.get(id=user_id)
 
-    async def test_uniqu_e_email_constraint(self, user_factory):
+    async def test_uniqu_e_email_constraint(self, initialize_database, user_factory):
         """Verify that a User cannot be created with a duplicate email."""
         # Arrange: Create a user with a specific email.
         user_data = {
@@ -175,7 +176,7 @@ class TestUserModel:
         with pytest.raises(IntegrityError):
             await user_factory(duplicate_data)
 
-    async def test_unique_username_constraint(self, user_factory):
+    async def test_unique_username_constraint(self, initialize_database, user_factory):
         """Verify that a User cannot be created with a duplicate username."""
         # Arrange: Create a user with a specific username.
         user_data = {
@@ -196,7 +197,7 @@ class TestUserModel:
         with pytest.raises(IntegrityError):
             await user_factory(duplicate_data)
 
-    async def test_str_representation(self, user_factory):
+    async def test_str_representation(self, initialize_database, user_factory):
         """Verify the string representation of the User model."""
         # Test with username
         user_data = {

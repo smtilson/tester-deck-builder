@@ -11,6 +11,7 @@ from fast_backend.app.schemas.decks import DeckCreate, DeckResponse, DeckUpdate
 
 @pytest.mark.skip
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("initialize_database")
 class TestDeckCrud:
     """
     Test suite for the Deck CRUD functions.
@@ -23,7 +24,7 @@ class TestDeckCrud:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("deck_data", DECK_DATA)
-    async def test_create_deck(self, deck_data):
+    async def test_create_deck(self, initialize_database, deck_data):
         """Verify that crud.create_deck_record correctly creates a deck."""
         # Arrange: Create a Pydantic schema for the new deck.
         deck_to_create = DeckCreate(**deck_data)
@@ -54,7 +55,7 @@ class TestDeckCrud:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("deck_data", DECK_DATA)
-    async def test_get_deck(self, deck_factory, deck_data):
+    async def test_get_deck(self, initialize_database, deck_factory, deck_data):
         """Verify that crud.get_deck retrieves a deck by its ID."""
         # Arrange: Create a deck in the DB to retrieve.
         db_deck = await deck_factory(deck_data)
@@ -69,7 +70,7 @@ class TestDeckCrud:
         assert retrieved_deck.description == db_deck.description
 
     @pytest.mark.asyncio
-    async def test_get_deck_not_found(self):
+    async def test_get_deck_not_found(self, initialize_database):
         """Verify that crud.get_deck returns None for a non-existent ID."""
         # Act: Attempt to retrieve a deck that doesn't exist.
         retrieved_deck = await crud.get_deck(999)
@@ -78,7 +79,7 @@ class TestDeckCrud:
         assert retrieved_deck is None
 
     @pytest.mark.asyncio
-    async def test_get_all_decks(self, deck_factory):
+    async def test_get_all_decks(self, initialize_database, deck_factory):
         """Verify that crud.get_all_decks retrieves all decks."""
         # Arrange: Create multiple decks in the DB.
         for deck_data in self.DECK_DATA:
@@ -94,7 +95,7 @@ class TestDeckCrud:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("deck_data", DECK_DATA)
-    async def test_update_deck(self, deck_factory, deck_data):
+    async def test_update_deck(self, initialize_database, deck_factory, deck_data):
         """Verify that crud.update_deck correctly updates a deck."""
         # Arrange: Create a deck to update.
         db_deck = await deck_factory(deck_data)
@@ -116,7 +117,7 @@ class TestDeckCrud:
         assert db_deck_after_update.description == update_data.description
 
     @pytest.mark.asyncio
-    async def test_update_deck_not_found(self):
+    async def test_update_deck_not_found(self, initialize_database):
         """Verify that crud.update_deck returns None for a non-existent ID."""
         # Arrange
         update_data = DeckUpdate(name="This will fail")
@@ -129,7 +130,7 @@ class TestDeckCrud:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("deck_data", DECK_DATA)
-    async def test_delete_deck(self, deck_factory, deck_data):
+    async def test_delete_deck(self, initialize_database, deck_factory, deck_data):
         """Verify that crud.delete_deck correctly deletes a deck."""
         # Arrange: Create a deck to delete.
         db_deck = await deck_factory(deck_data)
@@ -144,7 +145,7 @@ class TestDeckCrud:
         assert await DeckModel.get_or_none(id=db_deck.id) is None
 
     @pytest.mark.asyncio
-    async def test_delete_deck_not_found(self):
+    async def test_delete_deck_not_found(self, initialize_database):
         """Verify that crud.delete_deck returns False for a non-existent ID."""
         # Act
         result = await crud.delete_deck(999)

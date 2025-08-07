@@ -11,20 +11,23 @@ from fastapi_users_tortoise import TortoiseUserDatabase
 
 @pytest.mark.skip
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("initialize_database")
 class TestUserDatabase:
     """Test suite for user database operations."""
 
-    async def test_get_user_db_returns_tortoise_user_database(self):
+    async def test_get_user_db_returns_tortoise_user_database(
+        self, initialize_database
+    ):
         """Test that get_user_db returns a TortoiseUserDatabase instance."""
         async for user_db in get_user_db():
             assert isinstance(user_db, TortoiseUserDatabase)
 
-    async def test_initial_database_is_empty(self):
+    async def test_initial_database_is_empty(self, initialize_database):
         """Test that the database is empty initially."""
         async for user_db in get_user_db():
             assert await UserORM.all().count() == 0
 
-    async def test_create_user_returns_valid_user(self):
+    async def test_create_user_returns_valid_user(self, initialize_database):
         """Test that creating a user returns a valid user object."""
         async for user_db in get_user_db():
             user_data = {
@@ -42,7 +45,7 @@ class TestUserDatabase:
             assert created_user.email == "test@example.com"
             assert created_user.hashed_password is not None
 
-    async def test_created_user_has_expected_defaults(self):
+    async def test_created_user_has_expected_defaults(self, initialize_database):
         """Test that created users have expected default values."""
         async for user_db in get_user_db():
             # Clear any existing users
@@ -59,7 +62,7 @@ class TestUserDatabase:
             assert created_user.is_active is True
             # Add other default value checks as needed
 
-    async def test_created_user_is_stored_in_database(self):
+    async def test_created_user_is_stored_in_database(self, initialize_database):
         """Test that created users are properly stored in the database."""
         async for user_db in get_user_db():
             # Clear any existing users
@@ -78,7 +81,7 @@ class TestUserDatabase:
             assert user_in_db.username == "dbuser"
             assert user_in_db.email == "db@example.com"
 
-    async def test_get_user_by_id(self):
+    async def test_get_user_by_id(self, initialize_database):
         """Test retrieving a user by ID."""
         async for user_db in get_user_db():
             # Clear any existing users
@@ -100,7 +103,7 @@ class TestUserDatabase:
             assert isinstance(user_by_id, UserORM)
             assert user_by_id.email == "existing@example.com"
 
-    async def test_get_user_by_email(self):
+    async def test_get_user_by_email(self, initialize_database):
         """Test retrieving a user by email."""
         async for user_db in get_user_db():
             # Clear any existing users
@@ -122,7 +125,7 @@ class TestUserDatabase:
             assert isinstance(user_by_email, UserORM)
             assert user_by_email.id == test_user_id
 
-    async def test_get_nonexistent_user_returns_none(self):
+    async def test_get_nonexistent_user_returns_none(self, initialize_database):
         """Test that getting a non-existent user returns None."""
         async for user_db in get_user_db():
             test_id = UUID("12345678-1234-5678-1234-567812345678")
@@ -133,7 +136,7 @@ class TestUserDatabase:
             non_user2 = await user_db.get_by_email("nonexistent@example.com")
             assert non_user2 is None
 
-    async def test_update_user(self):
+    async def test_update_user(self, initialize_database):
         """Test updating a user's basic information."""
         async for user_db in get_user_db():
             # Clear any existing users
@@ -161,7 +164,7 @@ class TestUserDatabase:
             assert updated_user.email == "updated@example.com"
             assert updated_user.username == "updateduser"
 
-    async def test_update_user_status(self):
+    async def test_update_user_status(self, initialize_database):
         """Test updating a user's status fields."""
         async for user_db in get_user_db():
             # Clear any existing users
@@ -190,7 +193,7 @@ class TestUserDatabase:
             assert updated_user.is_verified is True
             assert updated_user.is_superuser is True
 
-    async def test_update_preserves_password(self):
+    async def test_update_preserves_password(self, initialize_database):
         """Test that updating a user doesn't change the password hash."""
         async for user_db in get_user_db():
             # Clear any existing users
@@ -216,7 +219,7 @@ class TestUserDatabase:
             updated_user = await user_db.update(original_user, updated_data)
             assert updated_user.hashed_password == "oldhash"
 
-    async def test_update_persists_to_database(self):
+    async def test_update_persists_to_database(self, initialize_database):
         """Test that updates are persisted to the database."""
         async for user_db in get_user_db():
             # Clear any existing users
@@ -246,7 +249,7 @@ class TestUserDatabase:
             assert user_in_db.email == "updated@example.com"
             assert user_in_db.is_active is False
 
-    async def test_delete_user(self):
+    async def test_delete_user(self, initialize_database):
         """Test deleting a user removes them from the database."""
         async for user_db in get_user_db():
             # Clear any existing users
@@ -267,7 +270,7 @@ class TestUserDatabase:
 
             assert await UserORM.all().count() == 0
 
-    async def test_deleted_user_cannot_be_retrieved(self):
+    async def test_deleted_user_cannot_be_retrieved(self, initialize_database):
         """Test that deleted users cannot be retrieved."""
         async for user_db in get_user_db():
             # Clear any existing users

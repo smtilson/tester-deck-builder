@@ -19,11 +19,11 @@ import json
 from datetime import datetime
 from typing import Dict, Any, List
 
-from app.models.users import User
-from app.models.cards import Card
-from app.models.decks import Deck
-from app.models.deck_cards import DeckCard
-from app.db.config import init_db, close_db
+from .models.users import User
+from .models.cards import Card
+from .models.decks import Deck
+from .models.deck_cards import DeckCard
+from .db.config import init_db, close_db
 
 
 class DatabaseUtils:

@@ -4,6 +4,7 @@ from ...models.deck_cards import DeckCard as DeckCardModel
 from ...schemas.deck_cards import DeckCardResponse, DeckCardCreate, DeckCardUpdate
 from ...models.decks import Deck as DeckModel
 from ...models.cards import Card as CardModel
+from ...crud.deck_cards import DeckCardRepo as crud
 
 router = APIRouter()
 

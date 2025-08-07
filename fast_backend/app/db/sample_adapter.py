@@ -18,7 +18,7 @@ TORTOISE_CONFIG = {
     "connections": {"default": "sqlite://:memory:"},
     "apps": {
         "models": {
-            "models": ["app.models.users"], # Path to your user model
+            "models": ["fast_backend.app.models.users"], # Path to your user model
             "default_connection": "default",
         }
     }

@@ -64,6 +64,7 @@ def unit_user_manager(mock_user_db, mock_password_helper):
 
 @pytest.mark.skip
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("initialize_database")
 class TestUserManagerUnit:
     """Unit tests for UserManager with mocked dependencies."""
 

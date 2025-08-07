@@ -17,11 +17,11 @@ import random
 
 from fastapi_users.password import PasswordHelper
 
-from app.models.users import User
-from app.models.cards import Card
-from app.models.decks import Deck
-from app.models.deck_cards import DeckCard
-from app.db.config import init_db, close_db
+from .models.users import User
+from .models.cards import Card
+from .models.decks import Deck
+from .models.deck_cards import DeckCard
+from .db.config import init_db, close_db
 
 
 async def quick_populate():

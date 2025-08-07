@@ -16,12 +16,15 @@ from fast_backend.app.schemas.deck_cards import (
 
 @pytest.mark.skip
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("initialize_database")
 class TestDeckCardCrud:
     """
     Test suite for the DeckCard CRUD functions.
     """
 
-    async def test_add_new_card_to_deck(self, deck_factory, card_factory):
+    async def test_add_new_card_to_deck(
+        self, initialize_database, deck_factory, card_factory
+    ):
         """Verify that a new card can be added to a deck."""
         # Arrange
         deck = await deck_factory({"name": "Test Deck"})
@@ -43,7 +46,7 @@ class TestDeckCardCrud:
         assert db_link.quantity == 2
 
     async def test_add_card_to_deck_creates_relationship(
-        self, deck_factory, card_factory
+        self, initialize_database, deck_factory, card_factory
     ):
         """Verify that a new card link is created when adding a card to a deck."""
         # Arrange
@@ -64,7 +67,7 @@ class TestDeckCardCrud:
         assert db_card.deck_cards[0].deck == db_deck
 
     async def test_add_existing_card_to_deck_increases_quantity(
-        self, deck_factory, card_factory
+        self, initialize_database, deck_factory, card_factory
     ):
         """Verify that adding an existing card to a deck increases its quantity."""
         # Arrange
@@ -92,7 +95,9 @@ class TestDeckCardCrud:
         assert len(db_deck.deck_cards) == 1
         assert db_deck.deck_cards[0].quantity == 4
 
-    async def test_get_cards_for_deck(self, deck_factory, card_factory):
+    async def test_get_cards_for_deck(
+        self, initialize_database, deck_factory, card_factory
+    ):
         """Verify that all cards for a specific deck are retrieved."""
         # Arrange
         deck = await deck_factory({"name": "Test Deck"})
@@ -110,7 +115,7 @@ class TestDeckCardCrud:
         assert all(isinstance(r, DeckCardResponseWithCard) for r in results)
         assert {r.card.name for r in results} == {"Card 1", "Card 2"}
 
-    async def test_get_cards_for_empty_deck(self, deck_factory):
+    async def test_get_cards_for_empty_deck(self, initialize_database, deck_factory):
         """Verify that getting cards for an empty deck returns an empty list."""
         # Arrange
         deck = await deck_factory({"name": "Empty Deck"})
@@ -122,7 +127,9 @@ class TestDeckCardCrud:
         assert isinstance(results, list)
         assert len(results) == 0
 
-    async def test_update_card_quantity_in_deck(self, deck_factory, card_factory):
+    async def test_update_card_quantity_in_deck(
+        self, initialize_database, deck_factory, card_factory
+    ):
         """Verify that the quantity of a card in a deck can be updated."""
         # Arrange
         deck = await deck_factory({"name": "Test Deck"})
@@ -142,7 +149,7 @@ class TestDeckCardCrud:
         db_link = await DeckCardModel.get(id=link.id)
         assert db_link.quantity == 5
 
-    async def test_update_quantity_card_not_found(self):
+    async def test_update_quantity_card_not_found(self, initialize_database):
         """Verify that updating a non-existent deck-card link returns None."""
         # Arrange
         update_data = DeckCardUpdate(quantity=5)
@@ -151,7 +158,9 @@ class TestDeckCardCrud:
         # Assert
         assert result is None
 
-    async def test_remove_card_from_deck(self, deck_factory, card_factory):
+    async def test_remove_card_from_deck(
+        self, initialize_database, deck_factory, card_factory
+    ):
         """Verify that a card can be removed from a deck."""
         # Arrange
         deck = await deck_factory({"name": "Test Deck"})
@@ -175,7 +184,7 @@ class TestDeckCardCrud:
         db_card = await CardModel.get(id=card.id).prefetch_related("deck_cards")
         assert len(db_card.deck_cards) == 0
 
-    async def test_remove_card_from_deck_not_found(self):
+    async def test_remove_card_from_deck_not_found(self, initialize_database):
         """Verify that removing a non-existent deck-card link returns False."""
         # Act
         result = await crud.remove_card_from_deck(999)

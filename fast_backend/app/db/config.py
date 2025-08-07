@@ -6,10 +6,10 @@ from ..core.config import settings
 
 
 MODEL_PATHS = [
-    "app.models.users",
-    "app.models.decks",
-    "app.models.deck_cards",
-    "app.models.cards",
+    "fast_backend.app.models.users",
+    "fast_backend.app.models.decks",
+    "fast_backend.app.models.deck_cards",
+    "fast_backend.app.models.cards",
 ]
 
 AERICH_PATH = ["aerich.models"]

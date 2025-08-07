@@ -7,9 +7,12 @@ from unittest.mock import patch, MagicMock, AsyncMock
 from fast_backend.app.models.users import User as UserORM
 from fast_backend.app.schemas.users import UserCreate, UserUpdate
 from fast_backend.app.core.config import Environment, settings
-from fastapi_users.exceptions import UserAlreadyExists, InvalidPasswordException, UserNotExists
+from fastapi_users.exceptions import (
+    UserAlreadyExists,
+    InvalidPasswordException,
+    UserNotExists,
+)
 from test_fast_backend.conftest import SAMPLE_USERS
-
 
 
 @pytest.fixture
@@ -25,23 +28,26 @@ def mock_token_generator():
     mock_generator.generate.return_value = "mock_token"
     mock_generator.verify.return_value = "mock_user_id"
     mock_generator.create.return_value = "mock_token_payload"
-    
+
     return mock_generator
+
+
 @pytest.mark.skip
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("initialize_database")
 class TestUserManagerIntegration:
     """Integration tests for UserManager with real database interactions."""
 
-    
     async def test_create_user_success(
-        self, 
-        #mock_queue_enqueue, mock_render_template, 
+        self,
+        initialize_database,
+        # mock_queue_enqueue, mock_render_template,
         mock_on_after_register_spy,
-        user_manager
+        user_manager,
     ):
         """Test successful user creation with email and queue callbacks."""
-        #mock_render_template.return_value = "Welcome email HTML"
-        #mock_queue_enqueue.return_value = None
+        # mock_render_template.return_value = "Welcome email HTML"
+        # mock_queue_enqueue.return_value = None
         print("test started")
         user_data = SAMPLE_USERS[0]
         user_create = UserCreate(**user_data)
@@ -76,9 +82,8 @@ class TestUserManagerIntegration:
         mock_on_after_register_spy.called_once()
         mock_on_after_register_spy.render_email_template.assert_called_once()
         mock_on_after_register_spy.queue_enqueue.enqueue.assert_called_once()
-        
-    
-    async def test_create_user_duplicate_email(self, user_manager):
+
+    async def test_create_user_duplicate_email(self, initialize_database, user_manager):
         """Test that creating a user with existing email raises UserAlreadyExists."""
         user_data = SAMPLE_USERS[0]
         user_create = UserCreate(**user_data)
@@ -93,8 +98,10 @@ class TestUserManagerIntegration:
 
         with pytest.raises(UserAlreadyExists):
             await user_manager.create(duplicate_create)
-    
-    async def test_create_user_duplicate_username(self, user_manager):
+
+    async def test_create_user_duplicate_username(
+        self, initialize_database, user_manager
+    ):
         """Test that creating a user with existing username raises UserAlreadyExists."""
         user_data = SAMPLE_USERS[0]
         user_create = UserCreate(**user_data)
@@ -109,22 +116,23 @@ class TestUserManagerIntegration:
 
         with pytest.raises(UserAlreadyExists):
             await user_manager.create(duplicate_create)
-    
-    async def test_authenticate_success(self, user_manager):
+
+    async def test_authenticate_success(self, initialize_database, user_manager):
         """Test successful authentication with correct credentials."""
         user_data = SAMPLE_USERS[0]
         user_create = UserCreate(**user_data)
         created_user = await user_manager.create(user_create)
 
-        credentials = MagicMock(username=user_data["email"], password=user_data["password"])
+        credentials = MagicMock(
+            username=user_data["email"], password=user_data["password"]
+        )
         authenticated_user = await user_manager.authenticate(credentials)
-
 
         assert authenticated_user is not None
         assert authenticated_user.email == created_user.email
         assert authenticated_user.id == created_user.id
-    
-    async def test_authenticate_wrong_password(self, user_manager):
+
+    async def test_authenticate_wrong_password(self, initialize_database, user_manager):
         """Test authentication failure with incorrect password."""
         user_data = SAMPLE_USERS[0]
         user_create = UserCreate(**user_data)
@@ -134,16 +142,19 @@ class TestUserManagerIntegration:
 
         assert authenticated_user is None
 
-    
-    async def test_validate_password_dev_environment(self, user_manager):
+    async def test_validate_password_dev_environment(
+        self, initialize_database, user_manager
+    ):
         """Test password validation in development environment."""
         user = UserORM(email="test@example.com", username="test", hashed_password="abc")
         password = "ValidPassword123!"
 
         # Should not raise exception in dev environment
         await user_manager.validate_password(password, user)
-    
-    async def test_validate_password_prod_environment(self, user_manager):
+
+    async def test_validate_password_prod_environment(
+        self, initialize_database, user_manager
+    ):
         """Test password validation in production environment."""
         user = UserORM(email="test@example.com", username="test", hashed_password="abc")
 
@@ -168,8 +179,8 @@ class TestUserManagerIntegration:
                 InvalidPasswordException, match="not contain only numeric values"
             ):
                 await user_manager.validate_password("123456789", user)
-    
-    async def test_update_user_password(self, user_manager):
+
+    async def test_update_user_password(self, initialize_database, user_manager):
         """Test updating a user's password."""
         user_data = SAMPLE_USERS[0]
         user_create = UserCreate(**user_data)
@@ -185,21 +196,19 @@ class TestUserManagerIntegration:
         assert updated_user.hashed_password != old_password_hash
 
         # Verify old password no longer works
-        credentials = MagicMock(username=user_data["email"], password=user_data["password"])
-
-        assert (
-            await user_manager.authenticate(credentials)
-            is None
+        credentials = MagicMock(
+            username=user_data["email"], password=user_data["password"]
         )
+
+        assert await user_manager.authenticate(credentials) is None
 
         # Verify new password works
-        new_credentials = MagicMock(username=user_data["email"], password="NewPassword456!")
-        assert (
-            await user_manager.authenticate(new_credentials)
-            is not None
+        new_credentials = MagicMock(
+            username=user_data["email"], password="NewPassword456!"
         )
-    
-    async def test_update_user_fields(self, user_manager):
+        assert await user_manager.authenticate(new_credentials) is not None
+
+    async def test_update_user_fields(self, initialize_database, user_manager):
         """Test updating non-password user fields."""
         user_data = SAMPLE_USERS[0]
         user_create = UserCreate(**user_data)
@@ -226,8 +235,8 @@ class TestUserManagerIntegration:
         user_in_db = await UserORM.get(id=created_user.id)
         assert user_in_db.username == "updated_username"
         assert user_in_db.email == "updated@example.com"
-    
-    async def test_delete_user(self, user_manager):
+
+    async def test_delete_user(self, initialize_database, user_manager):
         """Test deleting a user."""
         user_data = SAMPLE_USERS[0]
         user_create = UserCreate(**user_data)
