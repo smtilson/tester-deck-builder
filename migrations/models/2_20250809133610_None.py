@@ -13,8 +13,9 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "version" VARCHAR(50),
-    "short_name" VARCHAR(255),
-    "full_name" VARCHAR(255)
+    "username" VARCHAR(255) NOT NULL UNIQUE,
+    "name" VARCHAR(255),
+    "is_admin" BOOL NOT NULL DEFAULT False
 );
 CREATE INDEX IF NOT EXISTS "idx_users_email_133a6f" ON "users" ("email");
 CREATE TABLE IF NOT EXISTS "decks" (
@@ -25,7 +26,7 @@ CREATE TABLE IF NOT EXISTS "decks" (
     "name" VARCHAR(255) NOT NULL UNIQUE,
     "description" TEXT,
     "is_valid" BOOL NOT NULL DEFAULT False,
-    "owner_id" INT NOT NULL
+    "owner_id" UUID NOT NULL
 );
 CREATE TABLE IF NOT EXISTS "cards" (
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,

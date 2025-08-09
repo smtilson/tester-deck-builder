@@ -1,4 +1,5 @@
 import pytest
+
 from uuid import UUID
 from pydantic import ValidationError
 
@@ -10,7 +11,7 @@ from fast_backend.app.schemas.users import UserCreate, UserRead, UserUpdate
 # for each test. We'll also assume it provides a `user_factory` similar to `card_factory`.
 
 
-@pytest.mark.skip
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("initialize_database")
 class TestUserCrud:

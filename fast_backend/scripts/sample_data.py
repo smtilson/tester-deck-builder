@@ -10,8 +10,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from app.models.cards import Card
 from app.models.decks import Deck
+from app.models.users import User
 from app.models.deck_cards import DeckCard
-from app.api.db.config import init_db, close_db
+from app.db.config import init_db, close_db
 from tortoise import Tortoise
 
 async def add_sample_data():
@@ -26,12 +27,16 @@ async def add_sample_data():
             text="This is a sample card for testing",
         )
         print(f"Created card: {card.name} (ID: {card.id})")
-
+        user = await User.create(
+            username="testuser",
+            email="testuser@example.com",
+            name="Test User",
+        )
         # Create a sample deck
         deck = await Deck.create(
             name="Sample Deck",
             description="This is a sample deck for testing",
-            owner_id=1,  # Placeholder owner ID
+            owner=user
         )
         print(f"Created deck: {deck.name} (ID: {deck.id})")
 

@@ -1,4 +1,5 @@
 from typing import Any, AsyncGenerator, Dict
+
 from uuid import UUID
 
 import pytest
@@ -56,10 +57,10 @@ async def tortoise_user_db_oauth() -> (
     await Tortoise.close_connections()
 
 
-@pytest.mark.skip
+@pytest.mark.skip("Toby test")
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("initialize_database")
 async def test_queries(
-    initialize_database,
     tortoise_user_db: TortoiseUserDatabase[User, UUID],
     oauth_account1: dict,
 ):
@@ -114,7 +115,7 @@ async def test_queries(
         await tortoise_user_db.update_oauth_account(user, oauth_account, {})
 
 
-@pytest.mark.skip
+@pytest.mark.skip("Toby test")
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "email,query,found",
@@ -152,10 +153,10 @@ async def test_email_query(
         assert email_user is None
 
 
-@pytest.mark.skip
+@pytest.mark.skip("Toby test")
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("initialize_database")
 async def test_insert_existing_email(
-    initialize_database,
     tortoise_user_db: TortoiseUserDatabase[User, UUID],
 ):
     user_create = {
@@ -168,10 +169,10 @@ async def test_insert_existing_email(
         await tortoise_user_db.create(user_create)
 
 
-@pytest.mark.skip
+@pytest.mark.skip("Toby test")
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("initialize_database")
 async def test_queries_custom_fields(
-    initialize_database,
     tortoise_user_db: TortoiseUserDatabase[User, UUID],
 ):
     """It should output custom fields in query result."""
@@ -189,10 +190,10 @@ async def test_queries_custom_fields(
     assert id_user.first_name == user.first_name
 
 
-@pytest.mark.skip
+@pytest.mark.skip("Toby test")
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("initialize_database")
 async def test_queries_oauth(
-    initialize_database,
     tortoise_user_db_oauth: TortoiseUserDatabase[OAuthAccount, UUID],
     oauth_account1: Dict[str, Any],
     oauth_account2: Dict[str, Any],

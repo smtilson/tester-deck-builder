@@ -32,7 +32,7 @@ def mock_token_generator():
     return mock_generator
 
 
-@pytest.mark.skip
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("initialize_database")
 class TestUserManagerIntegration:

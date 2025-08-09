@@ -9,7 +9,7 @@ from fast_backend.app.models.cards import Card
 # and the necessary factories: `deck_factory`, `card_factory`, `deck_card_factory`.
 
 
-@pytest.mark.skip
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("initialize_database")
 class TestDeckCardModel:
@@ -27,7 +27,6 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("deck_data", DECK_DATA)
     async def test_create_deck_card_link_object(
         self,
-        initialize_database,
         deck_factory,
         card_factory,
         deck_card_factory,
@@ -62,7 +61,6 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("deck_data", DECK_DATA)
     async def test_deck_sees_linked_card_after_creation(
         self,
-        initialize_database,
         deck_factory,
         card_factory,
         deck_card_factory,
@@ -91,7 +89,6 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("deck_data", DECK_DATA)
     async def test_card_sees_linked_deck_after_creation(
         self,
-        initialize_database,
         deck_factory,
         card_factory,
         deck_card_factory,
@@ -120,7 +117,6 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("card_data", CARD_DATA)
     async def test_read_deck_card_link(
         self,
-        initialize_database,
         deck_factory,
         card_factory,
         deck_card_factory,
@@ -146,7 +142,6 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("card_data", CARD_DATA)
     async def test_update_deck_card_quantity(
         self,
-        initialize_database,
         deck_factory,
         card_factory,
         deck_card_factory,
@@ -171,7 +166,6 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("card_data", CARD_DATA)
     async def test_deck_sees_updated_quantity(
         self,
-        initialize_database,
         deck_factory,
         card_factory,
         deck_card_factory,
@@ -198,7 +192,6 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("card_data", CARD_DATA)
     async def test_card_sees_updated_quantity(
         self,
-        initialize_database,
         deck_factory,
         card_factory,
         deck_card_factory,
@@ -225,7 +218,6 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("card_data", CARD_DATA)
     async def test_deck_card_uniqueness(
         self,
-        initialize_database,
         deck_factory,
         card_factory,
         deck_card_factory,
@@ -249,7 +241,6 @@ class TestDeckCardModel:
     @pytest.mark.parametrize("card_data", CARD_DATA)
     async def test_delete_deck_card_link(
         self,
-        initialize_database,
         deck_factory,
         card_factory,
         deck_card_factory,
@@ -280,7 +271,7 @@ class TestDeckCardModel:
         assert len(db_card.deck_cards) == 0
 
     async def test_deleting_deck_cascades_to_deck_card(
-        self, initialize_database, deck_factory, card_factory, deck_card_factory
+        self, deck_factory, card_factory, deck_card_factory
     ):
         """Verify that deleting a Deck also deletes its DeckCard links."""
         # Arrange
@@ -299,7 +290,7 @@ class TestDeckCardModel:
         assert len(db_card.deck_cards) == 0
 
     async def test_deleting_card_cascades_to_deck_card(
-        self, initialize_database, deck_factory, card_factory, deck_card_factory
+        self, deck_factory, card_factory, deck_card_factory
     ):
         """Verify that deleting a Card also deletes its DeckCard links."""
         # Arrange
@@ -318,7 +309,7 @@ class TestDeckCardModel:
         assert len(db_deck.deck_cards) == 0
 
     async def test_deck_can_see_its_cards(
-        self, initialize_database, deck_factory, card_factory, deck_card_factory
+        self, deck_factory, card_factory, deck_card_factory
     ):
         """Verify that a Deck can access its linked Cards through the relationship."""
         # Arrange: Create a deck, a card, and link them.

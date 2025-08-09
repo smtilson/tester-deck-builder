@@ -1,7 +1,6 @@
 """Unit tests for UserManager - testing logic with mocked dependencies."""
 
 import pytest
-from uuid import UUID
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from fast_backend.app.auth.manager import UserManager
@@ -22,7 +21,7 @@ def mock_user_db():
     def get_by_email_side_effect(email: str):
         return mock_db._users.get(email)
 
-    def get_by_id_side_effect(user_id: UUID):
+    def get_by_id_side_effect(user_id: str):
         for user in mock_db._users.values():
             if user.id == user_id:
                 return user
@@ -62,7 +61,7 @@ def unit_user_manager(mock_user_db, mock_password_helper):
     return manager
 
 
-@pytest.mark.skip
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("initialize_database")
 class TestUserManagerUnit:
@@ -105,7 +104,6 @@ class TestUserManagerUnit:
         mock_render_template.assert_called_once()
         mock_queue_enqueue.assert_called_once()
 
-    @pytest.mark.skip
     async def test_create_user_already_exists(
         self, unit_user_manager, mock_user_db, mock_password_helper
     ):
@@ -124,7 +122,6 @@ class TestUserManagerUnit:
         # Verify database create was not called
         mock_user_db.create.assert_not_called()
 
-    @pytest.mark.skip
     async def test_authenticate_success(
         self, unit_user_manager, mock_user_db, mock_password_helper
     ):

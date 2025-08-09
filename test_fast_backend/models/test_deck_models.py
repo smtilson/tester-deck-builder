@@ -7,14 +7,14 @@ from fast_backend.app.models.decks import Deck
 from test_fast_backend.conftest import SAMPLE_DECKS
 
 
-@pytest.mark.skip
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("initialize_database")
 class TestDeckModel:
     """Test suite for Deck model database operations."""
 
     @pytest.mark.parametrize("deck_data", SAMPLE_DECKS)
-    async def test_create_deck(self, initialize_database, deck_factory, deck_data):
+    async def test_create_deck(self, deck_factory, deck_data):
         """Verify that a Deck can be created in the database."""
         created_deck = await deck_factory(deck_data)
 
@@ -30,9 +30,7 @@ class TestDeckModel:
         db_deck = await Deck.get(id=created_deck.id)
         assert db_deck is not None
 
-    async def test_deck_description_is_optional(
-        self, initialize_database, deck_factory
-    ):
+    async def test_deck_description_is_optional(self, deck_factory):
         """Verify that a Deck can be created without a description."""
         deck_data = {"name": "No Description Deck"}
 
@@ -46,7 +44,7 @@ class TestDeckModel:
         db_deck = await Deck.get(id=created_deck.id)
         assert db_deck.description is None
 
-    async def test_deck_name_is_required(self, initialize_database, deck_factory):
+    async def test_deck_name_is_required(self, deck_factory):
         """Verify that creating a Deck without a name raises an error."""
         deck_data = {"description": "This deck has no name"}
 
@@ -54,7 +52,7 @@ class TestDeckModel:
             await deck_factory(deck_data)
 
     @pytest.mark.parametrize("deck_data", SAMPLE_DECKS)
-    async def test_read_deck(self, initialize_database, deck_factory, deck_data):
+    async def test_read_deck(self, deck_factory, deck_data):
         """Verify that a Deck can be read from the database."""
         created_deck = await deck_factory(deck_data)
 
@@ -66,7 +64,7 @@ class TestDeckModel:
         assert read_deck.is_valid is False
 
     @pytest.mark.parametrize("deck_data", SAMPLE_DECKS)
-    async def test_update_deck(self, initialize_database, deck_factory, deck_data):
+    async def test_update_deck(self, deck_factory, deck_data):
         """Verify that a Deck's attributes can be updated."""
         deck = await deck_factory(deck_data)
         original_updated_at = deck.updated_at
@@ -85,7 +83,7 @@ class TestDeckModel:
         assert updated_deck.updated_at > original_updated_at
 
     @pytest.mark.parametrize("deck_data", SAMPLE_DECKS)
-    async def test_delete_deck(self, initialize_database, deck_factory, deck_data):
+    async def test_delete_deck(self, deck_factory, deck_data):
         """Verify that a Deck can be deleted from the database."""
         deck_to_delete = await deck_factory(deck_data)
         deck_id = deck_to_delete.id
@@ -101,7 +99,7 @@ class TestDeckModel:
         with pytest.raises(DoesNotExist):
             await Deck.get(id=deck_id)
 
-    async def test_deck_name_uniqueness(self, initialize_database, deck_factory):
+    async def test_deck_name_uniqueness(self, deck_factory):
         """Verify that deck names must be unique."""
         deck_data = {"name": "Unique Name Deck"}
         await deck_factory(deck_data)

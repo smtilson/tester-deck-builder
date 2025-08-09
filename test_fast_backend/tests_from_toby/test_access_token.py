@@ -53,11 +53,10 @@ def user_id() -> uuid.UUID:
     return uuid.uuid4()
 
 
-@pytest.mark.skip
+@pytest.mark.skip("Toby test")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("initialize_database")
 async def test_queries(
-    initialize_database,
     tortoise_access_token_db: TortoiseAccessTokenDatabase[AccessToken],
     user_id: Any,
 ):
@@ -107,7 +106,7 @@ async def test_queries(
     assert deleted_access_token is None
 
 
-@pytest.mark.skip
+@pytest.mark.skip("Toby test")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("initialize_database")
 async def test_insert_existing_token(
