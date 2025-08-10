@@ -1,4 +1,5 @@
 import pytest
+import pytest_asyncio
 
 from fast_backend.app.crud.deck_cards import DeckCardRepo
 from fast_backend.app.crud.decks import DeckRepo
@@ -8,35 +9,37 @@ from fast_backend.app.schemas.deck_cards import DeckCardCreate, DeckCardUpdate
 from fast_backend.app.schemas.decks import DeckCreate
 from fast_backend.app.schemas.cards import CardCreate
 from fast_backend.app.schemas.users import UserCreate
-from test_fast_backend.base_class import BaseTestData
 
 
-class TestDeckCardRepoAdd(BaseTestData):
+@pytest.mark.usefixtures("init_db")
+class TestDeckCardRepoAdd:
     """Integration tests for DeckCardRepo add card to deck operations."""
 
-    @pytest.fixture(autouse=True)
-    async def setup_deck_and_cards(self):
+    @pytest_asyncio.fixture(autouse=True)
+    async def setup_deck_and_cards(self, init_db, all_test_data):
         """Create test deck and cards for deck_card operations."""
         # Create user
-        user_data = self.get_user_by_username("testuser1")
-        self.owner = await UserRepo.create_user(UserCreate(**user_data))
+        user_data = all_test_data.get_user_by_username("testuser1")
+        owner = await UserRepo.create_user(UserCreate(**user_data))
         
         # Create deck
-        deck_data = self.get_deck_by_name("Red Burn Deck")
+        deck_data = all_test_data.get_deck_by_name("Red Burn Deck")
         deck_create = DeckCreate(
             name=deck_data["name"],
             description=deck_data["description"],
             is_valid=deck_data["is_valid"],
-            owner=self.owner
+            owner=owner
         )
-        self.test_deck = await DeckRepo.create_deck_record(deck_create)
+        test_deck = await DeckRepo.create_deck_record(deck_create)
         
         # Create cards
-        self.test_cards = []
-        for card_data in self.card_data:
+        test_cards = []
+        for card_data in all_test_data.card_data:
             card_create = CardCreate(name=card_data["name"], text=card_data["text"])
             created_card = await CardRepo.create_card(card_create)
-            self.test_cards.append(created_card)
+            test_cards.append(created_card)
+        
+        return {"owner": owner, "test_deck": test_deck, "test_cards": test_cards}
 
     @pytest.mark.asyncio
     async def test_add_card_to_deck_success(self):
@@ -52,6 +55,13 @@ class TestDeckCardRepoAdd(BaseTestData):
         assert isinstance(result.id, int)
         assert result.card.id == card.id
         assert result.card.name == card.name
+        
+        # Verify deck_card exists in database
+        from fast_backend.app.models.deck_cards import DeckCard
+        db_deck_card = await DeckCard.get(id=result.id)
+        assert db_deck_card.card_id == card.id
+        assert db_deck_card.deck_id == self.test_deck.id
+        assert db_deck_card.quantity == 4
 
     @pytest.mark.asyncio
     async def test_add_card_to_deck_default_quantity(self):
@@ -110,17 +120,17 @@ class TestDeckCardRepoAdd(BaseTestData):
         assert result.card_id == card.id
 
 
-class TestDeckCardRepoGet(BaseTestData):
+class TestDeckCardRepoGet:
     """Integration tests for DeckCardRepo get operations."""
 
-    @pytest.fixture(autouse=True)
-    async def setup_deck_with_cards(self):
+    @pytest_asyncio.fixture(autouse=True)
+    async def setup_deck_with_cards(self, init_db, all_test_data):
         """Create test deck with cards for get operations."""
         # Create user and deck
-        user_data = self.get_user_by_username("testuser1")
+        user_data = all_test_data.get_user_by_username("testuser1")
         self.owner = await UserRepo.create_user(UserCreate(**user_data))
         
-        deck_data = self.get_deck_by_name("Red Burn Deck")
+        deck_data = all_test_data.get_deck_by_name("Red Burn Deck")
         deck_create = DeckCreate(
             name=deck_data["name"],
             description=deck_data["description"],
@@ -131,7 +141,7 @@ class TestDeckCardRepoGet(BaseTestData):
         
         # Create cards
         self.test_cards = []
-        for card_data in self.card_data[:3]:  # Use first 3 cards
+        for card_data in all_test_data.card_data[:3]:  # Use first 3 cards
             card_create = CardCreate(name=card_data["name"], text=card_data["text"])
             created_card = await CardRepo.create_card(card_create)
             self.test_cards.append(created_card)
@@ -198,17 +208,17 @@ class TestDeckCardRepoGet(BaseTestData):
         assert result == []
 
 
-class TestDeckCardRepoUpdate(BaseTestData):
+class TestDeckCardRepoUpdate:
     """Integration tests for DeckCardRepo update operations."""
 
-    @pytest.fixture(autouse=True)
-    async def setup_deck_card(self):
+    @pytest_asyncio.fixture(autouse=True)
+    async def setup_deck_card(self, init_db, all_test_data):
         """Create test deck card for update operations."""
         # Create user, deck, and card
-        user_data = self.get_user_by_username("testuser1")
+        user_data = all_test_data.get_user_by_username("testuser1")
         self.owner = await UserRepo.create_user(UserCreate(**user_data))
         
-        deck_data = self.get_deck_by_name("Red Burn Deck")
+        deck_data = all_test_data.get_deck_by_name("Red Burn Deck")
         deck_create = DeckCreate(
             name=deck_data["name"],
             description=deck_data["description"],
@@ -217,7 +227,7 @@ class TestDeckCardRepoUpdate(BaseTestData):
         )
         self.test_deck = await DeckRepo.create_deck_record(deck_create)
         
-        card_data = self.get_card_by_name("Lightning Bolt")
+        card_data = all_test_data.get_card_by_name("Lightning Bolt")
         card_create = CardCreate(name=card_data["name"], text=card_data["text"])
         self.test_card = await CardRepo.create_card(card_create)
         
@@ -239,6 +249,11 @@ class TestDeckCardRepoUpdate(BaseTestData):
         assert result.quantity == 6
         assert result.card_id == self.test_deck_card.card_id
         assert result.deck_id == self.test_deck_card.deck_id
+        
+        # Verify update persisted in database
+        from fast_backend.app.models.deck_cards import DeckCard
+        db_deck_card = await DeckCard.get(id=self.test_deck_card.id)
+        assert db_deck_card.quantity == 6
 
     @pytest.mark.asyncio
     async def test_update_card_quantity_to_zero(self):
@@ -305,17 +320,17 @@ class TestDeckCardRepoUpdate(BaseTestData):
         assert result is None
 
 
-class TestDeckCardRepoRemove(BaseTestData):
+class TestDeckCardRepoRemove:
     """Integration tests for DeckCardRepo remove operations."""
 
-    @pytest.fixture(autouse=True)
-    async def setup_deck_card(self):
+    @pytest_asyncio.fixture(autouse=True)
+    async def setup_deck_card(self, init_db, all_test_data):
         """Create test deck card for remove operations."""
         # Create user, deck, and card
-        user_data = self.get_user_by_username("testuser1")
+        user_data = all_test_data.get_user_by_username("testuser1")
         self.owner = await UserRepo.create_user(UserCreate(**user_data))
         
-        deck_data = self.get_deck_by_name("Red Burn Deck")
+        deck_data = all_test_data.get_deck_by_name("Red Burn Deck")
         deck_create = DeckCreate(
             name=deck_data["name"],
             description=deck_data["description"],
@@ -324,7 +339,7 @@ class TestDeckCardRepoRemove(BaseTestData):
         )
         self.test_deck = await DeckRepo.create_deck_record(deck_create)
         
-        card_data = self.get_card_by_name("Lightning Bolt")
+        card_data = all_test_data.get_card_by_name("Lightning Bolt")
         card_create = CardCreate(name=card_data["name"], text=card_data["text"])
         self.test_card = await CardRepo.create_card(card_create)
         
@@ -342,6 +357,12 @@ class TestDeckCardRepoRemove(BaseTestData):
         # Verify card is actually removed
         remaining_cards = await DeckCardRepo.get_cards_for_deck(self.test_deck.id)
         assert len(remaining_cards) == 0
+        
+        # Verify deck_card no longer exists in database
+        from fast_backend.app.models.deck_cards import DeckCard
+        from tortoise.exceptions import DoesNotExist
+        with pytest.raises(DoesNotExist):
+            await DeckCard.get(id=self.test_deck_card.id)
 
     @pytest.mark.asyncio
     async def test_remove_nonexistent_deck_card(self):
@@ -364,10 +385,10 @@ class TestDeckCardRepoRemove(BaseTestData):
         assert result2 is False
 
     @pytest.mark.asyncio
-    async def test_remove_card_preserves_other_cards(self):
+    async def test_remove_card_preserves_other_cards(self, all_test_data):
         """Test that removing one card preserves other cards in deck."""
         # Add another card to deck
-        card_data = self.get_card_by_name("Giant Growth")
+        card_data = all_test_data.get_card_by_name("Giant Growth")
         card_create = CardCreate(name=card_data["name"], text=card_data["text"])
         another_card = await CardRepo.create_card(card_create)
         
@@ -385,16 +406,16 @@ class TestDeckCardRepoRemove(BaseTestData):
         assert remaining_cards[0].card_id == another_card.id
 
 
-class TestDeckCardRepoEdgeCases(BaseTestData):
+class TestDeckCardRepoEdgeCases:
     """Integration tests for DeckCardRepo edge cases and error conditions."""
 
-    @pytest.fixture(autouse=True)
-    async def setup_deck_and_card(self):
+    @pytest_asyncio.fixture(autouse=True)
+    async def setup_deck_and_card(self, init_db, all_test_data):
         """Create test deck and card for edge case testing."""
-        user_data = self.get_user_by_username("testuser1")
+        user_data = all_test_data.get_user_by_username("testuser1")
         self.owner = await UserRepo.create_user(UserCreate(**user_data))
         
-        deck_data = self.get_deck_by_name("Red Burn Deck")
+        deck_data = all_test_data.get_deck_by_name("Red Burn Deck")
         deck_create = DeckCreate(
             name=deck_data["name"],
             description=deck_data["description"],
@@ -403,7 +424,7 @@ class TestDeckCardRepoEdgeCases(BaseTestData):
         )
         self.test_deck = await DeckRepo.create_deck_record(deck_create)
         
-        card_data = self.get_card_by_name("Lightning Bolt")
+        card_data = all_test_data.get_card_by_name("Lightning Bolt")
         card_create = CardCreate(name=card_data["name"], text=card_data["text"])
         self.test_card = await CardRepo.create_card(card_create)
 

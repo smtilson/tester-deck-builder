@@ -105,7 +105,7 @@ def test_example():
 - Mock file system operations
 
 ### 5. Test Data Management
-- Use `BaseTestData` class for consistent test data
+- Use pytest fixtures for consistent test data
 - Create minimal test data for each test
 - Use factories for complex object creation
 - Keep test data separate from production data
@@ -130,9 +130,9 @@ class TestCardCRUD:
 ```python
 # conftest.py
 @pytest.fixture
-async def test_user():
+async def test_user(all_test_data):
     """Create a test user for testing."""
-    user_data = BaseTestData().get_user_by_username("testuser1")
+    user_data = all_test_data.get_user_by_username("testuser1")
     user = await User.create(**user_data)
     yield user
     await user.delete()
@@ -204,24 +204,34 @@ class TestDeckCreationFailure:
 
 ## Test Data Strategy
 
-### Base Test Data
-- Use `BaseTestData` class from `base_class.py`
-- Provides consistent test data across all tests
-- Includes users, cards, decks, and deck_cards
-- Helper methods for finding specific test objects
+### Pytest Fixtures
+- All test data is provided through pytest fixtures in `conftest.py`
+- Fixtures are automatically available to all test functions
+- Includes separate fixtures for users, cards, decks, and deck_cards
+- Composite fixture provides helper methods for finding specific test objects
 
-### Test Data Inheritance
+### Available Fixtures
 ```python
-from test_fast_backend.base_class import BaseTestData
+# Individual data fixtures
+user_test_data      # List of user dictionaries
+card_test_data      # List of card dictionaries  
+deck_test_data      # List of deck dictionaries
+deck_card_test_data # List of deck_card dictionaries
 
-class TestDeckOperations(BaseTestData):
-    def setUp(self):
-        super().setup_test_data()
-        # Additional test-specific setup
-    
-    def test_deck_creation(self):
-        deck_data = self.get_deck_by_name("Red Burn Deck")
+# Composite fixture with helper methods
+all_test_data       # Provides get_user_by_username(), get_card_by_name(), etc.
+```
+
+### Using Test Data Fixtures
+```python
+class TestDeckOperations:
+    def test_deck_creation(self, all_test_data):
+        deck_data = all_test_data.get_deck_by_name("Red Burn Deck")
         # Use deck_data in test
+    
+    def test_card_creation(self, card_test_data):
+        card_data = card_test_data[0]  # Get first card
+        # Use card_data in test
 ```
 
 ## Database Testing Strategy

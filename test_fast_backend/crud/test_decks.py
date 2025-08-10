@@ -1,4 +1,5 @@
 import pytest
+import pytest_asyncio
 import uuid
 from tortoise.exceptions import IntegrityError
 
@@ -6,28 +7,29 @@ from fast_backend.app.crud.decks import DeckRepo
 from fast_backend.app.crud.users import UserRepo
 from fast_backend.app.schemas.decks import DeckCreate, DeckUpdate
 from fast_backend.app.schemas.users import UserCreate, UserResponse
-from test_fast_backend.base_class import BaseTestData
 
 
-class TestDeckRepoCreate(BaseTestData):
+@pytest.mark.usefixtures("init_db")
+class TestDeckRepoCreate:
     """Integration tests for DeckRepo create operations."""
 
-    @pytest.fixture(autouse=True)
-    async def setup_owner(self):
+    @pytest_asyncio.fixture(autouse=True)
+    async def setup_owner(self, init_db, all_test_data):
         """Create a test user to own decks."""
-        user_data = self.get_user_by_username("testuser1")
+        user_data = all_test_data.get_user_by_username("testuser1")
         user_create = UserCreate(**user_data)
-        self.owner = await UserRepo.create_user(user_create)
+        owner = await UserRepo.create_user(user_create)
+        return owner
 
     @pytest.mark.asyncio
-    async def test_create_deck_success(self):
+    async def test_create_deck_success(self, all_test_data, setup_owner):
         """Test successful deck creation with valid data."""
-        deck_data = self.get_deck_by_name("Red Burn Deck")
+        deck_data = all_test_data.get_deck_by_name("Red Burn Deck")
         deck_create = DeckCreate(
             name=deck_data["name"],
             description=deck_data["description"],
             is_valid=deck_data["is_valid"],
-            owner=self.owner
+            owner=setup_owner
         )
         
         result = await DeckRepo.create_deck_record(deck_create)
@@ -38,16 +40,24 @@ class TestDeckRepoCreate(BaseTestData):
         assert isinstance(result.id, int)
         assert result.created_at is not None
         assert result.updated_at is not None
-        assert result.owner_id == self.owner.id
+        assert result.owner_id == setup_owner.id
+        
+        # Verify deck exists in database
+        from fast_backend.app.models.decks import Deck
+        db_deck = await Deck.get(id=result.id)
+        assert db_deck.name == deck_data["name"]
+        assert db_deck.description == deck_data["description"]
+        assert db_deck.is_valid == deck_data["is_valid"]
+        assert db_deck.owner_id == setup_owner.id
 
     @pytest.mark.asyncio
-    async def test_create_deck_with_null_description(self):
+    async def test_create_deck_with_null_description(self, setup_owner):
         """Test creating deck with null description."""
         deck_create = DeckCreate(
             name="Deck Without Description",
             description=None,
             is_valid=False,
-            owner=self.owner
+            owner=setup_owner
         )
         
         result = await DeckRepo.create_deck_record(deck_create)
@@ -55,14 +65,14 @@ class TestDeckRepoCreate(BaseTestData):
         assert result.name == "Deck Without Description"
         assert result.description is None
         assert result.is_valid is False
-        assert result.owner_id == self.owner.id
+        assert result.owner_id == setup_owner.id
 
     @pytest.mark.asyncio
-    async def test_create_deck_minimal_data(self):
+    async def test_create_deck_minimal_data(self, setup_owner):
         """Test creating deck with minimal required data."""
         deck_create = DeckCreate(
             name="Minimal Deck",
-            owner=self.owner
+            owner=setup_owner
         )
         
         result = await DeckRepo.create_deck_record(deck_create)
@@ -70,14 +80,14 @@ class TestDeckRepoCreate(BaseTestData):
         assert result.name == "Minimal Deck"
         assert result.description is None
         assert result.is_valid is False  # Default value
-        assert result.owner_id == self.owner.id
+        assert result.owner_id == setup_owner.id
 
     @pytest.mark.asyncio
-    async def test_create_deck_duplicate_name_fails(self):
+    async def test_create_deck_duplicate_name_fails(self, setup_owner):
         """Test that creating deck with duplicate name fails."""
         deck_create = DeckCreate(
             name="Unique Deck Name",
-            owner=self.owner
+            owner=setup_owner
         )
         
         # Create first deck
@@ -88,10 +98,10 @@ class TestDeckRepoCreate(BaseTestData):
             await DeckRepo.create_deck_record(deck_create)
 
     @pytest.mark.asyncio
-    async def test_create_multiple_decks_different_names(self):
+    async def test_create_multiple_decks_different_names(self, setup_owner):
         """Test creating multiple decks with different names succeeds."""
-        deck1 = DeckCreate(name="First Deck", owner=self.owner)
-        deck2 = DeckCreate(name="Second Deck", owner=self.owner)
+        deck1 = DeckCreate(name="First Deck", owner=setup_owner)
+        deck2 = DeckCreate(name="Second Deck", owner=setup_owner)
         
         result1 = await DeckRepo.create_deck_record(deck1)
         result2 = await DeckRepo.create_deck_record(deck2)
@@ -99,25 +109,26 @@ class TestDeckRepoCreate(BaseTestData):
         assert result1.id != result2.id
         assert result1.name == "First Deck"
         assert result2.name == "Second Deck"
-        assert result1.owner_id == result2.owner_id == self.owner.id
+        assert result1.owner_id == result2.owner_id == setup_owner.id
 
 
-class TestDeckRepoRead(BaseTestData):
+@pytest.mark.usefixtures("init_db")
+class TestDeckRepoRead:
     """Integration tests for DeckRepo read operations."""
 
-    @pytest.fixture(autouse=True)
-    async def setup_decks(self):
+    @pytest_asyncio.fixture(autouse=True)
+    async def setup_decks(self, init_db, all_test_data):
         """Create test decks for read operations."""
         # Create owners first
-        user1_data = self.get_user_by_username("testuser1")
-        user2_data = self.get_user_by_username("admin_user")
-        self.owner1 = await UserRepo.create_user(UserCreate(**user1_data))
-        self.owner2 = await UserRepo.create_user(UserCreate(**user2_data))
+        user1_data = all_test_data.get_user_by_username("testuser1")
+        user2_data = all_test_data.get_user_by_username("admin_user")
+        owner1 = await UserRepo.create_user(UserCreate(**user1_data))
+        owner2 = await UserRepo.create_user(UserCreate(**user2_data))
         
         # Create decks
-        self.created_decks = []
-        for deck_data in self.deck_data:
-            owner = self.owner1 if deck_data["owner_id"] == user1_data["id"] else self.owner2
+        created_decks = []
+        for deck_data in all_test_data.deck_data:
+            owner = owner1 if deck_data["owner_id"] == user1_data["id"] else owner2
             deck_create = DeckCreate(
                 name=deck_data["name"],
                 description=deck_data["description"],
@@ -125,12 +136,13 @@ class TestDeckRepoRead(BaseTestData):
                 owner=owner
             )
             created_deck = await DeckRepo.create_deck_record(deck_create)
-            self.created_decks.append(created_deck)
+            created_decks.append(created_deck)
+        return created_decks
 
     @pytest.mark.asyncio
-    async def test_get_deck_by_id_success(self):
+    async def test_get_deck_by_id_success(self, setup_decks):
         """Test successful retrieval of deck by ID."""
-        created_deck = self.created_decks[0]
+        created_deck = setup_decks[0]
         
         result = await DeckRepo.get_deck(created_deck.id)
         
@@ -151,13 +163,13 @@ class TestDeckRepoRead(BaseTestData):
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_get_all_decks_returns_all(self):
+    async def test_get_all_decks_returns_all(self, deck_test_data):
         """Test that get_all_decks returns all created decks."""
         result = await DeckRepo.get_all_decks()
         
-        assert len(result) == len(self.deck_data)
+        assert len(result) == len(deck_test_data)
         deck_names = [deck.name for deck in result]
-        expected_names = [deck["name"] for deck in self.deck_data]
+        expected_names = [deck["name"] for deck in deck_test_data]
         assert set(deck_names) == set(expected_names)
 
     @pytest.mark.asyncio
@@ -186,28 +198,30 @@ class TestDeckRepoRead(BaseTestData):
             assert deck.updated_at is not None
 
 
-class TestDeckRepoUpdate(BaseTestData):
+@pytest.mark.usefixtures("init_db")
+class TestDeckRepoUpdate:
     """Integration tests for DeckRepo update operations."""
 
-    @pytest.fixture(autouse=True)
-    async def setup_deck(self):
+    @pytest_asyncio.fixture(autouse=True)
+    async def setup_deck(self, init_db, all_test_data):
         """Create a test deck for update operations."""
-        user_data = self.get_user_by_username("testuser1")
-        self.owner = await UserRepo.create_user(UserCreate(**user_data))
+        user_data = all_test_data.get_user_by_username("testuser1")
+        owner = await UserRepo.create_user(UserCreate(**user_data))
         
-        deck_data = self.get_deck_by_name("Red Burn Deck")
+        deck_data = all_test_data.get_deck_by_name("Red Burn Deck")
         deck_create = DeckCreate(
             name=deck_data["name"],
             description=deck_data["description"],
             is_valid=deck_data["is_valid"],
-            owner=self.owner
+            owner=owner
         )
-        self.test_deck = await DeckRepo.create_deck_record(deck_create)
+        test_deck = await DeckRepo.create_deck_record(deck_create)
+        return {"owner": owner, "test_deck": test_deck}
 
     @pytest.mark.asyncio
-    async def test_update_deck_success(self):
+    async def test_update_deck_success(self, all_test_data, setup_deck):
         """Test successful deck update."""
-        new_owner = await UserRepo.create_user(UserCreate(**self.get_user_by_username("admin_user")))
+        new_owner = await UserRepo.create_user(UserCreate(**all_test_data.get_user_by_username("admin_user")))
         update_data = DeckUpdate(
             name="Updated Red Burn Deck",
             description="Updated description for the burn deck",
@@ -215,15 +229,22 @@ class TestDeckRepoUpdate(BaseTestData):
             owner=new_owner
         )
         
-        result = await DeckRepo.update_deck(self.test_deck.id, update_data)
+        result = await DeckRepo.update_deck(setup_deck["test_deck"].id, update_data)
         
         assert result is not None
-        assert result.id == self.test_deck.id
+        assert result.id == setup_deck["test_deck"].id
         assert result.name == "Updated Red Burn Deck"
         assert result.description == "Updated description for the burn deck"
         assert result.is_valid is True
         # Owner should remain unchanged as update_deck doesn't change owner
-        assert result.owner_id == self.test_deck.owner_id
+        assert result.owner_id == setup_deck["test_deck"].owner_id
+        
+        # Verify update persisted in database
+        from fast_backend.app.models.decks import Deck
+        db_deck = await Deck.get(id=setup_deck["test_deck"].id)
+        assert db_deck.name == "Updated Red Burn Deck"
+        assert db_deck.description == "Updated description for the burn deck"
+        assert db_deck.is_valid is True
 
     @pytest.mark.asyncio
     async def test_update_deck_partial_name_only(self):
@@ -298,16 +319,16 @@ class TestDeckRepoUpdate(BaseTestData):
         assert result is None
 
 
-class TestDeckRepoDelete(BaseTestData):
+class TestDeckRepoDelete:
     """Integration tests for DeckRepo delete operations."""
 
-    @pytest.fixture(autouse=True)
-    async def setup_deck(self):
+    @pytest_asyncio.fixture(autouse=True)
+    async def setup_deck(self, init_db, all_test_data):
         """Create a test deck for delete operations."""
-        user_data = self.get_user_by_username("testuser1")
+        user_data = all_test_data.get_user_by_username("testuser1")
         self.owner = await UserRepo.create_user(UserCreate(**user_data))
         
-        deck_data = self.get_deck_by_name("Red Burn Deck")
+        deck_data = all_test_data.get_deck_by_name("Red Burn Deck")
         deck_create = DeckCreate(
             name=deck_data["name"],
             description=deck_data["description"],
@@ -326,6 +347,12 @@ class TestDeckRepoDelete(BaseTestData):
         # Verify deck is actually deleted
         deleted_deck = await DeckRepo.get_deck(self.test_deck.id)
         assert deleted_deck is None
+        
+        # Verify deck no longer exists in database
+        from fast_backend.app.models.decks import Deck
+        from tortoise.exceptions import DoesNotExist
+        with pytest.raises(DoesNotExist):
+            await Deck.get(id=self.test_deck.id)
 
     @pytest.mark.asyncio
     async def test_delete_deck_not_found(self):
@@ -348,13 +375,13 @@ class TestDeckRepoDelete(BaseTestData):
         assert result2 is False
 
 
-class TestDeckRepoEdgeCases(BaseTestData):
+class TestDeckRepoEdgeCases:
     """Integration tests for DeckRepo edge cases and error conditions."""
 
-    @pytest.fixture(autouse=True)
-    async def setup_owner(self):
+    @pytest_asyncio.fixture(autouse=True)
+    async def setup_owner(self, init_db, all_test_data):
         """Create a test user to own decks."""
-        user_data = self.get_user_by_username("testuser1")
+        user_data = all_test_data.get_user_by_username("testuser1")
         user_create = UserCreate(**user_data)
         self.owner = await UserRepo.create_user(user_create)
 
