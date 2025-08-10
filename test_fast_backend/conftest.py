@@ -8,15 +8,16 @@ TEST_DB_URL = "sqlite://:memory:"
 TEST_MODULES = {"models": ["fast_backend.app.models"]}
 
 
-@pytest.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function")
 async def init_db():
     """
     Create the in-memory test DB once for the whole test session.
     Drop it after all tests are done.
     """
+    TEST_DB_URL = "sqlite://:memory:"
     await Tortoise.init(
         db_url=TEST_DB_URL,
-        modules=MODEL_PATHS
+        modules=TEST_MODULES
     )
     await Tortoise.generate_schemas()
     yield
