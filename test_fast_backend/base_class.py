@@ -6,9 +6,6 @@ from typing import Dict, List, Any
 class BaseTestData:
     """Base test class providing test data for users, cards, decks, and deck_cards."""
     
-    def __init__(self):
-        self.setup_test_data()
-    
     def setup_test_data(self):
         """Initialize all test data lists."""
         self.user_data = self._create_user_data()

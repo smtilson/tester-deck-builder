@@ -2,13 +2,13 @@
 import pytest
 from tortoise import Tortoise
 from httpx import AsyncClient
-from fast_backend.app.main import app  # assuming this is your FastAPI app
+from fast_backend.app.db.config_db import MODEL_PATHS
 
 TEST_DB_URL = "sqlite://:memory:"
 TEST_MODULES = {"models": ["fast_backend.app.models"]}
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function")
 async def init_db():
     """
     Create the in-memory test DB once for the whole test session.
@@ -16,13 +16,13 @@ async def init_db():
     """
     await Tortoise.init(
         db_url=TEST_DB_URL,
-        modules=TEST_MODULES
+        modules=MODEL_PATHS
     )
     await Tortoise.generate_schemas()
     yield
     await Tortoise.close_connections()
 
-
+# I think this can be deleted
 @pytest.fixture
 async def db():
     """
