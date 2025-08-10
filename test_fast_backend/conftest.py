@@ -7,7 +7,7 @@ import pytest_asyncio
 from unittest.mock import patch, MagicMock, AsyncMock
 from tortoise import Tortoise
 from typing import Callable, Awaitable, Any, AsyncGenerator
-from uuid import uuid4
+import uuid
 from fastapi.testclient import TestClient
 import random
 
@@ -101,6 +101,22 @@ def mock_on_after_register_spy():
 
 
 @pytest_asyncio.fixture
+async def mock_owner():
+    mock_user_id = uuid.UUID("a0000000-0000-0000-0000-000000000001")
+    return {
+        "id": mock_user_id,
+        "username": "testowner",
+        "email": "owner@example.com",
+        "name": "Test Owner",
+        "hashed_password": "mock_hashed_password_owner",
+        "is_active": True,
+        "is_verified": True,
+        "is_superuser": False,
+        "is_admin": False,
+    }
+
+
+@pytest_asyncio.fixture
 async def user_manager(
     initialize_database,
     mock_on_after_register_spy,
@@ -138,16 +154,13 @@ def card_factory() -> Callable[[dict], Awaitable[Card]]:
 
 
 @pytest.fixture(scope="function")
-def deck_factory() -> Callable[[dict], Awaitable[Deck]]:
+def deck_factory(user_factory) -> Callable[[dict], Awaitable[Deck]]:
     """Factory for creating test decks."""
-
     async def _create_deck(deck_data: dict = None) -> Deck:
         if deck_data is None:
             deck_data = SAMPLE_DECKS[0].copy()
-
-        # Ensure deck has an owner_id
-        if "owner_id" not in deck_data:
-            deck_data["owner_id"] = 1
+        if deck_data.get("owner") is None:
+            deck_data["owner"] = await User.create(**SAMPLE_USERS[0])
 
         return await Deck.create(**deck_data)
 
@@ -231,11 +244,11 @@ async def override_app_dependencies():
         None  # Prevent actual email sending
     )
     mock_user_manager_instance.authenticate.return_value = MagicMock(
-        id=uuid4(), email="auth@example.com"
+        id=uuid.uuid4(), email="auth@example.com"
     )
 
     mock_auth_backend_strategy = MagicMock(
-        read_token=AsyncMock(return_value={"sub": str(uuid4())}),
+        read_token=AsyncMock(return_value={"sub": str(uuid.uuid4())}),
         write_token=AsyncMock(return_value={"access_token": "mock_jwt_token"}),
     )
 
@@ -313,5 +326,3 @@ def mock_orm_models(mock_db_data):
                                 None,
                             )
                             yield  # Allow tests to run within this patched context
-
-

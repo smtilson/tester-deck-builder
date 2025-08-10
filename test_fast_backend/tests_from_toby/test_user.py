@@ -1,6 +1,6 @@
 from typing import Any, AsyncGenerator, Dict
 
-from uuid import UUID
+import uuid
 
 import pytest
 from tortoise import Tortoise, fields
@@ -23,7 +23,7 @@ class OAuthAccount(TortoiseBaseUserOAuthAccountModelUUID):
 
 
 @pytest.fixture
-async def tortoise_user_db() -> AsyncGenerator[TortoiseUserDatabase[User, UUID], None]:
+async def tortoise_user_db() -> AsyncGenerator[TortoiseUserDatabase[User, uuid.UUID], None]:
     DATABASE_URL = "sqlite://./test-tortoise-user.db"
 
     await Tortoise.init(
@@ -40,7 +40,7 @@ async def tortoise_user_db() -> AsyncGenerator[TortoiseUserDatabase[User, UUID],
 
 @pytest.fixture
 async def tortoise_user_db_oauth() -> (
-    AsyncGenerator[TortoiseUserDatabase[User, UUID], None]
+    AsyncGenerator[TortoiseUserDatabase[User, uuid.UUID], None]
 ):
     DATABASE_URL = "sqlite://./test-tortoise-user-oauth.db"
 
@@ -61,7 +61,7 @@ async def tortoise_user_db_oauth() -> (
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("initialize_database")
 async def test_queries(
-    tortoise_user_db: TortoiseUserDatabase[User, UUID],
+    tortoise_user_db: TortoiseUserDatabase[User, uuid.UUID],
     oauth_account1: dict,
 ):
     user_create = {
@@ -133,7 +133,7 @@ async def test_queries(
 )
 @pytest.mark.usefixtures("initialize_database")
 async def test_email_query(
-    tortoise_user_db: TortoiseUserDatabase[User, UUID],
+    tortoise_user_db: TortoiseUserDatabase[User, uuid.UUID],
     email: str,
     query: str,
     found: bool,
@@ -157,7 +157,7 @@ async def test_email_query(
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("initialize_database")
 async def test_insert_existing_email(
-    tortoise_user_db: TortoiseUserDatabase[User, UUID],
+    tortoise_user_db: TortoiseUserDatabase[User, uuid.UUID],
 ):
     user_create = {
         "email": "lancelot@camelot.bt",
@@ -173,7 +173,7 @@ async def test_insert_existing_email(
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("initialize_database")
 async def test_queries_custom_fields(
-    tortoise_user_db: TortoiseUserDatabase[User, UUID],
+    tortoise_user_db: TortoiseUserDatabase[User, uuid.UUID],
 ):
     """It should output custom fields in query result."""
     user_create = {
@@ -194,7 +194,7 @@ async def test_queries_custom_fields(
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("initialize_database")
 async def test_queries_oauth(
-    tortoise_user_db_oauth: TortoiseUserDatabase[OAuthAccount, UUID],
+    tortoise_user_db_oauth: TortoiseUserDatabase[OAuthAccount, uuid.UUID],
     oauth_account1: Dict[str, Any],
     oauth_account2: Dict[str, Any],
 ):

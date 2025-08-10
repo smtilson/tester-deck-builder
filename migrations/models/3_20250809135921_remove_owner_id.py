@@ -8,4 +8,4 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
 
 async def downgrade(db: BaseDBAsyncClient) -> str:
     return """
-        ALTER TABLE "decks" ADD "owner_id" UUID NOT NULL;"""
+        ALTER TABLE "decks" ADD "owner_id" uuid.UUID NOT NULL;"""

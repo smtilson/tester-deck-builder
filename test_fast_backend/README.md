@@ -36,7 +36,7 @@ test_fast_backend/
 - **Database isolation**: Each test gets a clean database instance
 
 ### 2. Consistent Test Structure
-- **Removed `# # @pytest.mark.skip`**: All tests are now active
+- **Removed `# @pytest.mark.skip`**: All tests are now active
 - **Consistent async decorators**: Proper use of `@pytest.mark.asyncio`
 - **Clear test organization**: Separated unit tests from integration tests
 
@@ -84,7 +84,7 @@ pytest test_fast_backend/models/test_card_models.py -v
 
 ## Migration Notes
 
-- Removed all `# # @pytest.mark.skip` decorators
+- Removed all `# @pytest.mark.skip` decorators
 - Fixed async fixture issues in conftest.py
 - Separated complex user manager tests into unit and integration
 - Centralized test data in constants

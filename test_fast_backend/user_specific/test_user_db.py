@@ -1,15 +1,15 @@
 # tests/unit/test_user_db.py
 import pytest
-from uuid import UUID
+import uuid
 
 from fast_backend.app.models.users import User as UserORM
 from fast_backend.app.db.users_db import get_user_db
-from fast_backend.app.schemas.users import UserCreate, UserRead
+from fast_backend.app.schemas.users import UserCreate, UserResponse
 from fastapi_users.exceptions import UserNotExists
 from fastapi_users_tortoise import TortoiseUserDatabase
 
 
-@pytest.mark.skip("standard")("standard")("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("initialize_database")
 class TestUserDatabase:
@@ -37,7 +37,7 @@ class TestUserDatabase:
             created_user = await user_db.create(user_data)
 
             assert created_user.id is not None
-            assert isinstance(created_user.id, UUID)
+            assert isinstance(created_user.id, uuid.UUID)
             assert isinstance(created_user, UserORM)
             assert created_user.username == "testuser"
             assert created_user.email == "test@example.com"
@@ -86,7 +86,7 @@ class TestUserDatabase:
             await UserORM.all().delete()
 
             # Create a user directly in the ORM for testing retrieval
-            test_user_id = UUID("12345678-1234-5678-1234-567812345678")
+            test_user_id = uuid.UUID("12345678-1234-5678-1234-567812345678")
             await UserORM.create(
                 id=test_user_id,
                 username="existinguser",
@@ -108,7 +108,7 @@ class TestUserDatabase:
             await UserORM.all().delete()
 
             # Create a user directly in the ORM for testing retrieval
-            test_user_id = UUID("12345678-1234-5678-1234-567812345678")
+            test_user_id = uuid.UUID("12345678-1234-5678-1234-567812345678")
             await UserORM.create(
                 id=test_user_id,
                 username="existinguser",
@@ -126,7 +126,7 @@ class TestUserDatabase:
     async def test_get_nonexistent_user_returns_none(self):
         """Test that getting a non-existent user returns None."""
         async for user_db in get_user_db():
-            test_id = UUID("12345678-1234-5678-1234-567812345678")
+            test_id = uuid.UUID("12345678-1234-5678-1234-567812345678")
 
             non_user = await user_db.get(test_id)
             assert non_user is None
@@ -140,7 +140,7 @@ class TestUserDatabase:
             # Clear any existing users
             await UserORM.all().delete()
 
-            test_user_id = UUID("87654321-4321-8765-4321-876543210000")
+            test_user_id = uuid.UUID("87654321-4321-8765-4321-876543210000")
             original_user = await UserORM.create(
                 id=test_user_id,
                 username="updateuser",
@@ -168,7 +168,7 @@ class TestUserDatabase:
             # Clear any existing users
             await UserORM.all().delete()
 
-            test_user_id = UUID("87654321-4321-8765-4321-876543210000")
+            test_user_id = uuid.UUID("87654321-4321-8765-4321-876543210000")
             original_user = await UserORM.create(
                 id=test_user_id,
                 username="statususer",
@@ -197,7 +197,7 @@ class TestUserDatabase:
             # Clear any existing users
             await UserORM.all().delete()
 
-            test_user_id = UUID("87654321-4321-8765-4321-876543210000")
+            test_user_id = uuid.UUID("87654321-4321-8765-4321-876543210000")
             original_user = await UserORM.create(
                 id=test_user_id,
                 username="pwuser",
@@ -223,7 +223,7 @@ class TestUserDatabase:
             # Clear any existing users
             await UserORM.all().delete()
 
-            test_user_id = UUID("87654321-4321-8765-4321-876543210000")
+            test_user_id = uuid.UUID("87654321-4321-8765-4321-876543210000")
             original_user = await UserORM.create(
                 id=test_user_id,
                 username="dbuser",
@@ -253,7 +253,7 @@ class TestUserDatabase:
             # Clear any existing users
             await UserORM.all().delete()
 
-            test_user_id = UUID("aabbccdd-aabb-ccdd-aabb-ccddaabbccdd")
+            test_user_id = uuid.UUID("aabbccdd-aabb-ccdd-aabb-ccddaabbccdd")
             await UserORM.create(
                 id=test_user_id,
                 username="deleteuser",
@@ -274,7 +274,7 @@ class TestUserDatabase:
             # Clear any existing users
             await UserORM.all().delete()
 
-            test_user_id = UUID("aabbccdd-aabb-ccdd-aabb-ccddaabbccdd")
+            test_user_id = uuid.UUID("aabbccdd-aabb-ccdd-aabb-ccddaabbccdd")
             await UserORM.create(
                 id=test_user_id,
                 username="deleteuser",

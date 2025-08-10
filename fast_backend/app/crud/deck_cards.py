@@ -1,7 +1,7 @@
 from typing import Optional
 
-from ..models.deck_cards import DeckCard as DeckCardModel
-from ..schemas.deck_cards import (
+from fast_backend.app.models.deck_cards import DeckCard as DeckCardModel
+from fast_backend.app.schemas.deck_cards import (
     DeckCardCreate,
     DeckCardUpdate,
     DeckCardResponseWithCard,
@@ -11,8 +11,8 @@ from ..schemas.deck_cards import (
 class DeckCardRepo:
     @staticmethod
     async def add_card_to_deck(
-            deck_id: int, card_data: DeckCardCreate
-        ) -> DeckCardResponseWithCard:
+        deck_id: int, card_data: DeckCardCreate
+    ) -> DeckCardResponseWithCard:
         """
         Add a card to a deck. If the card is already in the deck, its quantity is increased.
 
@@ -39,7 +39,6 @@ class DeckCardRepo:
         await link.fetch_related("card")
         return DeckCardResponseWithCard.model_validate(link)
 
-
     @staticmethod
     async def get_cards_for_deck(deck_id: int) -> list[DeckCardResponseWithCard]:
         """
@@ -53,7 +52,6 @@ class DeckCardRepo:
         """
         links = await DeckCardModel.filter(deck_id=deck_id).select_related("card")
         return [DeckCardResponseWithCard.model_validate(link) for link in links]
-
 
     @staticmethod
     async def update_card_quantity_in_deck(
@@ -75,11 +73,10 @@ class DeckCardRepo:
             if "quantity" in update_data:
                 deck_card_obj.quantity = update_data["quantity"]
                 await deck_card_obj.save()
-            
+
             await deck_card_obj.fetch_related("card")
             return DeckCardResponseWithCard.model_validate(deck_card_obj)
         return None
-
 
     @staticmethod
     async def remove_card_from_deck(deck_card_id: int) -> bool:

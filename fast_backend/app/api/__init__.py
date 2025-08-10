@@ -1,7 +1,6 @@
 """
 API routes and endpoints.
 """
-
-from .routes import router
+from fast_backend.app.api.routes import router
 
 __all__ = ["router"]

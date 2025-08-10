@@ -12,41 +12,41 @@ Usage:
 """
 
 import asyncio
-from uuid import uuid4
+import uuid
 import random
 
 from fastapi_users.password import PasswordHelper
 
-from .models.users import User
-from .models.cards import Card
-from .models.decks import Deck
-from .models.deck_cards import DeckCard
-from .db.config import init_db, close_db
+from fast_backend.app.models.users import User
+from fast_backend.app.models.cards import Card
+from fast_backend.app.models.decks import Deck
+from fast_backend.app.models.deck_cards import DeckCard
+from fast_backend.app.db.config_db import init_db, close_db
 
 
 async def quick_populate():
     """Quickly populate database with minimal test data."""
     print("🚀 Quick database population starting...")
-    
+
     await init_db()
-    
+
     try:
         password_helper = PasswordHelper()
-        
+
         # Clear existing data
         print("🗑️  Clearing existing data...")
         await DeckCard.all().delete()
         await Deck.all().delete()
         await Card.all().delete()
         await User.all().delete()
-        
+
         # Create test users
         print("👥 Creating test users...")
         users = []
-        
+
         # Admin user
         admin = await User.create(
-            id=uuid4(),
+            id=uuid.uuid4(),
             username="admin",
             email="admin@test.com",
             hashed_password=password_helper.hash("admin123"),
@@ -54,22 +54,26 @@ async def quick_populate():
             is_active=True,
             is_verified=True,
             is_superuser=True,
-            is_admin=True
+            is_admin=True,
         )
         users.append(admin)
         print("📝 Admin user: admin@test.com / admin123")
-        
+
         # Regular test users
         test_users = [
             {"username": "testuser1", "email": "test1@test.com", "name": "Test User 1"},
             {"username": "testuser2", "email": "test2@test.com", "name": "Test User 2"},
             {"username": "testuser3", "email": "test3@test.com", "name": "Test User 3"},
-            {"username": "deckbuilder", "email": "builder@test.com", "name": "Deck Builder"},
+            {
+                "username": "deckbuilder",
+                "email": "builder@test.com",
+                "name": "Deck Builder",
+            },
         ]
-        
+
         for user_data in test_users:
             user = await User.create(
-                id=uuid4(),
+                id=uuid.uuid4(),
                 username=user_data["username"],
                 email=user_data["email"],
                 hashed_password=password_helper.hash("test123"),
@@ -77,15 +81,18 @@ async def quick_populate():
                 is_active=True,
                 is_verified=True,
                 is_superuser=False,
-                is_admin=False
+                is_admin=False,
             )
             users.append(user)
-        
+
         # Create basic cards
         print("🃏 Creating basic cards...")
         card_data = [
             {"name": "Lightning Bolt", "text": "Deal 3 damage to any target."},
-            {"name": "Giant Growth", "text": "Target creature gets +3/+3 until end of turn."},
+            {
+                "name": "Giant Growth",
+                "text": "Target creature gets +3/+3 until end of turn.",
+            },
             {"name": "Counterspell", "text": "Counter target spell."},
             {"name": "Dark Ritual", "text": "Add 3 black mana."},
             {"name": "Healing Potion", "text": "Gain 5 life."},
@@ -105,22 +112,25 @@ async def quick_populate():
             {"name": "Vampire Lord", "text": "Flying, Lifelink. Lord of vampires."},
             {"name": "Angel of Light", "text": "Flying, Vigilance. Divine protector."},
         ]
-        
+
         cards = []
         for data in card_data:
             card = await Card.create(**data)
             cards.append(card)
-        
+
         # Create sample decks
         print("🎴 Creating sample decks...")
         deck_data = [
             {"name": "Red Aggro", "description": "Fast aggressive red deck"},
             {"name": "Blue Control", "description": "Control deck with counterspells"},
-            {"name": "Green Ramp", "description": "Big creatures and mana acceleration"},
+            {
+                "name": "Green Ramp",
+                "description": "Big creatures and mana acceleration",
+            },
             {"name": "White Weenie", "description": "Small efficient creatures"},
             {"name": "Black Combo", "description": "Powerful black magic combinations"},
         ]
-        
+
         decks = []
         for i, data in enumerate(deck_data):
             owner = users[i % len(users)]
@@ -128,10 +138,10 @@ async def quick_populate():
                 name=data["name"],
                 description=data["description"],
                 is_valid=random.choice([True, False]),
-                owner_id=int(owner.id.hex[:8], 16)
+                owner=owner,
             )
             decks.append(deck)
-        
+
         # Add cards to decks
         print("🔗 Adding cards to decks...")
         for deck in decks:
@@ -144,7 +154,7 @@ async def quick_populate():
                 except:
                     # Skip if already exists
                     pass
-        
+
         # Print summary
         print(f"\n✅ Quick population completed!")
         print(f"   Users: {await User.all().count()}")
@@ -152,7 +162,7 @@ async def quick_populate():
         print(f"   Decks: {await Deck.all().count()}")
         print(f"   Deck-Cards: {await DeckCard.all().count()}")
         print(f"\n🔑 Login with: admin@test.com / admin123")
-        
+
     except Exception as e:
         print(f"❌ Error: {e}")
         raise

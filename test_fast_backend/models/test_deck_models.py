@@ -4,10 +4,11 @@ import pytest
 from tortoise.exceptions import DoesNotExist, ValidationError, IntegrityError
 
 from fast_backend.app.models.decks import Deck
+from fast_backend.app.models.users import User
 from test_fast_backend.conftest import SAMPLE_DECKS
 
 
-@pytest.mark.skip("standard")
+#@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("initialize_database")
 class TestDeckModel:
@@ -16,6 +17,7 @@ class TestDeckModel:
     @pytest.mark.parametrize("deck_data", SAMPLE_DECKS)
     async def test_create_deck(self, deck_factory, deck_data):
         """Verify that a Deck can be created in the database."""
+
         created_deck = await deck_factory(deck_data)
 
         assert created_deck.id is not None
@@ -29,7 +31,7 @@ class TestDeckModel:
         # Verify it exists in the database
         db_deck = await Deck.get(id=created_deck.id)
         assert db_deck is not None
-
+    @pytest.mark.skip("standard")
     async def test_deck_description_is_optional(self, deck_factory):
         """Verify that a Deck can be created without a description."""
         deck_data = {"name": "No Description Deck"}
@@ -43,14 +45,14 @@ class TestDeckModel:
         # Verify in database
         db_deck = await Deck.get(id=created_deck.id)
         assert db_deck.description is None
-
+    @pytest.mark.skip("standard")
     async def test_deck_name_is_required(self, deck_factory):
         """Verify that creating a Deck without a name raises an error."""
         deck_data = {"description": "This deck has no name"}
 
         with pytest.raises(ValidationError):
             await deck_factory(deck_data)
-
+    @pytest.mark.skip("standard")
     @pytest.mark.parametrize("deck_data", SAMPLE_DECKS)
     async def test_read_deck(self, deck_factory, deck_data):
         """Verify that a Deck can be read from the database."""
@@ -62,7 +64,7 @@ class TestDeckModel:
         assert read_deck.name == deck_data["name"]
         assert read_deck.description == deck_data["description"]
         assert read_deck.is_valid is False
-
+    @pytest.mark.skip("standard")
     @pytest.mark.parametrize("deck_data", SAMPLE_DECKS)
     async def test_update_deck(self, deck_factory, deck_data):
         """Verify that a Deck's attributes can be updated."""
@@ -81,7 +83,7 @@ class TestDeckModel:
         assert updated_deck.name == new_name
         assert updated_deck.description == new_description
         assert updated_deck.updated_at > original_updated_at
-
+    @pytest.mark.skip("standard")
     @pytest.mark.parametrize("deck_data", SAMPLE_DECKS)
     async def test_delete_deck(self, deck_factory, deck_data):
         """Verify that a Deck can be deleted from the database."""
@@ -98,7 +100,7 @@ class TestDeckModel:
         assert await Deck.all().count() == 0
         with pytest.raises(DoesNotExist):
             await Deck.get(id=deck_id)
-
+    @pytest.mark.skip("standard")
     async def test_deck_name_uniqueness(self, deck_factory):
         """Verify that deck names must be unique."""
         deck_data = {"name": "Unique Name Deck"}

@@ -1,10 +1,10 @@
 from typing import Optional
-from ..models.cards import Card as CardModel
-from ..schemas.cards import CardCreate, CardUpdate, CardResponse
+from fast_backend.app.models.cards import Card as CardModel
+from fast_backend.app.schemas.cards import CardCreate, CardUpdate, CardResponse
 
 
 class CardRepo:
-    
+
     @staticmethod
     async def create_card(card_data: CardCreate) -> CardResponse:
         """
@@ -18,7 +18,6 @@ class CardRepo:
         """
         card_obj = await CardModel.create(**card_data.model_dump())
         return CardResponse.model_validate(card_obj)
-
 
     @staticmethod
     async def get_card(card_id: int) -> Optional[CardResponse]:
@@ -36,7 +35,6 @@ class CardRepo:
             return CardResponse.model_validate(card_obj)
         return None
 
-
     @staticmethod
     async def get_all_cards() -> list[CardResponse]:
         """
@@ -48,9 +46,10 @@ class CardRepo:
         card_objs = await CardModel.all()
         return [CardResponse.model_validate(card) for card in card_objs]
 
-
     @staticmethod
-    async def update_card(card_id: int, card_data: CardUpdate) -> Optional[CardResponse]:
+    async def update_card(
+        card_id: int, card_data: CardUpdate
+    ) -> Optional[CardResponse]:
         """
         Update a card.
 
@@ -69,7 +68,6 @@ class CardRepo:
                 await card_obj.update_from_dict(update_data).save()
             return CardResponse.model_validate(card_obj)
         return None
-
 
     @staticmethod
     async def delete_card(card_id: int) -> bool:

@@ -1,17 +1,17 @@
 import pytest
 
-from uuid import UUID
+import uuid
 from pydantic import ValidationError
 
 from fast_backend.app.crud.users import UserRepo as crud
 from fast_backend.app.models.users import User as UserModel
-from fast_backend.app.schemas.users import UserCreate, UserRead, UserUpdate
+from fast_backend.app.schemas.users import UserCreate, UserResponse, UserUpdate
 
 # The conftest.py provides the `initialize_database` fixture which runs automatically
 # for each test. We'll also assume it provides a `user_factory` similar to `card_factory`.
 
 
-@pytest.mark.skip("standard")
+# @pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("initialize_database")
 class TestUserCrud:
@@ -41,8 +41,8 @@ class TestUserCrud:
         created_user = await crud.create_user(user_to_create)
 
         # Assert: Check that the returned object is the correct type and has the right data.
-        assert isinstance(created_user, UserRead)
-        assert isinstance(created_user.id, UUID)
+        assert isinstance(created_user, UserResponse)
+        assert isinstance(created_user.id, uuid.UUID)
         assert created_user.username == self.USER_DATA[0]["username"]
         assert created_user.email == self.USER_DATA[0]["email"]
         assert created_user.name == self.USER_DATA[0]["name"]
@@ -73,7 +73,7 @@ class TestUserCrud:
         retrieved_user = await crud.get_user(db_user.id)
 
         # Assert: Check that the correct user was returned.
-        assert isinstance(retrieved_user, UserRead)
+        assert isinstance(retrieved_user, UserResponse)
         assert retrieved_user.id == db_user.id
         assert retrieved_user.username == db_user.username
         assert retrieved_user.email == db_user.email
@@ -82,7 +82,7 @@ class TestUserCrud:
     async def test_get_user_not_found(self, initialize_database):
         """Verify that crud.get_user returns None for a non-existent ID."""
         # Act: Attempt to retrieve a user that doesn't exist.
-        non_existent_id = UUID("00000000-0000-0000-0000-000000000000")
+        non_existent_id = uuid.UUID("00000000-0000-0000-0000-000000000000")
         retrieved_user = await crud.get_user(non_existent_id)
 
         # Assert: The function should return None.
@@ -97,7 +97,7 @@ class TestUserCrud:
         retrieved_user = await crud.get_user_by_email(db_user.email)
 
         # Assert: Check that the correct user was returned.
-        assert isinstance(retrieved_user, UserRead)
+        assert isinstance(retrieved_user, UserResponse)
         assert retrieved_user.id == db_user.id
         assert retrieved_user.username == db_user.username
         assert retrieved_user.email == db_user.email
@@ -119,7 +119,7 @@ class TestUserCrud:
         retrieved_user = await crud.get_user_by_username(db_user.username)
 
         # Assert: Check that the correct user was returned.
-        assert isinstance(retrieved_user, UserRead)
+        assert isinstance(retrieved_user, UserResponse)
         assert retrieved_user.id == db_user.id
         assert retrieved_user.username == db_user.username
         assert retrieved_user.email == db_user.email
@@ -144,7 +144,7 @@ class TestUserCrud:
         # Assert: Check that the list contains the correct number of users.
         assert isinstance(all_users, list)
         assert len(all_users) == len(self.USER_DATA)
-        assert all(isinstance(user, UserRead) for user in all_users)
+        assert all(isinstance(user, UserResponse) for user in all_users)
 
     async def test_update_user(self, initialize_database, user_factory):
         """Verify that crud.update_user correctly updates a user."""
@@ -160,7 +160,7 @@ class TestUserCrud:
         updated_user = await crud.update_user(db_user.id, update_data)
 
         # Assert: Check that the returned user has the updated data.
-        assert isinstance(updated_user, UserRead)
+        assert isinstance(updated_user, UserResponse)
         assert updated_user.id == db_user.id
         assert updated_user.username == update_data.username
         assert updated_user.email == update_data.email
@@ -175,7 +175,7 @@ class TestUserCrud:
     async def test_update_user_not_found(self, initialize_database):
         """Verify that crud.update_user returns None for a non-existent ID."""
         # Arrange
-        non_existent_id = UUID("00000000-0000-0000-0000-000000000000")
+        non_existent_id = uuid.UUID("00000000-0000-0000-0000-000000000000")
         update_data = UserUpdate(username="this_will_fail")
 
         # Act
@@ -201,7 +201,7 @@ class TestUserCrud:
     async def test_delete_user_not_found(self, initialize_database):
         """Verify that crud.delete_user returns False for a non-existent ID."""
         # Act
-        non_existent_id = UUID("00000000-0000-0000-0000-000000000000")
+        non_existent_id = uuid.UUID("00000000-0000-0000-0000-000000000000")
         result = await crud.delete_user(non_existent_id)
 
         # Assert
@@ -225,7 +225,7 @@ class TestUserCrud:
     async def test_is_admin_user_not_found(self, initialize_database):
         """Verify that crud.is_admin returns False for a non-existent ID."""
         # Act
-        non_existent_id = UUID("00000000-0000-0000-0000-000000000000")
+        non_existent_id = uuid.UUID("00000000-0000-0000-0000-000000000000")
         result = await crud.is_admin(non_existent_id)
 
         # Assert
@@ -243,7 +243,7 @@ class TestUserCrud:
         updated_user = await crud.set_admin_status(db_user.id, True)
 
         # Assert: Check that the returned user has updated admin status
-        assert isinstance(updated_user, UserRead)
+        assert isinstance(updated_user, UserResponse)
         assert updated_user.is_admin is True
 
         # Verify the change was persisted in the database
@@ -263,7 +263,7 @@ class TestUserCrud:
     async def test_set_admin_status_user_not_found(self, initialize_database):
         """Verify that crud.set_admin_status returns None for a non-existent ID."""
         # Act
-        non_existent_id = UUID("00000000-0000-0000-0000-000000000000")
+        non_existent_id = uuid.UUID("00000000-0000-0000-0000-000000000000")
         result = await crud.set_admin_status(non_existent_id, True)
 
         # Assert

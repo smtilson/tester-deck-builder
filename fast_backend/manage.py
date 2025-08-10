@@ -17,10 +17,10 @@ from fastapi_users.exceptions import InvalidPasswordException, UserAlreadyExists
 from honcho.manager import Manager as HonchoManager
 from tortoise import Tortoise, connections
 
-from app.core.config import settings
-from app.db.config import TORTOISE_ORM
+from fast_backend.app.core.config_app import settings
+from fast_backend.app.db.config_db import TORTOISE_ORM
 from app import user_utils
-from app.schemas.users import UserCreate
+from fast_backend.app.schemas.users import UserCreate
 
 cli = typer.Typer()
 
@@ -144,7 +144,7 @@ def start_app(app_name: str):
     app_dir = settings.BASE_DIR / package_name
     files = {
         "__init__.py": "",
-        "models.py": "from app.db.models import TimeStampedModel",
+        "models.py": "from fast_backend.app.db.models import TimeStampedModel",
         "schemas.py": "from pydantic import BaseModel",
         "routes.py": f"from fastapi import APIRouter\n\nrouter = APIRouter(prefix='/{package_name}')",
         "tests/__init__.py": "",

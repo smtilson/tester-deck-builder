@@ -1,9 +1,9 @@
 from contextlib import asynccontextmanager
 
-from .auth.manager import get_user_manager
-from .models.users import User
-from .db.users_db import get_user_db
-from .schemas import UserCreate
+from fast_backend.app.auth.manager import get_user_manager
+from fast_backend.app.models.users import User
+from fast_backend.app.db.users_db import get_user_db
+from fast_backend.app.models import UserCreate
 
 get_user_db_context = asynccontextmanager(get_user_db)
 get_user_manager_context = asynccontextmanager(get_user_manager)

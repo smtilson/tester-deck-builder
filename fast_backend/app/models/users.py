@@ -15,6 +15,7 @@ class User(TortoiseBaseUserAccountModelUUID, BasicModel):
     # and hashed_password are inherited from TortoiseBaseUserAccountModelUUID
     name = fields.CharField(max_length=255, null=True)
     is_admin = fields.BooleanField(default=False)
+
     class Meta:
         table = "users"
 

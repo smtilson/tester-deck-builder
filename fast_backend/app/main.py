@@ -7,14 +7,15 @@ from sentry_sdk.integrations.redis import RedisIntegration
 from contextlib import asynccontextmanager
 from tortoise import Tortoise
 
-#from app.core.auth import get_auth_router
-from .core.config import Environment, settings
-from .db.config import register_db, TORTOISE_ORM
-from .health import router as health_check_router
-from .auth.fast_api_users_instance import fastapi_users
-#from app.users.routes import router as users_router
-from .api.routes import router as api_router
-from .api.routes import test
+# from fast_backend.app.core.auth import get_auth_router
+from fast_backend.app.core.config_app import Environment, settings
+from fast_backend.app.db.config_db import register_db, TORTOISE_ORM
+from fast_backend.app.health import router as health_check_router
+from fast_backend.app.auth.fast_api_users_instance import fastapi_users
+
+# from fast_backend.app.users.routes import router as users_router
+from fast_backend.app.api.routes import router as api_router
+from fast_backend.app.api.routes import test
 
 
 @asynccontextmanager
@@ -22,9 +23,10 @@ async def lifespan(app: FastAPI):
     print("Connecting to database...")
     await Tortoise.init(config=TORTOISE_ORM)
     await Tortoise.generate_schemas()
-    yield # app starts processing here,
+    yield  # app starts processing here,
     print("Closing connection to database...")
     await Tortoise.close_connections()
+
 
 def get_application() -> FastAPI:
     _app = FastAPI(
@@ -33,10 +35,10 @@ def get_application() -> FastAPI:
         debug=settings.DEBUG,
         lifespan=lifespan,
     )
-    #_app.include_router(get_auth_router())
-    #_app.include_router(users_router)
+    # _app.include_router(get_auth_router())
+    # _app.include_router(users_router)
     _app.include_router(health_check_router)
-    #_app.include_router(test.router, prefix="/test")
+    # _app.include_router(test.router, prefix="/test")
     _app.include_router(api_router, prefix="/api")
     _app.add_middleware(
         CORSMiddleware,

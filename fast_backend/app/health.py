@@ -3,10 +3,10 @@ from pydantic import BaseModel
 from saq.worker import async_check_health as saq_check_health
 from tortoise.exceptions import DBConnectionError
 
-from .core.logger import logger
-from .services.worker import queue
+from fast_backend.app.core.logger import logger
+from fast_backend.app.services.worker import queue
 
-from .models.users import User
+from fast_backend.app.models.users import User
 
 router = APIRouter(prefix="/health")
 

@@ -5,7 +5,7 @@ from typing import Any, Protocol
 
 import jinja2
 
-from ...core.config import settings
+from fast_backend.app.core.config_app import settings
 
 from .null import Null
 from .ses import SES

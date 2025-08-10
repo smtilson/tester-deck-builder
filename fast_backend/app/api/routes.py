@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from .endpoints import cards, decks, deck_cards, test
+from fast_backend.app.api.endpoints import cards, decks, deck_cards, test
 
 router = APIRouter()
 

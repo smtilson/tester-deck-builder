@@ -1,12 +1,12 @@
 """Integration tests for UserManager - testing with real database."""
 
 import pytest
-from uuid import UUID
+import uuid
 from unittest.mock import patch, MagicMock, AsyncMock
 
 from fast_backend.app.models.users import User as UserORM
 from fast_backend.app.schemas.users import UserCreate, UserUpdate
-from fast_backend.app.core.config import Environment, settings
+from fast_backend.app.core.config_app import Environment, settings
 from fastapi_users.exceptions import (
     UserAlreadyExists,
     InvalidPasswordException,
@@ -57,7 +57,7 @@ class TestUserManagerIntegration:
         print("asserting facts")
         # Verify user creation
         assert created_user.id is not None
-        assert isinstance(created_user.id, UUID)
+        assert isinstance(created_user.id, uuid.UUID)
         assert created_user.username == user_data["username"]
         assert created_user.email == user_data["email"]
         assert created_user.name == user_data["name"]

@@ -1,6 +1,6 @@
 from typing import Optional
-from ..models.decks import Deck as DeckModel
-from ..schemas.decks import DeckCreate, DeckUpdate, DeckResponse
+from fast_backend.app.models.decks import Deck as DeckModel
+from fast_backend.app.schemas.decks import DeckCreate, DeckUpdate, DeckResponse
 
 
 class DeckRepo:
@@ -17,9 +17,8 @@ class DeckRepo:
         """
         deck_data_dict = deck_data.model_dump(exclude={"cards"})
         # Assuming owner_id is hardcoded to 1 for now
-        deck_obj = await DeckModel.create(**deck_data_dict, owner_id=1)
+        deck_obj = await DeckModel.create(**deck_data_dict)
         return DeckResponse.model_validate(deck_obj)
-
 
     @staticmethod
     async def get_deck(deck_id: int) -> Optional[DeckResponse]:
@@ -33,11 +32,12 @@ class DeckRepo:
             The deck as a Pydantic schema, or None if it doesn't exist.
         """
         # this response model doesn't have the cards in it.
-        deck_obj = await DeckModel.get_or_none(id=deck_id)# .prefetch_related("deck_cards__card")
+        deck_obj = await DeckModel.get_or_none(
+            id=deck_id
+        )  # .prefetch_related("deck_cards__card")
         if deck_obj:
             return DeckResponse.model_validate(deck_obj)
         return None
-
 
     @staticmethod
     async def get_all_decks() -> list[DeckResponse]:
@@ -49,12 +49,13 @@ class DeckRepo:
         """
         # prefetch owner as well once users are implemented
         # cards are not in this response model
-        decks = await DeckModel.all()#.prefetch_related("deck_cards__card")
+        decks = await DeckModel.all()  # .prefetch_related("deck_cards__card")
         return [DeckResponse.model_validate(deck) for deck in decks]
 
-
     @staticmethod
-    async def update_deck(deck_id: int, deck_data: DeckUpdate) -> Optional[DeckResponse]:
+    async def update_deck(
+        deck_id: int, deck_data: DeckUpdate
+    ) -> Optional[DeckResponse]:
         """
         Update a deck.
 
@@ -74,7 +75,6 @@ class DeckRepo:
             await deck_obj.fetch_related("deck_cards__card")
             return DeckResponse.model_validate(deck_obj)
         return None
-
 
     @staticmethod
     async def delete_deck(deck_id: int) -> bool:

@@ -8,12 +8,13 @@ import traceback
 # Add the parent directory to the path so we can import our app modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.models.cards import Card
-from app.models.decks import Deck
-from app.models.users import User
-from app.models.deck_cards import DeckCard
-from app.db.config import init_db, close_db
+from fast_backend.app.models.cards import Card
+from fast_backend.app.models.decks import Deck
+from fast_backend.app.models.users import User
+from fast_backend.app.models.deck_cards import DeckCard
+from fast_backend.app.db.config_db import init_db, close_db
 from tortoise import Tortoise
+
 
 async def add_sample_data():
     """Add sample data to the database."""
@@ -36,7 +37,7 @@ async def add_sample_data():
         deck = await Deck.create(
             name="Sample Deck",
             description="This is a sample deck for testing",
-            owner=user
+            owner=user,
         )
         print(f"Created deck: {deck.name} (ID: {deck.id})")
 
@@ -68,24 +69,24 @@ async def display_db():
     await init_db()
     try:
         print("\n=== DATABASE CONTENTS ===\n")
-        
+
         # Get all cards
         cards = await Card.all()
         print(f"Total cards: {len(cards)}")
         for card in cards:
             print(f"Card ID: {card.id}, Name: {card.name}, Text: {card.text}")
-        
+
         print("\n---\n")
-        
+
         # Get all decks
         decks = await Deck.all()
         print(f"Total decks: {len(decks)}")
-        
+
         for deck in decks:
             print(f"\nDeck ID: {deck.id}, Name: {deck.name}")
             print(f"Description: {deck.description}")
             print(f"Owner ID: {deck.owner_id}, Valid: {deck.is_valid}")
-            
+
             # Get deck cards for this deck
             deck_cards = await DeckCard.filter(deck_id=deck.id).prefetch_related("card")
             if not deck_cards:
@@ -95,7 +96,7 @@ async def display_db():
                 for dc in deck_cards:
                     card = dc.card
                     print(f"    - {dc.quantity}x {card.name} (ID: {card.id})")
-        
+
         # Get all deck_cards to show the relationships
         print("\n---\n")
         deck_cards = await DeckCard.all().prefetch_related("deck", "card")
@@ -103,8 +104,10 @@ async def display_db():
         for dc in deck_cards:
             deck = await dc.deck
             card = await dc.card
-            print(f"Relationship ID: {dc.id}, Deck: {deck.name}, Card: {card.name}, Quantity: {dc.quantity}")
-        
+            print(
+                f"Relationship ID: {dc.id}, Deck: {deck.name}, Card: {card.name}, Quantity: {dc.quantity}"
+            )
+
         print("\n=== END OF DATABASE CONTENTS ===\n")
         return True
     except Exception as e:
@@ -122,10 +125,10 @@ async def flush():
     try:
         print("Flushing database...")
         # Use the internal method to drop all databases
-        
+
         # This is a more direct way to drop all tables
         await Tortoise._drop_databases()
-        
+
         print("Database has been flushed successfully!")
         return True
     except Exception as e:
@@ -138,14 +141,14 @@ async def flush():
 
 
 if __name__ == "__main__":
-    
+
     success = asyncio.run(add_sample_data())
     if success:
         print("Sample data added successfully!")
     else:
         print("Failed to add sample data.")
         sys.exit(1)
-    
+
     view = asyncio.run(display_db())
     if view:
         print("Sample data displayed successfully!")

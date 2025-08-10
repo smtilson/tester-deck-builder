@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from pydantic.generics import GenericModel
 from tortoise.queryset import QuerySet
 
-from .config import settings
+from fast_backend.app.core.config_app import settings
 
 T = TypeVar("T", bound=BaseModel)
 

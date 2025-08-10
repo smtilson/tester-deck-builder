@@ -9,7 +9,7 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
     "is_active" BOOL NOT NULL DEFAULT True,
     "is_superuser" BOOL NOT NULL DEFAULT False,
     "is_verified" BOOL NOT NULL DEFAULT False,
-    "id" UUID NOT NULL PRIMARY KEY,
+    "id" uuid.UUID NOT NULL PRIMARY KEY,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "version" VARCHAR(50),
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS "decks" (
     "name" VARCHAR(255) NOT NULL UNIQUE,
     "description" TEXT,
     "is_valid" BOOL NOT NULL DEFAULT False,
-    "owner_id" UUID NOT NULL
+    "owner_id" uuid.UUID NOT NULL
 );
 CREATE TABLE IF NOT EXISTS "cards" (
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,

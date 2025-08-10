@@ -2,8 +2,8 @@
 CRUD operations for database models.
 """
 
-from . import cards
-from . import decks
-from . import deck_cards
+from fast_backend.app.crud.cards import CardRepo
+from fast_backend.app.crud.decks import DeckRepo
+from fast_backend.app.crud.deck_cards import DeckCardRepo
 
-__all__ = ["cards", "decks", "deck_cards"]
+__all__ = ["CardRepo", "DeckRepo", "DeckCardRepo"]

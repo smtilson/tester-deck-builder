@@ -1,5 +1,5 @@
 import os
-from uuid import UUID
+import uuid
 from fastapi_users import models, FastAPIUsers
 from fastapi_users.authentication import (
     JWTStrategy,
@@ -10,8 +10,8 @@ from fastapi_users_tortoise.access_token import (
     TortoiseBaseAccessTokenModel,
     TortoiseAccessTokenDatabase,
 )
-from .manager import get_user_manager
-from ..models.users import User
+from fast_backend.app.auth.manager import get_user_manager
+from fast_backend.app.models.users import User
 
 JWT_SECRET = os.getenv("SECRET_KEY", "your-secret-key")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
@@ -27,8 +27,8 @@ auth_backend = AuthenticationBackend(
     name="jwt", transport=bearer_transport, get_strategy=get_jwt_strategy
 )
 # moved to the fast_api_users_instance file
-#fastapi_users = FastAPIUsers[User, UUID](get_user_manager, [auth_backend])
-#current_active_user = fastapi_users.current_user(active=True)
+# fastapi_users = FastAPIUsers[User, uuid.uuid4](get_user_manager, [auth_backend])
+# current_active_user = fastapi_users.current_user(active=True)
 
 
 """

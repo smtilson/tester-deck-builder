@@ -3,9 +3,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Any
 
-from ...models.decks import Deck
-from ...models.cards import Card
-from ...models.deck_cards import DeckCard
+from fast_backend.app.models.decks import Deck
+from fast_backend.app.models.cards import Card
+from fast_backend.app.models.deck_cards import DeckCard
 
 # prefix="/test", tags=["test"] should be passed to the below maybe
 # but it looks like this is done in the routes file.

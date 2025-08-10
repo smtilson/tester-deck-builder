@@ -1,4 +1,4 @@
-from .initial_data import create_superuser
+from fast_backend.app.initial_data import create_superuser
 
 
 async def startup() -> None:

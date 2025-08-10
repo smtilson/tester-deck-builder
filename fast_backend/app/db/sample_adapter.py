@@ -1,28 +1,32 @@
 from .users_db import get_user_db, MyTortoiseUserDatabase
-from ..models.users import User as UserORM
+from fast_backend.app.models.users import User as UserORM
 from fastapi_users_tortoise import TortoiseUserDatabase
 from tortoise import Tortoise, run_async
 from tortoise.models import Model
-#from fastapi_users.password import get_password_hash
+
+# from fastapi_users.password import get_password_hash
 from fastapi_users_tortoise import TortoiseUserDatabase
-from ..schemas.users import *
+from fast_backend.app.schemas.users import *
 import asyncio
-from uuid import UUID
+import uuid
 
 
-
-
-user_data = {"username":"sample", "password":"samplepass", "email":"sample@example.com"}
+user_data = {
+    "username": "sample",
+    "password": "samplepass",
+    "email": "sample@example.com",
+}
 
 TORTOISE_CONFIG = {
     "connections": {"default": "sqlite://:memory:"},
     "apps": {
         "models": {
-            "models": ["fast_backend.app.models.users"], # Path to your user model
+            "models": ["fast_backend.app.models.users"],  # Path to your user model
             "default_connection": "default",
         }
-    }
+    },
 }
+
 
 async def tinker_with_db():
     print("Initializing Tortoise ORM...")

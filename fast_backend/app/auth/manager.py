@@ -1,42 +1,46 @@
 from __future__ import annotations
 from typing import Optional
-from uuid import UUID
+import uuid
 from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, InvalidPasswordException, UUIDIDMixin
 from fastapi_users.exceptions import UserAlreadyExists
 from fastapi_users_tortoise import TortoiseUserDatabase
 from fastapi_users.password import PasswordHelper
 from passlib.context import CryptContext
-from ..schemas.users import UserCreate, UserUpdate
+from fast_backend.app.schemas.users import UserCreate, UserUpdate
 
-from ..core.config import Environment, settings
-from ..services.email import render_email_template
-from ..services.worker import queue
+from fast_backend.app.core.config_app import Environment, settings
+from fast_backend.app.services.email import render_email_template
+from fast_backend.app.services.worker import queue
 
 
-from ..models.users import User
-from ..db.users_db import get_user_db
+from fast_backend.app.models.users import User
+from fast_backend.app.db.users_db import get_user_db
 
 
 context = CryptContext(schemes=["argon2", "bcrypt"], deprecated="auto")
 password_helper = PasswordHelper(context)
 
 
-class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
+class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
 
     reset_password_token_secret = settings.SECRET_KEY
     verification_token_secret = settings.SECRET_KEY
-    
-    async def create(self, user_create: UserCreate, safe: bool=False, request: Optional[Request]=None) -> User:
+
+    async def create(
+        self,
+        user_create: UserCreate,
+        safe: bool = False,
+        request: Optional[Request] = None,
+    ) -> User:
         """Override to add custom user creation logic."""
         print("custom create called")
         existing_username_user = await User.get_or_none(username=user_create.username)
         if existing_username_user is not None:
             raise UserAlreadyExists()
-            
-        
+
         return await super().create(user_create=user_create, safe=safe, request=request)
-        
+
     async def on_after_register(
         self, user: User, request: Request | None = None
     ) -> None:

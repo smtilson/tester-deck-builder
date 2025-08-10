@@ -1,7 +1,8 @@
 # app/db/user_db.py
 from typing import AsyncGenerator
 from fastapi_users_tortoise import TortoiseUserDatabase
-from ..models.users import User # Import your User ORM model
+from fast_backend.app.models.users import User  # Import your User ORM model
+
 
 async def get_user_db() -> AsyncGenerator[TortoiseUserDatabase, None]:
     """

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from tortoise.contrib.fastapi import register_tortoise
 from tortoise import Tortoise
 
-from ..core.config import settings
+from fast_backend.app.core.config_app import settings
 
 
 MODEL_PATHS = [

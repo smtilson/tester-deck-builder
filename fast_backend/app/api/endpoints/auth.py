@@ -2,12 +2,15 @@
 
 # Import the necessary components from FastAPI and your application.
 # You will need your FastAPIUsers instance, the authentication backend,
-# and your user schemas (UserRead, UserCreate, etc.).
+# and your user schemas (UserResponse, UserCreate, etc.).
 from fastapi import APIRouter
 
-from fast_backend.app.schemas.users import UserCreate, UserRead, UserUpdate
-from ...auth.backend import auth_backend
-from ...auth.fast_api_users_instance import fastapi_users, current_active_user
+from fast_backend.app.schemas.users import UserCreate, UserResponse, UserUpdate
+from fast_backend.app.auth.backend import auth_backend
+from fast_backend.app.auth.fast_api_users_instance import (
+    fastapi_users,
+    current_active_user,
+)
 
 # Create a master router for all authentication-related endpoints.
 # This router will act as a container for all the sub-routers.
@@ -29,7 +32,7 @@ auth_router.include_router(
 
 # This router handles user registration.
 auth_router.include_router(
-    fastapi_users.get_register_router(UserRead, UserCreate),
+    fastapi_users.get_register_router(UserResponse, UserCreate),
 )
 
 # This router handles password reset requests.
@@ -39,6 +42,5 @@ auth_router.include_router(
 
 # This router handles user verification.
 auth_router.include_router(
-    fastapi_users.get_verify_router(UserRead),
+    fastapi_users.get_verify_router(UserResponse),
 )
-
