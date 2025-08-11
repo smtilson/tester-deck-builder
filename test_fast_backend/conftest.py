@@ -18,13 +18,11 @@ async def init_db():
     Drop it after all tests are done.
     """
     TEST_DB_URL = "sqlite://:memory:"
-    await Tortoise.init(
-        db_url=TEST_DB_URL,
-        modules=TEST_MODULES
-    )
+    await Tortoise.init(db_url=TEST_DB_URL, modules=TEST_MODULES)
     await Tortoise.generate_schemas()
     yield
     await Tortoise.close_connections()
+
 
 # I think this can be deleted
 @pytest.fixture
@@ -42,7 +40,7 @@ def user_test_data() -> List[Dict[str, Any]]:
     """Create test user data for database creation."""
     return [
         {
-            "id": uuid.uuid4(),
+            "id": uuid.UUID("d4700669-9c60-41f8-b3f7-de64b4d6798f"),
             "username": "testuser1",
             "email": "test1@example.com",
             "password": "password123",
@@ -53,7 +51,7 @@ def user_test_data() -> List[Dict[str, Any]]:
             "is_admin": False,
         },
         {
-            "id": uuid.uuid4(),
+            "id": uuid.UUID("2c9d71f6-f1ff-419e-8225-ead1b372306e"),
             "username": "admin_user",
             "email": "admin@example.com",
             "password": "adminpass123",
@@ -64,7 +62,7 @@ def user_test_data() -> List[Dict[str, Any]]:
             "is_admin": True,
         },
         {
-            "id": uuid.uuid4(),
+            "id": uuid.UUID("9c536596-d0e6-4634-842b-ff035fefcd01"),
             "username": "inactive_user",
             "email": "inactive@example.com",
             "password": "password123",
@@ -110,7 +108,7 @@ def deck_test_data(user_test_data) -> List[Dict[str, Any]]:
     # Use the first user as the default owner
     default_owner_id = user_test_data[0]["id"]
     admin_owner_id = user_test_data[1]["id"]
-    
+
     return [
         {
             "id": 1,
@@ -142,7 +140,7 @@ def deck_card_test_data(card_test_data, deck_test_data) -> List[Dict[str, Any]]:
     # Extract deck and card IDs from the test data
     deck_ids = [deck["id"] for deck in deck_test_data]
     card_ids = [card["id"] for card in card_test_data]
-    
+
     return [
         {
             "id": 1,
@@ -180,38 +178,39 @@ def deck_card_test_data(card_test_data, deck_test_data) -> List[Dict[str, Any]]:
 @pytest.fixture
 def all_test_data(user_test_data, card_test_data, deck_test_data, deck_card_test_data):
     """Composite fixture that provides all test data."""
+
     class TestData:
         def __init__(self):
             self.user_data = user_test_data
             self.card_data = card_test_data
             self.deck_data = deck_test_data
             self.deck_card_data = deck_card_test_data
-        
+
         def get_user_by_username(self, username: str) -> Dict[str, Any]:
             """Get user data by username."""
             for user in self.user_data:
                 if user["username"] == username:
                     return user
             raise ValueError(f"User with username '{username}' not found")
-        
+
         def get_card_by_name(self, name: str) -> Dict[str, Any]:
             """Get card data by name."""
             for card in self.card_data:
                 if card["name"] == name:
                     return card
             raise ValueError(f"Card with name '{name}' not found")
-        
+
         def get_deck_by_name(self, name: str) -> Dict[str, Any]:
             """Get deck data by name."""
             for deck in self.deck_data:
                 if deck["name"] == name:
                     return deck
             raise ValueError(f"Deck with name '{name}' not found")
-        
+
         def get_deck_cards_by_deck_id(self, deck_id: int) -> List[Dict[str, Any]]:
             """Get all deck_card data for a specific deck."""
             return [dc for dc in self.deck_card_data if dc["deck_id"] == deck_id]
-    
+
     return TestData()
 
 

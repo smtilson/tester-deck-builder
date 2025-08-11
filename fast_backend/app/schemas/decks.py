@@ -20,16 +20,14 @@ class DeckUpdate(DeckBase):
     name: Optional[str] = None
     description: Optional[str] = None
     is_valid: Optional[bool] = None
-    owner: Optional[UserResponse]
+    owner: Optional[UserResponse] = None
 
 
 class DeckInDB(DeckBase):
     id: int
-    owner_id: int
+    owner_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
-    owner_id: uuid.UUID
-    owner: UserResponse
     model_config = ConfigDict(from_attributes=True)
 
 

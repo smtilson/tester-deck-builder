@@ -2,7 +2,7 @@ from typing import Optional
 from fast_backend.app.models.decks import Deck as DeckModel
 from fast_backend.app.schemas.decks import DeckCreate, DeckUpdate, DeckResponse
 
-
+#I think this can be refactored into a base class pattern.
 class DeckRepo:
     @staticmethod
     async def create_deck_record(deck_data: DeckCreate) -> DeckResponse:
@@ -15,8 +15,8 @@ class DeckRepo:
         Returns:
             The created deck as a Pydantic schema instance.
         """
-        deck_data_dict = deck_data.model_dump(exclude={"cards"})
-        # Assuming owner_id is hardcoded to 1 for now
+        deck_data_dict = deck_data.model_dump(exclude={"cards", "owner"})
+        deck_data_dict["owner_id"] = deck_data.owner.id
         deck_obj = await DeckModel.create(**deck_data_dict)
         return DeckResponse.model_validate(deck_obj)
 
@@ -68,11 +68,11 @@ class DeckRepo:
         """
         deck_obj = await DeckModel.get_or_none(id=deck_id)
         if deck_obj:
-            update_data = deck_data.model_dump(exclude_unset=True)
+            update_data = deck_data.model_dump(exclude_unset=True, exclude={"owner"})
+            if deck_data.owner is not None:
+                update_data["owner_id"] = deck_data.owner.id
             if update_data:
                 await deck_obj.update_from_dict(update_data).save()
-            # Refetch to get the latest state for the response
-            await deck_obj.fetch_related("deck_cards__card")
             return DeckResponse.model_validate(deck_obj)
         return None
 
