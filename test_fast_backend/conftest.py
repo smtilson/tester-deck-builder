@@ -80,24 +80,20 @@ def card_test_data() -> List[Dict[str, Any]]:
     """Create test card data for database creation."""
     return [
         {
-            "id": 1,
             "name": "Lightning Bolt",
             "text": "Lightning Bolt deals 3 damage to any target.",
         },
         {
-            "id": 2,
             "name": "Giant Growth",
             "text": "Target creature gets +3/+3 until end of turn.",
         },
         {
-            "id": 3,
             "name": "Counterspell",
             "text": "Counter target spell.",
         },
         {
-            "id": 4,
             "name": "Basic Land",
-            "text": None,
+            "text": "not none",
         },
     ]
 
@@ -111,21 +107,18 @@ def deck_test_data(user_test_data) -> List[Dict[str, Any]]:
 
     return [
         {
-            "id": 1,
             "name": "Red Burn Deck",
             "description": "A fast aggressive red deck focused on dealing damage quickly.",
             "is_valid": True,
             "owner_id": default_owner_id,
         },
         {
-            "id": 2,
             "name": "Blue Control",
             "description": "A control deck that counters spells and draws cards.",
             "is_valid": True,
             "owner_id": admin_owner_id,
         },
         {
-            "id": 3,
             "name": "Work in Progress",
             "description": "An incomplete deck still being built.",
             "is_valid": False,
@@ -143,25 +136,21 @@ def deck_card_test_data(card_test_data, deck_test_data) -> List[Dict[str, Any]]:
 
     return [
         {
-            "id": 1,
             "deck_id": deck_ids[0],  # Red Burn Deck
             "card_id": card_ids[0],  # Lightning Bolt
             "quantity": 4,
         },
         {
-            "id": 2,
             "deck_id": deck_ids[0],  # Red Burn Deck
             "card_id": card_ids[3],  # Basic Land
             "quantity": 20,
         },
         {
-            "id": 3,
             "deck_id": deck_ids[1],  # Blue Control
             "card_id": card_ids[2],  # Counterspell
             "quantity": 4,
         },
         {
-            "id": 4,
             "deck_id": deck_ids[1],  # Blue Control
             "card_id": card_ids[3],  # Basic Land
             "quantity": 24,

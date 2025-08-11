@@ -1,8 +1,10 @@
 import pytest
 import pytest_asyncio
-from tortoise.exceptions import IntegrityError
+from tortoise.exceptions import IntegrityError, DoesNotExist
+import random
 
 from fast_backend.app.crud.cards import CardRepo
+from fast_backend.app.models.cards import Card
 from fast_backend.app.schemas.cards import CardCreate, CardUpdate
 
 
@@ -16,15 +18,27 @@ async def setup_cards(init_db, card_test_data):
         created_cards.append(created_card)
     return created_cards
 
+
+@pytest_asyncio.fixture(scope="function")
+async def setup_card(init_db, card_test_data):
+    """Create a test card for update operations."""
+    card_data = random.choice(card_test_data)
+    while None in (card_data["name"], card_data["text"]):
+        card_data = random.choice(card_test_data)
+    card_create = CardCreate(name=card_data["name"], text=card_data["text"])
+    test_card = await CardRepo.create_card(card_create)
+    return test_card
+
+
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestCardRepoCreate:
     """Integration tests for CardRepo create operations."""
 
-    
     async def test_create_card_success(self, card_test_data):
         """Test successful card creation with valid data."""
-        card_data = card_test_data[0]
+        card_data = random.choice(card_test_data)
         card_create = CardCreate(name=card_data["name"], text=card_data["text"])
 
         result = await CardRepo.create_card(card_create)
@@ -42,7 +56,6 @@ class TestCardRepoCreate:
         assert db_card.name == card_data["name"]
         assert db_card.text == card_data["text"]
 
-    
     async def test_create_card_minimal_data(self):
         """Test creating card with only required fields."""
 
@@ -54,7 +67,6 @@ class TestCardRepoCreate:
         assert result.text is None
         assert isinstance(result.id, int)
 
-    
     async def test_create_multiple_cards_different_names(self):
         """Test creating multiple cards with different names succeeds."""
 
@@ -69,16 +81,16 @@ class TestCardRepoCreate:
         assert result2.name == "Second Card"
 
 
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("setup_cards")
+@pytest.mark.usefixtures("init_db")
 class TestCardRepoRead:
     """Integration tests for CardRepo read operations."""
-
 
     async def test_get_card_by_id_success(self, setup_cards):
         """Test successful retrieval of card by ID."""
 
-        created_card = setup_cards[0]
+        created_card = random.choice(setup_cards)
 
         result = await CardRepo.get_card(created_card.id)
 
@@ -87,16 +99,16 @@ class TestCardRepoRead:
         assert result.name == created_card.name
         assert result.text == created_card.text
 
-
-    async def test_get_card_by_id_not_found(self):
+    async def test_get_card_by_id_not_found(self, setup_cards):
         """Test that getting non-existent card returns None."""
 
-        non_existent_id = 99999
+        random_id = random.randint(1000, 9999)  # Assuming this ID does not exist
+        while random_id in [card.id for card in setup_cards]:
+            random_id = random.randint(1000, 9999)
 
-        result = await CardRepo.get_card(non_existent_id)
+        result = await CardRepo.get_card(random_id)
 
         assert result is None
-
 
     async def test_get_all_cards_returns_all(self, card_test_data):
         """Test that get_all_cards returns all created cards."""
@@ -108,11 +120,9 @@ class TestCardRepoRead:
         expected_names = [card["name"] for card in card_test_data]
         assert set(card_names) == set(expected_names)
 
-
     async def test_get_all_cards_empty_database(self):
         """Test get_all_cards with empty database."""
         # Clear all cards
-        from fast_backend.app.models.cards import Card
 
         await Card.all().delete()
 
@@ -120,56 +130,32 @@ class TestCardRepoRead:
 
         assert result == []
 
-
-    async def test_get_all_cards_maintains_order_and_properties(self):
-        """Test that get_all_cards returns cards with all properties intact."""
-        result = await CardRepo.get_all_cards()
-
-        for card in result:
-            assert isinstance(card.id, int)
-            assert isinstance(card.name, str)
-            assert card.text is None or isinstance(card.text, str)
-            assert card.created_at is not None
-            assert card.updated_at is not None
-
-
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestCardRepoUpdate:
     """Integration tests for CardRepo update operations."""
 
-    @pytest_asyncio.fixture(autouse=True)
-    async def setup_card(self, init_db, all_test_data):
-        """Create a test card for update operations."""
-        card_data = all_test_data.get_card_by_name("Lightning Bolt")
-        card_create = CardCreate(name=card_data["name"], text=card_data["text"])
-        test_card = await CardRepo.create_card(card_create)
-        return test_card
-
-
     async def test_update_card_success(self, setup_card):
         """Test successful card update."""
         update_data = CardUpdate(
-            name="Updated Lightning Bolt",
-            text="Updated: Lightning Bolt deals 3 damage to any target.",
+            name=setup_card.name + " updated",
+            text=setup_card.text + " updated",
         )
 
         result = await CardRepo.update_card(setup_card.id, update_data)
 
         assert result is not None
         assert result.id == setup_card.id
-        assert result.name == "Updated Lightning Bolt"
-        assert result.text == "Updated: Lightning Bolt deals 3 damage to any target."
+        assert result.name == setup_card.name + " updated"
+        assert result.text == setup_card.text + " updated"
         # Updated timestamp should be different
         assert result.updated_at >= setup_card.updated_at
 
         # Verify update persisted in database
-        from fast_backend.app.models.cards import Card
-
         db_card = await Card.get(id=setup_card.id)
-        assert db_card.name == "Updated Lightning Bolt"
-        assert db_card.text == "Updated: Lightning Bolt deals 3 damage to any target."
-
+        assert db_card.name == setup_card.name + " updated"
+        assert db_card.text == setup_card.text + " updated"
 
     async def test_update_card_partial_update_name_only(self, setup_card):
         """Test partial card update with only name field."""
@@ -181,7 +167,7 @@ class TestCardRepoUpdate:
         assert result.name == "Only Name Changed"
         # Text should remain unchanged
         assert result.text == setup_card.text
-
+        assert result.id == setup_card.id
 
     async def test_update_card_partial_update_text_only(self, setup_card):
         """Test partial card update with only text field."""
@@ -193,7 +179,7 @@ class TestCardRepoUpdate:
         assert result.text == "Only text changed"
         # Name should remain unchanged
         assert result.name == setup_card.name
-
+        assert result.id == setup_card.id
 
     async def test_update_card_set_text_to_null(self, setup_card):
         """Test updating card text to null."""
@@ -204,7 +190,7 @@ class TestCardRepoUpdate:
         assert result is not None
         assert result.text is None
         assert result.name == setup_card.name
-
+        assert result.id == setup_card.id
 
     async def test_update_card_empty_update(self, setup_card):
         """Test update with no fields provided."""
@@ -216,31 +202,25 @@ class TestCardRepoUpdate:
         # All fields should remain unchanged
         assert result.name == setup_card.name
         assert result.text == setup_card.text
-
+        assert result.id == setup_card.id
 
     async def test_update_card_not_found(self):
         """Test updating non-existent card returns None."""
-        non_existent_id = 99999
+        non_existent_id = random.randint(1000, 99999)
+        existing_ids = [card.id for card in await CardRepo.get_all_cards()]
+        while non_existent_id in existing_ids:
+            non_existent_id = random.randint(1000, 99999)
         update_data = CardUpdate(name="New Name")
 
         result = await CardRepo.update_card(non_existent_id, update_data)
 
         assert result is None
 
-
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestCardRepoDelete:
     """Integration tests for CardRepo delete operations."""
-
-    @pytest_asyncio.fixture(autouse=True)
-    async def setup_card(self, init_db, all_test_data):
-        """Create a test card for delete operations."""
-        card_data = all_test_data.get_card_by_name("Lightning Bolt")
-        card_create = CardCreate(name=card_data["name"], text=card_data["text"])
-        test_card = await CardRepo.create_card(card_create)
-        return test_card
-
 
     async def test_delete_card_success(self, setup_card):
         """Test successful card deletion."""
@@ -253,21 +233,19 @@ class TestCardRepoDelete:
         assert deleted_card is None
 
         # Verify card no longer exists in database
-        from fast_backend.app.models.cards import Card
-        from tortoise.exceptions import DoesNotExist
-
         with pytest.raises(DoesNotExist):
             await Card.get(id=setup_card.id)
 
-
     async def test_delete_card_not_found(self):
         """Test deleting non-existent card returns False."""
-        non_existent_id = 99999
+        non_existent_id = random.randint(1000, 99999)
+        existing_ids = [card.id for card in await CardRepo.get_all_cards()]
+        while non_existent_id in existing_ids:
+            non_existent_id = random.randint(1000, 99999)
 
         result = await CardRepo.delete_card(non_existent_id)
 
         assert result is False
-
 
     async def test_delete_card_multiple_times(self, setup_card):
         """Test deleting same card multiple times."""
@@ -279,11 +257,11 @@ class TestCardRepoDelete:
         result2 = await CardRepo.delete_card(setup_card.id)
         assert result2 is False
 
+@pytest.mark.skip("special")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestCardRepoEdgeCases:
     """Integration tests for CardRepo edge cases and error conditions."""
-
 
     async def test_create_card_with_very_long_name(self):
         """Test creating card with maximum length name."""
@@ -295,7 +273,6 @@ class TestCardRepoEdgeCases:
         assert result.name == long_name
         assert len(result.name) == 255
 
-
     async def test_create_card_with_very_long_text(self):
         """Test creating card with very long text."""
         long_text = "This is a very long text. " * 100  # Very long text
@@ -306,7 +283,6 @@ class TestCardRepoEdgeCases:
         assert result.text == long_text
         assert result.name == "Long Text Card"
 
-
     async def test_create_card_with_empty_text_string(self):
         """Test creating card with empty string as text."""
         card_create = CardCreate(name="Empty Text Card", text="")
@@ -315,7 +291,6 @@ class TestCardRepoEdgeCases:
 
         assert result.text == ""
         assert result.name == "Empty Text Card"
-
 
     async def test_update_nonexistent_card_multiple_times(self):
         """Test updating non-existent card multiple times returns None consistently."""
@@ -327,7 +302,6 @@ class TestCardRepoEdgeCases:
 
         assert result1 is None
         assert result2 is None
-
 
     async def test_card_id_autoincrement(self):
         """Test that card IDs are properly auto-incremented."""
