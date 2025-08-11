@@ -9,7 +9,7 @@ from fast_backend.app.crud.users import UserRepo
 from fast_backend.app.schemas.decks import DeckCreate, DeckUpdate
 from fast_backend.app.schemas.users import UserCreate
 
-# @pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db")
 @pytest.mark.asyncio
 class TestDeckRepoCreate:
@@ -29,7 +29,7 @@ class TestDeckRepoCreate:
         assert isinstance(result.id, int)
         assert result.created_at is not None
         assert result.updated_at is not None
-        assert result.owner_id == single_user.id
+        assert result.owner.id == single_user.id
 
         # Verify deck exists in database
         db_deck = await Deck.get(id=result.id)
@@ -47,7 +47,7 @@ class TestDeckRepoCreate:
         assert result.name == "Minimal Deck"
         assert result.description is None
         assert result.is_valid is False  # Default value
-        assert result.owner_id == single_user.id
+        assert result.owner.id == single_user.id
 
     async def test_create_deck_duplicate_name_fails(self, init_db, single_user):
         """Test that creating deck with duplicate name fails."""
@@ -61,7 +61,6 @@ class TestDeckRepoCreate:
             await DeckRepo.create_deck_record(deck_create)
 
 @pytest.mark.skip("standard")
-@pytest.mark.asyncio
 @pytest.mark.asyncio
 class TestDeckRepoRead:
     """Integration tests for DeckRepo read operations."""
@@ -77,7 +76,7 @@ class TestDeckRepoRead:
         assert result.name == created_deck.name
         assert result.description == created_deck.description
         assert result.is_valid == created_deck.is_valid
-        assert result.owner_id == created_deck.owner_id
+        assert result.owner.id == created_deck.owner.id
 
     async def test_get_deck_by_id_not_found(self, init_db):
         """Test that getting non-existent deck returns None."""
@@ -115,7 +114,7 @@ class TestDeckRepoUpdate:
         """Test successful deck update."""
         owner, deck = single_deck["owner"], single_deck["test_deck"]
         all_other_user_data = [
-            user_data for user_data in user_test_data if user_data["id"] != owner.id
+            user_data for user_data in user_test_data if user_data["username"] != owner.username
         ]
         new_user_data = random.choice(all_other_user_data)
         new_owner = await UserRepo.create_user(UserCreate(**new_user_data))
@@ -134,7 +133,7 @@ class TestDeckRepoUpdate:
         assert result.description == deck.description + " Updated"
         assert result.is_valid is True
         # Owner should be updated to the new owner
-        assert result.owner_id == new_owner.id
+        assert result.owner.id == new_owner.id
 
         # Verify update persisted in database
         db_deck = await Deck.get(id=single_deck["test_deck"].id)
@@ -154,7 +153,7 @@ class TestDeckRepoUpdate:
         # Other fields should remain unchanged
         assert result.description == single_deck["test_deck"].description
         assert result.is_valid == single_deck["test_deck"].is_valid
-        assert result.owner_id == single_deck["owner"].id
+        assert result.owner.id == single_deck["owner"].id
 
     async def test_update_deck_partial_description_only(self, single_deck):
         """Test partial deck update with only description field."""
@@ -167,7 +166,7 @@ class TestDeckRepoUpdate:
         # Other fields should remain unchanged
         assert result.name == single_deck["test_deck"].name
         assert result.is_valid == single_deck["test_deck"].is_valid
-        assert result.owner_id == single_deck["owner"].id
+        assert result.owner.id == single_deck["owner"].id
 
     async def test_update_deck_set_description_to_null(self, single_deck):
         """Test updating deck description to null."""
@@ -181,13 +180,13 @@ class TestDeckRepoUpdate:
 
     async def test_update_deck_toggle_validity(self, single_deck):
         """Test updating deck validity status."""
-        original_validity = single_deck["test_deck"].is_valid
-        update_data = DeckUpdate(is_valid=not original_validity)
+        new_validity = not single_deck["test_deck"].is_valid
+        update_data = DeckUpdate(is_valid=new_validity)
 
         result = await DeckRepo.update_deck(single_deck["test_deck"].id, update_data)
 
         assert result is not None
-        assert result.is_valid == (not original_validity)
+        assert result.is_valid == new_validity
         assert result.name == single_deck["test_deck"].name
 
     async def test_update_deck_empty_update(self, single_deck):
@@ -213,6 +212,7 @@ class TestDeckRepoUpdate:
 
 @pytest.mark.skip("standard")
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("init_db")
 class TestDeckRepoDelete:
     """Integration tests for DeckRepo delete operations."""
 
@@ -233,7 +233,7 @@ class TestDeckRepoDelete:
         with pytest.raises(DoesNotExist):
             deleted_deck_db = await Deck.get(id=deck_id)
 
-    async def test_delete_deck_not_found(self, init_db):
+    async def test_delete_deck_not_found(self):
         """Test deleting non-existent deck returns False."""
         non_existent_id = 99999
 

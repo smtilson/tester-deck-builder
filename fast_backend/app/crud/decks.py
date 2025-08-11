@@ -1,6 +1,7 @@
 from typing import Optional
 from fast_backend.app.models.decks import Deck as DeckModel
-from fast_backend.app.schemas.decks import DeckCreate, DeckUpdate, DeckResponse
+from fast_backend.app.models.users import User as UserModel
+from fast_backend.app.schemas.decks import DeckBase, DeckCreate, DeckUpdate, DeckResponse
 
 #I think this can be refactored into a base class pattern.
 class DeckRepo:
@@ -15,11 +16,8 @@ class DeckRepo:
         Returns:
             The created deck as a Pydantic schema instance.
         """
-        deck_data_dict = deck_data.model_dump(exclude={"cards"})
-        for key, value in deck_data_dict.items():
-            print(f"key: {key}")
-            print(f"value: {value}")
-            print(f"type: {type(value)}")
+        deck_data_dict = deck_data.model_dump(exclude={"cards", "owner"})
+        deck_data_dict["owner"] = await DeckRepo.get_owner_in_db(deck_data)
         deck_obj = await DeckModel.create(**deck_data_dict)
         return DeckResponse.model_validate(deck_obj)
 
@@ -37,7 +35,7 @@ class DeckRepo:
         # this response model doesn't have the cards in it.
         deck_obj = await DeckModel.get_or_none(
             id=deck_id
-        )  # .prefetch_related("deck_cards__card")
+        ).prefetch_related("owner")  # .prefetch_related("deck_cards__card")
         if deck_obj:
             return DeckResponse.model_validate(deck_obj)
         return None
@@ -52,8 +50,24 @@ class DeckRepo:
         """
         # prefetch owner as well once users are implemented
         # cards are not in this response model
-        decks = await DeckModel.all()  # .prefetch_related("deck_cards__card")
+        decks = await DeckModel.all().prefetch_related("owner")  # .prefetch_related("deck_cards__card")
         return [DeckResponse.model_validate(deck) for deck in decks]
+
+    @staticmethod
+    async def get_owner_in_db(deck_data: DeckBase) -> Optional[UserModel]:
+        """
+        Get the owner of a deck.
+
+        Args:
+            deck_data: The deck data containing owner information.
+
+        Returns:
+            The owner as a UserModel instance, or None if not found.
+        """
+        owner = await UserModel.get_or_none(id=deck_data.owner.id)
+        if not owner:
+            raise ValueError(f"User with id: {deck_data.owner.id} does not exist. Deck has no valid owner.")
+        return owner
 
     @staticmethod
     async def update_deck(
@@ -69,15 +83,18 @@ class DeckRepo:
         Returns:
             The updated deck as a Pydantic schema, or None if the deck doesn't exist.
         """
-        deck_obj = await DeckModel.get_or_none(id=deck_id)
-        if deck_obj:
-            update_data = deck_data.model_dump(exclude_unset=True, exclude={"owner"})
-            if deck_data.owner is not None:
-                update_data["owner_id"] = deck_data.owner.id
-            if update_data:
-                await deck_obj.update_from_dict(update_data).save()
-            return DeckResponse.model_validate(deck_obj)
-        return None
+        deck_in_db = await DeckModel.get_or_none(id=deck_id).prefetch_related("owner")
+        if not deck_in_db:
+            return None
+        update_data = deck_data.model_dump(exclude_unset=True, exclude={"owner"})
+        if not update_data:
+            return DeckResponse.model_validate(deck_in_db)
+        if deck_data.owner:
+            update_data["owner"] = await UserModel.get(id=deck_data.owner.id)
+        else:
+            update_data["owner"] = deck_in_db.owner
+        await deck_in_db.update_from_dict(update_data).save()
+        return DeckResponse.model_validate(deck_in_db)
 
     @staticmethod
     async def delete_deck(deck_id: int) -> bool:

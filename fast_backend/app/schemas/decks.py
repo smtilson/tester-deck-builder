@@ -10,10 +10,13 @@ class DeckBase(BaseModel):
     name: str
     description: Optional[str] = None
     is_valid: bool = False
+    # moved here to make Crud interface easier
+    owner: UserResponse
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DeckCreate(DeckBase):
-    owner: UserResponse
+    pass
 
 
 class DeckUpdate(DeckBase):
@@ -25,10 +28,10 @@ class DeckUpdate(DeckBase):
 
 class DeckInDB(DeckBase):
     id: int
-    owner: UserResponse
+    # moved to base class
+    # owner: UserResponse
     created_at: datetime
     updated_at: datetime
-    model_config = ConfigDict(from_attributes=True)
 
 
 class DeckResponse(DeckInDB):
