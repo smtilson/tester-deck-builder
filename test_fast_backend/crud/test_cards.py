@@ -1,33 +1,10 @@
 import pytest
-import pytest_asyncio
-from tortoise.exceptions import IntegrityError, DoesNotExist
+from tortoise.exceptions import DoesNotExist
 import random
 
 from fast_backend.app.crud.cards import CardRepo
 from fast_backend.app.models.cards import Card
 from fast_backend.app.schemas.cards import CardCreate, CardUpdate
-
-
-@pytest_asyncio.fixture(scope="function")
-async def setup_cards(init_db, card_test_data):
-    """Create test cards for read operations."""
-    created_cards = []
-    for card_data in card_test_data:
-        card_create = CardCreate(name=card_data["name"], text=card_data["text"])
-        created_card = await CardRepo.create_card(card_create)
-        created_cards.append(created_card)
-    return created_cards
-
-
-@pytest_asyncio.fixture(scope="function")
-async def setup_card(init_db, card_test_data):
-    """Create a test card for update operations."""
-    card_data = random.choice(card_test_data)
-    while None in (card_data["name"], card_data["text"]):
-        card_data = random.choice(card_test_data)
-    card_create = CardCreate(name=card_data["name"], text=card_data["text"])
-    test_card = await CardRepo.create_card(card_create)
-    return test_card
 
 
 @pytest.mark.skip("standard")
@@ -110,14 +87,14 @@ class TestCardRepoRead:
 
         assert result is None
 
-    async def test_get_all_cards_returns_all(self, card_test_data):
+    async def test_get_all_cards_returns_all(self, setup_cards):
         """Test that get_all_cards returns all created cards."""
 
         result = await CardRepo.get_all_cards()
 
-        assert len(result) == len(card_test_data)
+        assert len(result) == len(setup_cards)
         card_names = [card.name for card in result]
-        expected_names = [card["name"] for card in card_test_data]
+        expected_names = [card.name for card in setup_cards]
         assert set(card_names) == set(expected_names)
 
     async def test_get_all_cards_empty_database(self):
@@ -130,79 +107,80 @@ class TestCardRepoRead:
 
         assert result == []
 
+
 @pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestCardRepoUpdate:
     """Integration tests for CardRepo update operations."""
 
-    async def test_update_card_success(self, setup_card):
+    async def test_update_card_success(self, single_card):
         """Test successful card update."""
         update_data = CardUpdate(
-            name=setup_card.name + " updated",
-            text=setup_card.text + " updated",
+            name=single_card.name + " updated",
+            text=single_card.text + " updated",
         )
 
-        result = await CardRepo.update_card(setup_card.id, update_data)
+        result = await CardRepo.update_card(single_card.id, update_data)
 
         assert result is not None
-        assert result.id == setup_card.id
-        assert result.name == setup_card.name + " updated"
-        assert result.text == setup_card.text + " updated"
+        assert result.id == single_card.id
+        assert result.name == single_card.name + " updated"
+        assert result.text == single_card.text + " updated"
         # Updated timestamp should be different
-        assert result.updated_at >= setup_card.updated_at
+        assert result.updated_at >= single_card.updated_at
 
         # Verify update persisted in database
-        db_card = await Card.get(id=setup_card.id)
-        assert db_card.name == setup_card.name + " updated"
-        assert db_card.text == setup_card.text + " updated"
+        db_card = await Card.get(id=single_card.id)
+        assert db_card.name == single_card.name + " updated"
+        assert db_card.text == single_card.text + " updated"
 
-    async def test_update_card_partial_update_name_only(self, setup_card):
+    async def test_update_card_partial_update_name_only(self, single_card):
         """Test partial card update with only name field."""
         update_data = CardUpdate(name="Only Name Changed")
 
-        result = await CardRepo.update_card(setup_card.id, update_data)
+        result = await CardRepo.update_card(single_card.id, update_data)
 
         assert result is not None
         assert result.name == "Only Name Changed"
         # Text should remain unchanged
-        assert result.text == setup_card.text
-        assert result.id == setup_card.id
+        assert result.text == single_card.text
+        assert result.id == single_card.id
 
-    async def test_update_card_partial_update_text_only(self, setup_card):
+    async def test_update_card_partial_update_text_only(self, single_card):
         """Test partial card update with only text field."""
         update_data = CardUpdate(text="Only text changed")
 
-        result = await CardRepo.update_card(setup_card.id, update_data)
+        result = await CardRepo.update_card(single_card.id, update_data)
 
         assert result is not None
         assert result.text == "Only text changed"
         # Name should remain unchanged
-        assert result.name == setup_card.name
-        assert result.id == setup_card.id
+        assert result.name == single_card.name
+        assert result.id == single_card.id
 
-    async def test_update_card_set_text_to_null(self, setup_card):
+    async def test_update_card_set_text_to_null(self, single_card):
         """Test updating card text to null."""
         update_data = CardUpdate(text=None)
 
-        result = await CardRepo.update_card(setup_card.id, update_data)
+        result = await CardRepo.update_card(single_card.id, update_data)
 
         assert result is not None
         assert result.text is None
-        assert result.name == setup_card.name
-        assert result.id == setup_card.id
+        assert result.name == single_card.name
+        assert result.id == single_card.id
 
-    async def test_update_card_empty_update(self, setup_card):
+    async def test_update_card_empty_update(self, single_card):
         """Test update with no fields provided."""
         update_data = CardUpdate()
 
-        result = await CardRepo.update_card(setup_card.id, update_data)
+        result = await CardRepo.update_card(single_card.id, update_data)
 
         assert result is not None
         # All fields should remain unchanged
-        assert result.name == setup_card.name
-        assert result.text == setup_card.text
-        assert result.id == setup_card.id
+        assert result.name == single_card.name
+        assert result.text == single_card.text
+        assert result.id == single_card.id
 
     async def test_update_card_not_found(self):
         """Test updating non-existent card returns None."""
@@ -216,25 +194,26 @@ class TestCardRepoUpdate:
 
         assert result is None
 
+
 @pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestCardRepoDelete:
     """Integration tests for CardRepo delete operations."""
 
-    async def test_delete_card_success(self, setup_card):
+    async def test_delete_card_success(self, single_card):
         """Test successful card deletion."""
-        result = await CardRepo.delete_card(setup_card.id)
+        result = await CardRepo.delete_card(single_card.id)
 
         assert result is True
 
         # Verify card is actually deleted
-        deleted_card = await CardRepo.get_card(setup_card.id)
+        deleted_card = await CardRepo.get_card(single_card.id)
         assert deleted_card is None
 
         # Verify card no longer exists in database
         with pytest.raises(DoesNotExist):
-            await Card.get(id=setup_card.id)
+            await Card.get(id=single_card.id)
 
     async def test_delete_card_not_found(self):
         """Test deleting non-existent card returns False."""
@@ -247,15 +226,16 @@ class TestCardRepoDelete:
 
         assert result is False
 
-    async def test_delete_card_multiple_times(self, setup_card):
+    async def test_delete_card_multiple_times(self, single_card):
         """Test deleting same card multiple times."""
         # First deletion should succeed
-        result1 = await CardRepo.delete_card(setup_card.id)
+        result1 = await CardRepo.delete_card(single_card.id)
         assert result1 is True
 
         # Second deletion should fail
-        result2 = await CardRepo.delete_card(setup_card.id)
+        result2 = await CardRepo.delete_card(single_card.id)
         assert result2 is False
+
 
 @pytest.mark.skip("special")
 @pytest.mark.asyncio

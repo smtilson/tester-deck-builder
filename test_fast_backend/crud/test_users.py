@@ -1,5 +1,4 @@
 import pytest
-import pytest_asyncio
 import uuid
 import random
 from tortoise.exceptions import IntegrityError, DoesNotExist
@@ -7,37 +6,6 @@ from tortoise.exceptions import IntegrityError, DoesNotExist
 from fast_backend.app.crud.users import UserRepo
 from fast_backend.app.models.users import User
 from fast_backend.app.schemas.users import UserCreate, UserUpdate
-
-
-@pytest_asyncio.fixture(scope="function")
-async def setup_users(init_db, user_test_data):
-    """Create test users for read operations."""
-    created_users = []
-    for user_data in user_test_data:
-        user_create = UserCreate(**user_data)
-        created_user = await UserRepo.create_user(user_create)
-        created_users.append(created_user)
-    return created_users
-
-
-@pytest_asyncio.fixture(scope="function")
-async def single_user(init_db, user_test_data):
-    """Create a test user for update operations."""
-    user_data = random.choice(user_test_data)
-    user_create = UserCreate(**user_data)
-    test_user = await UserRepo.create_user(user_create)
-    return test_user
-
-
-
-@pytest_asyncio.fixture(scope="function")
-async def setup_admin(init_db, user_test_data):
-    """Create test users with different admin statuses."""
-    # Select one admin and one regular user randomly
-    user_data = random.choice(user_test_data)
-    user_data['is_admin']=True
-    admin_user = await UserRepo.create_user(UserCreate(**user_data))
-    return admin_user
 
 
 @pytest.mark.skip("standard")
@@ -79,7 +47,9 @@ class TestUserRepoCreate:
         await UserRepo.create_user(user_create)
 
         # Attempt to create second user with same username should fail
-        other_users = [user for user in user_test_data if user["username"] != user_data["username"]]
+        other_users = [
+            user for user in user_test_data if user["username"] != user_data["username"]
+        ]
         duplicate_data = random.choice(other_users)
         duplicate_data["username"] = user_data["username"]  # Keep the same username
         duplicate_create = UserCreate(**duplicate_data)
@@ -96,7 +66,9 @@ class TestUserRepoCreate:
         await UserRepo.create_user(user_create)
 
         # Attempt to create second user with same email should fail
-        other_users = [user for user in user_test_data if user["email"] != user_data["email"]]
+        other_users = [
+            user for user in user_test_data if user["email"] != user_data["email"]
+        ]
         duplicate_data = random.choice(other_users)
         duplicate_data["email"] = user_data["email"]  # Keep the same email
         duplicate_create = UserCreate(**duplicate_data)
@@ -206,13 +178,15 @@ class TestUserRepoUpdate:
     async def test_update_user_success(self, single_user):
         """Test successful user update."""
         admin_status = not single_user.is_admin
-        update_data = UserUpdate(name=single_user.name+" Updated", is_admin=admin_status)
+        update_data = UserUpdate(
+            name=single_user.name + " Updated", is_admin=admin_status
+        )
 
         result = await UserRepo.update_user(single_user.id, update_data)
 
         assert result is not None
         assert result.id == single_user.id
-        assert result.name == single_user.name+" Updated"
+        assert result.name == single_user.name + " Updated"
         assert result.is_admin is admin_status
         # Unchanged fields should remain the same
         assert result.username == single_user.username
@@ -220,7 +194,7 @@ class TestUserRepoUpdate:
 
         # Verify update persisted in database
         db_user = await User.get(id=single_user.id)
-        assert db_user.name == single_user.name+" Updated"
+        assert db_user.name == single_user.name + " Updated"
         assert db_user.is_admin is admin_status
         assert db_user.username == single_user.username
 

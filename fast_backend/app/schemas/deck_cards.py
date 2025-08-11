@@ -37,7 +37,7 @@ class DeckCardResponse(DeckCardInDB):
 
 class DeckCardResponseWithCard(DeckCardResponse):
     card: CardResponse
-
+    model_config = ConfigDict(from_attributes=True)
 
 class CardInDeckResponse(CardResponse):
     deck_card_id: int

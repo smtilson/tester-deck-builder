@@ -15,8 +15,11 @@ class DeckRepo:
         Returns:
             The created deck as a Pydantic schema instance.
         """
-        deck_data_dict = deck_data.model_dump(exclude={"cards", "owner"})
-        deck_data_dict["owner_id"] = deck_data.owner.id
+        deck_data_dict = deck_data.model_dump(exclude={"cards"})
+        for key, value in deck_data_dict.items():
+            print(f"key: {key}")
+            print(f"value: {value}")
+            print(f"type: {type(value)}")
         deck_obj = await DeckModel.create(**deck_data_dict)
         return DeckResponse.model_validate(deck_obj)
 

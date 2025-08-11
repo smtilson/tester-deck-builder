@@ -25,7 +25,7 @@ class DeckUpdate(DeckBase):
 
 class DeckInDB(DeckBase):
     id: int
-    owner_id: uuid.UUID
+    owner: UserResponse
     created_at: datetime
     updated_at: datetime
     model_config = ConfigDict(from_attributes=True)

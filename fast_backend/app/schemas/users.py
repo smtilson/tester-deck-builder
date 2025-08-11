@@ -2,7 +2,7 @@
 from typing import Optional
 import uuid
 from fastapi_users import schemas
-from pydantic import Field
+from pydantic import Field, ConfigDict
 
 
 class UserResponse(schemas.BaseUser[uuid.UUID]):
@@ -19,8 +19,8 @@ class UserResponse(schemas.BaseUser[uuid.UUID]):
     is_verified: bool
     is_admin: bool  # Is this already included in the base model in the db?
     oauth_accounts: Optional[list] = Field(default_factory=list)
-
-
+    model_config = ConfigDict(from_attributes=True)
+    
 class UserCreate(schemas.BaseUserCreate):
     """
     Pydantic schema for creating a new user (input).
