@@ -1,16 +1,15 @@
 import pytest
-import pytest_asyncio
-
+import random
 from fast_backend.app.crud.deck_cards import DeckCardRepo
 from fast_backend.app.crud.decks import DeckRepo
 from fast_backend.app.crud.cards import CardRepo
-from fast_backend.app.crud.users import UserRepo
+from fast_backend.app.models.deck_cards import DeckCard
 from fast_backend.app.schemas.deck_cards import DeckCardCreate, DeckCardUpdate
 from fast_backend.app.schemas.decks import DeckCreate
 from fast_backend.app.schemas.cards import CardCreate
-from fast_backend.app.schemas.users import UserCreate
 
-@pytest.mark.skip("standard")
+
+#@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 class TestDeckCardRepoAdd:
     """Integration tests for DeckCardRepo add card to deck operations."""
@@ -19,7 +18,7 @@ class TestDeckCardRepoAdd:
         """Test successfully adding a card to a deck."""
         test_deck = single_deck_and_cards["test_deck"]
         test_cards = single_deck_and_cards["test_cards"]
-        card = test_cards[0]
+        card = random.choice(test_cards)
         deck_card_create = DeckCardCreate(card_id=card.id, quantity=4)
 
         result = await DeckCardRepo.add_card_to_deck(test_deck.id, deck_card_create)
@@ -32,8 +31,6 @@ class TestDeckCardRepoAdd:
         assert result.card.name == card.name
 
         # Verify deck_card exists in database
-        from fast_backend.app.models.deck_cards import DeckCard
-
         db_deck_card = await DeckCard.get(id=result.id)
         assert db_deck_card.card_id == card.id
         assert db_deck_card.deck_id == test_deck.id
@@ -100,46 +97,6 @@ class TestDeckCardRepoAdd:
         assert result.card_id == card.id
 
 
-@pytest_asyncio.fixture
-async def single_deck_with_cards(
-    init_db, card_test_data, deck_test_data, user_test_data
-):
-    """Create test deck with cards for get operations."""
-    # Create user and deck
-    user_data = user_test_data[0]  # testuser1
-    owner = await UserRepo.create_user(UserCreate(**user_data))
-
-    deck_data = deck_test_data[0]  # Red Burn Deck
-    deck_create = DeckCreate(
-        name=deck_data["name"],
-        description=deck_data["description"],
-        is_valid=deck_data["is_valid"],
-        owner=owner,
-    )
-    test_deck = await DeckRepo.create_deck_record(deck_create)
-
-    # Create cards
-    test_cards = []
-    for card_data in card_test_data[:3]:  # Use first 3 cards
-        card_create = CardCreate(name=card_data["name"], text=card_data["text"])
-        created_card = await CardRepo.create_card(card_create)
-        test_cards.append(created_card)
-
-    # Add cards to deck
-    deck_cards = []
-    quantities = [4, 2, 1]
-    for i, card in enumerate(test_cards):
-        deck_card_create = DeckCardCreate(card_id=card.id, quantity=quantities[i])
-        deck_card = await DeckCardRepo.add_card_to_deck(test_deck.id, deck_card_create)
-        deck_cards.append(deck_card)
-
-    return {
-        "owner": owner,
-        "test_deck": test_deck,
-        "test_cards": test_cards,
-        "deck_cards": deck_cards,
-    }
-
 @pytest.mark.skip("standard")
 @pytest.mark.asyncio
 class TestDeckCardRepoGet:
@@ -199,38 +156,6 @@ class TestDeckCardRepoGet:
         result = await DeckCardRepo.get_cards_for_deck(non_existent_deck_id)
 
         assert result == []
-
-
-@pytest_asyncio.fixture
-async def single_deck_card(init_db, card_test_data, deck_test_data, user_test_data):
-    """Create test deck card for update operations."""
-    # Create user, deck, and card
-    user_data = user_test_data[0]  # testuser1
-    owner = await UserRepo.create_user(UserCreate(**user_data))
-
-    deck_data = deck_test_data[0]  # Red Burn Deck
-    deck_create = DeckCreate(
-        name=deck_data["name"],
-        description=deck_data["description"],
-        is_valid=deck_data["is_valid"],
-        owner=owner,
-    )
-    test_deck = await DeckRepo.create_deck_record(deck_create)
-
-    card_data = card_test_data[0]  # Lightning Bolt
-    card_create = CardCreate(name=card_data["name"], text=card_data["text"])
-    test_card = await CardRepo.create_card(card_create)
-
-    # Add card to deck
-    deck_card_create = DeckCardCreate(card_id=test_card.id, quantity=4)
-    test_deck_card = await DeckCardRepo.add_card_to_deck(test_deck.id, deck_card_create)
-
-    return {
-        "owner": owner,
-        "test_deck": test_deck,
-        "test_card": test_card,
-        "test_deck_card": test_deck_card,
-    }
 
 @pytest.mark.skip("standard")
 @pytest.mark.asyncio
