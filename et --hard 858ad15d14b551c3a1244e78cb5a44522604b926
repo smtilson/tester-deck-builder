@@ -1,0 +1,143 @@
+[33mcommit c6b0140c327cad39719a052e59511c2d46758c7a[m[33m ([m[1;36mHEAD -> [m[1;32mnew_tests[m[33m)[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Wed Aug 20 13:49:19 2025 +0200
+
+    reinstalling tortoise orm changed some things so the tests aren't working, and likely the base db setup is incorrect now as well. Maybe this is a versioning issue? I don't know. There is a way that tortoise wants you to set up and tesar down things, so that is sort of working but now it is complaining about not finding the models module.
+
+[33mcommit 46bf689dbedf03be5a534d23faed503d7a8f25e0[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Wed Aug 20 12:26:44 2025 +0200
+
+    tried to address typing, all tests seem to be failing.
+
+[33mcommit 858ad15d14b551c3a1244e78cb5a44522604b926[m[33m ([m[1;31morigin/new_tests[m[33m)[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Tue Aug 12 08:43:54 2025 +0200
+
+    minor changes to deck cards test.
+
+[33mcommit b84ded23bcf3c2c5ec75eb37e42795715ce2b613[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Mon Aug 11 17:25:32 2025 +0200
+
+    check deck crud layer integration tests. Changed it so that the deck response has an owner response in it. This involved changing the deckRepo. All tests for decks pass.
+
+[33mcommit 72bd7fd1b84e9611d8fe1cd80574986719833996[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Mon Aug 11 16:25:49 2025 +0200
+
+    issue with pydantic schemas and dicts vs schemas
+
+[33mcommit 7e3fc10297cee3de0ed67e4525faf37e2b0b7a05[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Mon Aug 11 15:10:50 2025 +0200
+
+    finish checking user CRUD layer integration tests. still admin operations need to be addressed later
+
+[33mcommit 346225ab64fd09ddc042c96841a5e8a158f1ae4c[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Mon Aug 11 14:58:15 2025 +0200
+
+    going through checking CRUD layer tests, finished checking card tests, checking user tests
+
+[33mcommit 9b1e64974eca57f70e4c0baf01bfa4f55b48211b[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Mon Aug 11 13:58:19 2025 +0200
+
+    amp fixed crud layer integration tests. need to double check.
+
+[33mcommit 06022bcf6c9eb838d0a58ffe88761272289328a0[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Sun Aug 10 20:03:17 2025 +0200
+
+    amp finished adressing some test issues for CRUD layer
+
+[33mcommit 92584a4edb0c6fe4253eee2e5c2d7538b7a1cb6e[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Sun Aug 10 16:10:58 2025 +0200
+
+    think I fixed the init_db fixture
+
+[33mcommit a1fef0d3f893001dfa7fd7b20dce627b90e2ed04[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Sun Aug 10 16:08:24 2025 +0200
+
+    having issues setting up test db, going to look at how it was done previously
+
+[33mcommit 50ef3e602ec0a2f3d05a4cc18f2e958b34ab5308[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Sun Aug 10 15:44:13 2025 +0200
+
+    add some integration tests for crud
+
+[33mcommit eabd9f9e4d17c7b4940587508ad418453420b924[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Sun Aug 10 14:32:16 2025 +0200
+
+    remove django backend
+
+[33mcommit afe7dbc6e00591e929decdd4d7f15d3c853712a6[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Sun Aug 10 14:26:43 2025 +0200
+
+    removed old tests
+
+[33mcommit 19128b8b0ac357f9763ff12f04fa62fdc532cbaa[m[33m ([m[1;31morigin/old_tests[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mold_tests[m[33m, [m[1;32mmain[m[33m)[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Sun Aug 10 14:24:10 2025 +0200
+
+    redoing all tests
+
+[33mcommit ca0bf9513fa098bc85bf1def5cde5335396ff1cf[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Sat Aug 9 14:10:13 2025 +0200
+
+    need help with import path issues.
+
+[33mcommit bc2c1d5850f91e4784b3f85a4586cf704490081b[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Thu Aug 7 15:21:12 2025 +0200
+
+    got server working. writing some endpoint tests
+
+[33mcommit 687465bd4ba8850c2bc28b47fe96ccfe136c047d[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Thu Aug 7 13:30:03 2025 +0200
+
+    trying to get the server to run.
+
+[33mcommit cab23ef399ee90a26bc3208544b608879e4dda64[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Mon Aug 4 10:33:12 2025 +0200
+
+    working on user_manager integration tests. I think I set up the relevant user endpoints for auth. Need to test them still
+
+[33mcommit 6cec4f3c2a61d38c35d992f47bdc4bccb09e22bc[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Fri Aug 1 17:22:04 2025 +0200
+
+    many things. lots of tests, trying to get fastapi users working with tortoise following the bootstrap thing toby did. need to implement more tests to see that it is working properly.
+
+[33mcommit 3b64bb464c1efbd1aec54b4c35e866a255c4098e[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Fri Jul 11 17:52:20 2025 +0200
+
+    added endpoints, schemas, models, ptest tests for basic database CRUD
+
+[33mcommit f40191cc19e761c97ed999cd0f4beaa314dfde26[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Thu Jul 3 21:06:45 2025 +0200
+
+    temp save
+
+[33mcommit f249d046db068ee9827a58723338311d2e02d36b[m
+Author: smtilson <seantilson@gmail.com>
+Date:   Thu May 22 00:54:56 2025 +0200
+
+    initial commit, adding packages mostly.
+
+[33mcommit b29c2b674473df322eb3c223f15144cefcbadd1b[m
+Author: smtilson <69220622+smtilson@users.noreply.github.com>
+Date:   Wed May 21 16:11:44 2025 +0200
+
+    Initial commit
