@@ -5,7 +5,7 @@ Pydantic schemas for request/response models.
 from .users import UserResponse, UserCreate, UserUpdate
 from .cards import CardCreate, CardUpdate, CardResponse
 from .decks import DeckCreate, DeckUpdate, DeckResponse
-from .deck_cards import DeckCardCreate, DeckCardUpdate, DeckCardResponseWithCard
+from .deck_cards import DeckCardCreate, DeckCardUpdate
 
 __all__ = [
     "UserResponse",
@@ -19,5 +19,5 @@ __all__ = [
     "DeckResponse",
     "DeckCardCreate",
     "DeckCardUpdate",
-    "DeckCardResponseWithCard",
+    #"DeckCardResponseWithCard",
 ]

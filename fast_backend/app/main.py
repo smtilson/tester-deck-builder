@@ -21,7 +21,6 @@ from fast_backend.app.api.endpoints.test import router as test_router
 async def lifespan(app: FastAPI):
     print("Connecting to database...")
     client = await init_db()
-    client.name = "sam"
     app.state.db_client = client
     try:
         yield  # app starts processing here,

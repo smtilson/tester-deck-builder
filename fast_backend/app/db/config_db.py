@@ -25,8 +25,11 @@ async def drop_db(client: AsyncIOMotorClient):
     Use with caution, as this will delete all data.
     """
     client = AsyncIOMotorClient(settings.DATABASE_URI)
-    db = client[settings.DATABASE_NAME]
+    await client.drop_database(settings.DATABASE_NAME)
     for model in DOCUMENT_MODELS:
-        print(f"Dropping collection: {model.Settings.name}")
-        await db[model.Settings.name].drop()
+        all_docs = await model.find_all().to_list()
+        if len(all_docs) != 0:
+            print(all_docs)
+            raise Exception(f"{model.Settings.name} table not successfully dropped.")
+        
     print("Database collections dropped successfully!")

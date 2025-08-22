@@ -51,7 +51,12 @@ async def test_route():
     return {"message": "Test route"}
 
 @router.get("/add-test")
-async def test_add_card():
+async def test_add_card(request: Request):
+    try:
+        await drop_db(client=request.app.state.db_client)
+        msg = "Database dropped successfully"
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error dropping database: {str(e)}")
     sample_data = {"name":"test card", "text":"This is a test card"}
     try:
         print("in try block")
@@ -59,7 +64,7 @@ async def test_add_card():
         print("card_in schema created")
         card = await CardRepo.create_card(card_in=card_in)
         print("cardrepo method called")
-        return {"message": "Card added successfully", "card": card}
+        return {"earlier_message":msg,"message": "Card added successfully", "card": card}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error adding card: {str(e)}")
 
@@ -78,8 +83,7 @@ async def test_get_card():
 async def test_drop_db(request: Request):
     try:
         client = request.app.state.db_client
-        print("clients name is "+client.name)
-        await drop_db(client=request.app.state.db_client)
+        await drop_db(client=client)
         return {"message": "Database dropped successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error dropping database: {str(e)}")

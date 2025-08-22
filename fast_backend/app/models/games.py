@@ -4,17 +4,17 @@ from beanie import Link
 from pydantic import Field
 from datetime import datetime
 
-from .base import BasicModel
+from .base import BaseDocument
 
 
-class Game(BasicModel):
+class Game(BaseDocument):
     name: str
-    description: str
+    version: str = "0.0.0"
+    description: Optional[str] = None
     designers: list[Link["User"]] = Field(default_factory=list)
     publisher: Optional[str] = None
     developers: list[Link["User"]] = Field(default_factory=list)
     release_date: Optional[datetime] = None
-    current_version: str = "0.0.0"
-    
+
     class Settings:
         name = "games"

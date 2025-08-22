@@ -16,11 +16,7 @@ class CardRepo:
         Returns:
             The created card as a Pydantic schema instance.
         """
-        if not isinstance(card_in, CardCreate):
-            raise ValueError("Invalid card data provided")
-        print("entering crud")
         card_obj = CardModel(**card_in.model_dump())
-        print("card obj created")
         await card_obj.insert()
         return CardResponse.model_validate(card_obj)
 
@@ -35,7 +31,7 @@ class CardRepo:
         Returns:
             The card as a Pydantic schema, or None if it doesn't exist.
         """
-        card_obj = await CardModel.get_or_none(id=card_id)
+        card_obj = await CardModel.find_one(id=card_id)
         if card_obj:
             return CardResponse.model_validate(card_obj)
         return None
@@ -65,12 +61,13 @@ class CardRepo:
         Returns:
             The updated card as a Pydantic schema, or None if the card doesn't exist.
         """
-        card_obj = await CardModel.get_or_none(id=card_id)
+        card_obj = await CardModel.find_one(id=card_id)
         if card_obj:
             # Use model_dump(exclude_unset=True) to only get provided fields
             update_data = card_data.model_dump(exclude_unset=True)
             if update_data:  # Only update if there is data
-                await card_obj.update_from_dict(update_data).save()
+                card_obj.set(update_data)
+                await card_obj.replace()
             return CardResponse.model_validate(card_obj)
         return None
 
@@ -85,7 +82,7 @@ class CardRepo:
         Returns:
             True if the card was deleted, False if it doesn't exist
         """
-        card_obj = await CardModel.get_or_none(id=card_id)
+        card_obj = await CardModel.find_one(id=card_id)
         if card_obj:
             await card_obj.delete()
             return True

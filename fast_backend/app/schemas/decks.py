@@ -1,42 +1,41 @@
 from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict
-import uuid
+from pydantic import Field
+from beanie.odm.fields import PydanticObjectId
 from datetime import datetime
-from .deck_cards import CardInDeckResponse
+
 from fast_backend.app.schemas.users import UserResponse
+from .deck_cards import DeckCardListItem
+from .users import UserListItem
+from .games import GameListItem
+from .base import BaseSchema
 
-
-class DeckBase(BaseModel):
+class DeckBase(BaseSchema):
     name: str
-    description: Optional[str] = None
-    is_valid: bool = False
-    # moved here to make Crud interface easier
-    owner: UserResponse
-    model_config = ConfigDict(from_attributes=True)
-
+    version: str = "0.0.0"
 
 class DeckCreate(DeckBase):
-    pass
+    owner_id: PydanticObjectId
+    game_id: PydanticObjectId
+    description: Optional[str] = None
+    is_public: bool = Field(default=False)
+    
 
 
 class DeckUpdate(DeckBase):
     name: Optional[str] = None
+    is_public: Optional[bool] = None
+    version: Optional[str] = None
+
+
+class DeckResponse(DeckBase):
+    id: PydanticObjectId
+    owner: UserListItem
+    game: GameListItem
     description: Optional[str] = None
-    is_valid: Optional[bool] = None
-    owner: Optional[UserResponse] = None
-
-
-class DeckInDB(DeckBase):
-    id: int
-    # moved to base class
-    # owner: UserResponse
+    is_public: bool
     created_at: datetime
-    updated_at: datetime
-
-
-class DeckResponse(DeckInDB):
-    pass
+    updated_at: Optional[datetime] = None
 
 
 class DeckResponseWithCards(DeckResponse):
-    cards: list[CardInDeckResponse] = Field(default_factory=list)
+    cards: list[DeckCardListItem] = Field(default_factory=list)

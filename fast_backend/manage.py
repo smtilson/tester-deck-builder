@@ -31,16 +31,16 @@ from fast_backend.app.models.games import Game
 
 cli = typer.Typer()
 
-BEANIEDB_MODELS=[BeanieUser, Card, Deck, Game]
+BEANIEDB_MODELS = [BeanieUser, Card, Deck, Game]
 # is this right?
 MONGO_DB_URL = "mongodb://localhost:27017"
-DB_NAME = "fastapi_app_db" # Use a specific name for your application's database
+DB_NAME = "fastapi_app_db"  # Use a specific name for your application's database
+
 
 async def _init_mongodb_beanie():
     """Initialize MonogDB connection with Beanie ODM."""
     client = AsyncIOMotorClient(MONGO_DB_URL)
     await init_beanie(database=client[DB_NAME], document_models=BEANIEDB_MODELS)
-    
 
 
 def _validate_email(val: str):
@@ -50,16 +50,21 @@ def _validate_email(val: str):
         raise typer.BadParameter(f"{val} is not a valid email")
     return val
 
+
 @cli.command("init-db", text="Initialize the database")
 def init_db():
     """Initialize MongoDB collections for development."""
+
     async def _init():
         client = AsyncIOMotorClient(MONGO_DB_URL)
         await init_beanie(database=client[DB_NAME], document_models=BEANIEDB_MODELS)
-        typer.secho("MongoDB and Beanie initialized. Collections ready.", fg=typer.colors.GREEN)
+        typer.secho(
+            "MongoDB and Beanie initialized. Collections ready.", fg=typer.colors.GREEN
+        )
         await client.close()
+
     asyncio.run(_init())
-    
+
 
 @cli.command("work")
 def work(mailserver: bool = typer.Option(False)):
@@ -70,11 +75,8 @@ def work(mailserver: bool = typer.Option(False)):
         "PYTHONPATH": str(Path().resolve(strict=True)),
         "PYTHONUNBUFFERED": "true",
     }
-    
-    
-    manager.add_process(
-        "server", "python manage.py run-server", env=project_env
-    )
+
+    manager.add_process("server", "python manage.py run-server", env=project_env)
     manager.add_process("worker", "python manage.py run-worker", env=project_env)
     if mailserver:
         manager.add_process("mailserver", "python manage.py run-mailserver")
@@ -124,7 +126,8 @@ def run_prod_server():
     asyncio.run(_init_mongodb_beanie())
     APPServer().run()
 
-#blech does this need to be edited to match my model
+
+# blech does this need to be edited to match my model
 @cli.command("create-user")
 def create_user(
     email: str = typer.Option(..., prompt=True, callback=_validate_email),
@@ -132,8 +135,9 @@ def create_user(
     username: str = typer.Option("", prompt=True),
     name: str = typer.Option("", prompt=True),
     is_superuser: bool = typer.Option(False, prompt=True),
-    ):
+):
     """Create a new user."""
+
     async def _create_user_in_db():
         await _init_mongodb_beanie()
         user_manager = get_user_manager()
@@ -148,6 +152,7 @@ def create_user(
             await user_manager.create(user_create, safe=True)
         finally:
             pass
+
     try:
         asyncio.run(_create_user_in_db())
     except UserAlreadyExists:
@@ -165,7 +170,7 @@ def start_app(app_name: str):
     app_dir = settings.BASE_DIR / package_name
     base_for_models = "from beanie import Document\n"
     base_for_models += "from pydantic import BaseModel\n"
-    base_for_models += "from fast_backend.app.models.base import BasicModel" 
+    base_for_models += "from fast_backend.app.models.base import BaseDocument"
     files = {
         "__init__.py": "",
         # suggested by gemini
@@ -198,20 +203,23 @@ def shell():
 
     def teardown_shell():
         import asyncio
+
         typer.secho("Closing MongoDB client...", fg=typer.colors.YELLOW)
-        #why is this empty
-        
+        # why is this empty
+
     async def _shell_init_beanie():
         await _init_mongodb_beanie()
         typer.secho("MongoDB and Beanie initialized for shell.", fg=typer.colors.GREEN)
-    
-    model_imports=[f"from {model.__module__} import {model.__name__}" for model in BEANIEDB_MODELS]
+
+    model_imports = [
+        f"from {model.__module__} import {model.__name__}" for model in BEANIEDB_MODELS
+    ]
     auto_imports = [
         "from beanie import Document, Link, PydanticObjectId, init_beanie, AsyncIOMotorClient",
         "from motor.motor_asyncio import AsyncIOMotorClient",
         f"MONGO_DB_URL = '{MONGO_DB_URL}'",
         f"DB_NAME = '{DB_NAME}'",
-        ] + model_imports
+    ] + model_imports
     shell_setup = [
         "import asyncio",
         "import atexit",
@@ -224,7 +232,10 @@ def shell():
     c.InteractiveShellApp.exec_lines = auto_imports + shell_setup
     start_ipython(
         argv=[],
-        user_ns={"teardown_shell": teardown_shell, "_shell_init_beanie": _shell_init_beanie},
+        user_ns={
+            "teardown_shell": teardown_shell,
+            "_shell_init_beanie": _shell_init_beanie,
+        },
         config=c,
     )
 

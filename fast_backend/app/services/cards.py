@@ -6,7 +6,7 @@ from fast_backend.app.schemas.decks import DeckCreate, DeckUpdate, DeckResponse
 from fast_backend.app.schemas.deck_cards import (
     DeckCardCreate,
     DeckCardUpdate,
-    DeckCardResponseWithCard,
+    #DeckCardResponseWithCard,
 )
 from fastapi import HTTPException, status
 

@@ -53,3 +53,6 @@ class UserUpdate(schemas.BaseUserUpdate):
     is_verified: Optional[bool] = None
     is_admin: Optional[bool] = None  # Allow updating admin status
     name: Optional[str] = None
+    
+class UserListItem(schemas.BaseUser[uuid.UUID]):
+    pass

@@ -1,44 +1,36 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
+from beanie.odm.fields import PydanticObjectId
 from datetime import datetime
 from typing import Optional
-from .cards import CardResponse
+
+from .cards import CardListItem
 
 
 class DeckCardBase(BaseModel):
-    # card_id and deck_id are not included in the base schema
-    # because they aren't properties of the relation, they will
-    # be included when we create the relationship.
     quantity: int = 1
 
 
 class DeckCardCreate(DeckCardBase):
-    card_id: int
+    original_card_id: PydanticObjectId
+    # I guess that all I want to submit here is the original card id, the rest is gotten by the process
+    # and added ebhind the scenes
     # deck_id is not included as it will be provided by the url
 
 
-class DeckCardUpdate(DeckCardBase):
-    quantity: Optional[int] = None
-
-
-class DeckCardInDB(DeckCardBase):
-    id: int
-    card_id: int
-    deck_id: int
-    created_at: datetime
-    updated_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-# Schema for the response when showing cards within a deck
-class DeckCardResponse(DeckCardInDB):
+class DeckCardUpdate(DeckCardCreate):
     pass
 
+class AddDeckCards(BaseModel):
+    cards: list[DeckCardCreate]
 
-class DeckCardResponseWithCard(DeckCardResponse):
-    card: CardResponse
-    model_config = ConfigDict(from_attributes=True)
+class DeckCardListItem(DeckCardBase):
+    original_card: CardListItem
+    # no deck id because this is contained in the deck
+    #deck_id: PydanticObjectId
+    #created_at: datetime
+    #updated_at: datetime
 
-class CardInDeckResponse(CardResponse):
-    deck_card_id: int
-    model_config = ConfigDict(from_attributes=True)
+class DeckCardResponse(DeckCardListItem):
+    created_at: datetime 
+    updated_at: Optional[datetime] = None
+    
