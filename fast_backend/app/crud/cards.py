@@ -1,5 +1,5 @@
 from typing import Optional
-from fast_backend.app.models.old_cards import Card as CardModel
+from fast_backend.app.models.cards import Card as CardModel
 from fast_backend.app.schemas.cards import CardCreate, CardUpdate, CardResponse
 
 

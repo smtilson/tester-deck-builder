@@ -1,9 +1,9 @@
 import pytest
-from tortoise.exceptions import DoesNotExist
+
 import random
 
 from fast_backend.app.crud.cards import CardRepo
-from fast_backend.app.models.old_cards import Card
+from fast_backend.app.models.cards import Card
 from fast_backend.app.schemas.cards import CardCreate, CardUpdate
 
 
@@ -27,7 +27,7 @@ class TestCardRepoCreate:
         assert result.updated_at is not None
 
         # Verify card exists in database
-        from fast_backend.app.models.old_cards import Card
+        from fast_backend.app.models.cards import Card
 
         db_card = await Card.get(id=result.id)
         assert db_card.name == card_data["name"]

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fast_backend.app.models.old_deck_cards import DeckCard as DeckCardModel
+from fast_backend.app.models.deck_cards import DeckCard as DeckCardModel
 from fast_backend.app.schemas.deck_cards import (
     DeckCardCreate,
     DeckCardUpdate,

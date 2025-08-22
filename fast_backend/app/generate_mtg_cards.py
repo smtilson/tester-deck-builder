@@ -16,7 +16,7 @@ import argparse
 import random
 from typing import List, Dict
 
-from fast_backend.app.models.old_cards import Card
+from fast_backend.app.models.cards import Card
 from fast_backend.app.db.config_db import init_db, close_db
 
 

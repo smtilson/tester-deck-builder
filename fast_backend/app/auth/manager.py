@@ -4,7 +4,6 @@ import uuid
 from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, InvalidPasswordException, UUIDIDMixin
 from fastapi_users.exceptions import UserAlreadyExists
-from fastapi_users_tortoise import TortoiseUserDatabase
 from fastapi_users.password import PasswordHelper
 from passlib.context import CryptContext
 from fast_backend.app.schemas.users import UserCreate, UserUpdate
@@ -14,7 +13,7 @@ from fast_backend.app.services.email import render_email_template
 from fast_backend.app.services.worker import queue
 
 
-from fast_backend.app.models.old_users import User
+from fast_backend.app.models.users import User
 from fast_backend.app.db.users_db import get_user_db
 
 
@@ -67,6 +66,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
             if condition:
                 raise InvalidPasswordException(msg)
 
-
+'''
 async def get_user_manager(user_db: TortoiseUserDatabase = Depends(get_user_db)):
     yield UserManager(user_db, password_helper)
+'''

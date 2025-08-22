@@ -19,13 +19,14 @@ from typing import List, Dict, Any
 import uuid
 import random
 
-from tortoise import Tortoise
+
 from fastapi_users.password import PasswordHelper
 
-from fast_backend.app.models.old_users import User
-from fast_backend.app.models.old_cards import Card
-from fast_backend.app.models.old_decks import Deck
-from fast_backend.app.models.old_deck_cards import DeckCard
+'''
+from fast_backend.app.models.users import User
+from fast_backend.app.models.cards import Card
+from fast_backend.app.models.decks import Deck
+from fast_backend.app.models.deck_cards import DeckCard
 from fast_backend.app.db.config_db import init_db, close_db, MODEL_PATHS
 from fast_backend.app.core.config_app import settings
 
@@ -532,3 +533,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+'''

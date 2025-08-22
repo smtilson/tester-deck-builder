@@ -1,5 +1,5 @@
 """
-Database models using Tortoise ORM.
+Database models using Beanie ODM.
 """
 
 from .users import User

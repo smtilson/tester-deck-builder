@@ -1,10 +1,9 @@
 import pytest
 
 import random
-from tortoise.exceptions import IntegrityError, DoesNotExist
 
 from fast_backend.app.crud.decks import DeckRepo
-from fast_backend.app.models.old_decks import Deck
+from fast_backend.app.models.decks import Deck
 from fast_backend.app.crud.users import UserRepo
 from fast_backend.app.schemas.decks import DeckCreate, DeckUpdate
 from fast_backend.app.schemas.users import UserCreate

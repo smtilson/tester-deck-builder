@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, status
 
-from fast_backend.app.models.old_deck_cards import DeckCard as DeckCardModel
+from fast_backend.app.models.deck_cards import DeckCard as DeckCardModel
 from fast_backend.app.schemas.deck_cards import (
     DeckCardResponse,
     DeckCardCreate,
     DeckCardUpdate,
 )
-from fast_backend.app.models.old_decks import Deck as DeckModel
-from fast_backend.app.models.old_cards import Card as CardModel
+from fast_backend.app.models.decks import Deck as DeckModel
+from fast_backend.app.models.cards import Card as CardModel
 from fast_backend.app.crud.deck_cards import DeckCardRepo as crud
 
 router = APIRouter()

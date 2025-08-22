@@ -1,4 +1,5 @@
 import sentry_sdk
+import uvicorn
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
@@ -9,7 +10,7 @@ from contextlib import asynccontextmanager
 from fast_backend.app.core.config_app import Environment, settings
 from fast_backend.app.db.config_db import init_db, close_db
 from fast_backend.app.health import router as health_check_router
-from fast_backend.app.auth.fast_api_users_instance import fastapi_users
+#from fast_backend.app.auth.fast_api_users_instance import fastapi_users
 
 # from fast_backend.app.users.routes import router as users_router
 from fast_backend.app.api.routes import router as api_router
@@ -69,3 +70,4 @@ app = get_application()
 @app.get("/")
 async def root():
     return {"message": "Welcome to the fast-backend API!"}
+

@@ -6,9 +6,9 @@ from beanie import Document
 from pydantic import Field
 
 
-from fast_backend.app.models.old_decks import Deck
-from fast_backend.app.models.old_cards import Card
-from fast_backend.app.models.old_deck_cards import DeckCard
+from fast_backend.app.models.decks import Deck
+from fast_backend.app.models.cards import Card
+from fast_backend.app.models.deck_cards import DeckCard
 
 # prefix="/test", tags=["test"] should be passed to the below maybe
 # but it looks like this is done in the routes file.
@@ -17,7 +17,7 @@ router = APIRouter(tags=["test"])
 
 class TestDocument(Document):
     """A simple test document to verify database connection."""
-    value: strclass Settings:
+    value: str
 
     class Settings:
         name = "test_documents"

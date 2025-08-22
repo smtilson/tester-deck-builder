@@ -8,12 +8,12 @@ import traceback
 # Add the parent directory to the path so we can import our app modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from fast_backend.app.models.old_cards import Card
-from fast_backend.app.models.old_decks import Deck
-from fast_backend.app.models.old_users import User
-from fast_backend.app.models.old_deck_cards import DeckCard
+from fast_backend.app.models.cards import Card
+from fast_backend.app.models.decks import Deck
+from fast_backend.app.models.users import User
+from fast_backend.app.models.deck_cards import DeckCard
 from fast_backend.app.db.config_db import init_db, close_db
-from tortoise import Tortoise
+
 
 
 async def add_sample_data():
@@ -127,7 +127,7 @@ async def flush():
         # Use the internal method to drop all databases
 
         # This is a more direct way to drop all tables
-        await Tortoise._drop_databases()
+        #await Tortoise._drop_databases()
 
         print("Database has been flushed successfully!")
         return True

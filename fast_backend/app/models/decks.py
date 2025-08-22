@@ -4,7 +4,7 @@ from pydantic import Field
 from datetime import datetime
 
 from .deck_cards import DeckCard
-from .old_users import User
+from .users import User
 from .base import BasicModel
 
 class Deck(BasicModel):

@@ -2,15 +2,16 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import Field
-from beanie import Document, Indexed
-from .base import BasicModel
+from beanie import Document, Indexed, Link
 
+from .base import BasicModel
+from .games import Game
 class Card(BasicModel):
     """
     Represents a Magic: The Gathering card.
     """
     name: Indexed(str, unique=True)
-    game: str
+    game: Optional[Link[Game]]= None
     card_type: str = Field(default="")
     traits: list[str] = Field(default_factory=list)
     text: Optional[str] = None

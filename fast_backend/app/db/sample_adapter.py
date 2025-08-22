@@ -1,11 +1,8 @@
-from .users_db import get_user_db, MyTortoiseUserDatabase
-from fast_backend.app.models.old_users import User as UserORM
-from fastapi_users_tortoise import TortoiseUserDatabase
-from tortoise import Tortoise, run_async
-from tortoise.models import Model
+from fast_backend.app.models.users import User as UserORM
+
+
 
 # from fastapi_users.password import get_password_hash
-from fastapi_users_tortoise import TortoiseUserDatabase
 from fast_backend.app.schemas.users import *
 import asyncio
 import uuid
@@ -30,11 +27,11 @@ TORTOISE_CONFIG = {
 
 async def tinker_with_db():
     print("Initializing Tortoise ORM...")
-    await Tortoise.init(config=TORTOISE_CONFIG)
+    #await Tortoise.init(config=TORTOISE_CONFIG)
     print("Generating schemas...")
-    await Tortoise.generate_schemas()
+    #await Tortoise.generate_schemas()
     print("Database ready!")
 
     # Instantiate the TortoiseUserDatabase adapter
-    adapter = TortoiseUserDatabase(UserORM)
+    #adapter = TortoiseUserDatabase(UserORM)
     print(f"TortoiseUserDatabase adapter created: {adapter}")

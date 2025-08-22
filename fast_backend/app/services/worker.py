@@ -1,9 +1,7 @@
-from pydantic.utils import import_string
+from pydantic.v1.utils import import_string
 from saq import Queue
-from tortoise import Tortoise
 
 from fast_backend.app.core.config_app import settings
-from fast_backend.app.db.config_db import TORTOISE_ORM
 
 BACKGROUND_FUNCTIONS = [
     "fast_backend.app.services.tasks.log_user_email",
@@ -16,17 +14,18 @@ async def startup(_: dict):
     """
     Binds a connection set to the db object.
     """
-    await Tortoise.init(config=TORTOISE_ORM)
-
+    #await Tortoise.init(config=TORTOISE_ORM)
+    return
 
 async def shutdown(_: dict):
     """
     Pops the bind on the db object.
     """
-    await Tortoise.close_connections()
+    #await Tortoise.close_connections()
+    return
 
-
-queue = Queue.from_url(settings.REDIS_URL)
+DUMMY_REDIS_URL = "redis://localhost:6380/0"
+queue = Queue.from_url(DUMMY_REDIS_URL)
 
 settings = {
     "queue": queue,

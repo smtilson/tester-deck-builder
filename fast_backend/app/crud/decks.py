@@ -1,6 +1,6 @@
 from typing import Optional
-from fast_backend.app.models.old_decks import Deck as DeckModel
-from fast_backend.app.models.old_users import User as UserModel
+from fast_backend.app.models.decks import Deck as DeckModel
+from fast_backend.app.models.users import User as UserModel
 from fast_backend.app.schemas.decks import (
     DeckBase,
     DeckCreate,

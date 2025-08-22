@@ -1,7 +1,7 @@
 import uuid
 import pytest
 import pytest_asyncio
-from tortoise import Tortoise
+
 from httpx import AsyncClient
 from typing import Dict, List, Any
 from fast_backend.app.db.config_db import MODEL_PATHS
@@ -18,10 +18,10 @@ async def init_db():
     Drop it after all tests are done.
     """
     TEST_DB_URL = "sqlite://:memory:"
-    await Tortoise.init(db_url=TEST_DB_URL, modules=TEST_MODULES)
-    await Tortoise.generate_schemas()
+    #await Tortoise.init(db_url=TEST_DB_URL, modules=TEST_MODULES)
+    #await Tortoise.generate_schemas()
     yield
-    await Tortoise.close_connections()
+    #await Tortoise.close_connections()
 
 # I think this can be deleted
 @pytest.fixture
@@ -29,8 +29,8 @@ async def db():
     """
     Empty the database between tests to keep them isolated.
     """
-    for model in Tortoise.apps["models"].values():
-        await model.all().delete()
+    #for model in Tortoise.apps["models"].values():
+    #    await model.all().delete()
     yield
 
 @pytest.fixture

@@ -19,10 +19,12 @@ import json
 from datetime import datetime
 from typing import Dict, Any, List
 
-from fast_backend.app.models.old_users import User
-from fast_backend.app.models.old_cards import Card
-from fast_backend.app.models.old_decks import Deck
-from fast_backend.app.models.old_deck_cards import DeckCard
+'''
+
+from fast_backend.app.models.users import User
+from fast_backend.app.models.cards import Card
+from fast_backend.app.models.decks import Deck
+from fast_backend.app.models.deck_cards import DeckCard
 from fast_backend.app.db.config_db import init_db, close_db
 
 
@@ -315,3 +317,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+'''

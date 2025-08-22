@@ -1,5 +1,5 @@
 from fast_backend.app.schemas.decks import DeckCreate
-from fast_backend.app.models.old_decks import (
+from fast_backend.app.models.decks import (
     Deck as DeckModel,
     DeckCard as DeckCardModel,
 )
@@ -34,7 +34,7 @@ async def create_deck(deck_data: DeckCreate, owner_id: int = 1):
 
     # Refresh deck with related cards
     await deck_obj.fetch_related("deck_cards__card")
-    return await Deck.from_tortoise_orm(deck_obj)
+    return #await Deck.from_tortoise_orm(deck_obj)
 
 
 async def add_card_to_deck(deck_id: int, card_id: int, quantity: int = 1):

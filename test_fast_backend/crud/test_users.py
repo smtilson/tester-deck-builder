@@ -1,10 +1,9 @@
 import pytest
 import uuid
 import random
-from tortoise.exceptions import IntegrityError, DoesNotExist
 
 from fast_backend.app.crud.users import UserRepo
-from fast_backend.app.models.old_users import User
+from fast_backend.app.models.users import User
 from fast_backend.app.schemas.users import UserCreate, UserUpdate
 
 
@@ -301,7 +300,7 @@ class TestUserRepoAdminOperations:
         assert is_admin is True
 
         # Verify directly in database model
-        from fast_backend.app.models.old_users import User
+        from fast_backend.app.models.users import User
 
         db_user = await User.get(id=setup_admin["regular_user"].id)
         assert db_user.is_admin is True

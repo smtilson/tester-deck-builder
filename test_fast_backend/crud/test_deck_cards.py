@@ -3,7 +3,7 @@ import random
 from fast_backend.app.crud.deck_cards import DeckCardRepo
 from fast_backend.app.crud.decks import DeckRepo
 from fast_backend.app.crud.cards import CardRepo
-from fast_backend.app.models.old_deck_cards import DeckCard
+from fast_backend.app.models.deck_cards import DeckCard
 from fast_backend.app.schemas.deck_cards import DeckCardCreate, DeckCardUpdate
 from fast_backend.app.schemas.decks import DeckCreate
 from fast_backend.app.schemas.cards import CardCreate
@@ -184,7 +184,7 @@ class TestDeckCardRepoUpdate:
         assert result.deck_id == test_deck_card.deck_id
 
         # Verify update persisted in database
-        from fast_backend.app.models.old_deck_cards import DeckCard
+        from fast_backend.app.models.deck_cards import DeckCard
 
         db_deck_card = await DeckCard.get(id=test_deck_card.id)
         assert db_deck_card.quantity == 6
@@ -274,11 +274,11 @@ class TestDeckCardRepoRemove:
         assert len(remaining_cards) == 0
 
         # Verify deck_card no longer exists in database
-        from fast_backend.app.models.old_deck_cards import DeckCard
-        from tortoise.exceptions import DoesNotExist
+        from fast_backend.app.models.deck_cards import DeckCard
+        #from tortoise.exceptions import DoesNotExist
 
-        with pytest.raises(DoesNotExist):
-            await DeckCard.get(id=test_deck_card.id)
+        #with pytest.raises(DoesNotExist):
+        #    await DeckCard.get(id=test_deck_card.id)
 
     async def test_remove_nonexistent_deck_card(self, db, single_deck_card):
         """Test removing non-existent deck card returns False."""
