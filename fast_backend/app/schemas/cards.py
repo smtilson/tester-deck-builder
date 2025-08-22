@@ -15,6 +15,7 @@ class CardCreate(CardBase):
 class CardUpdate(CardBase):
     name: Optional[str] = None
     text: Optional[str] = None
+    version: Optional[str] = None
 
 
 class CardInDB(CardBase):

@@ -21,20 +21,23 @@ from fast_backend.app.api.endpoints.test import router as test_router
 async def lifespan(app: FastAPI):
     print("Connecting to database...")
     client = await init_db()
+    client.name = "sam"
+    app.state.db_client = client
     try:
         yield  # app starts processing here,
     except Exception as e:
         print(f"Error occurred: {e}")
     finally:
         print("Closing connection to database...")
-        await close_db(client)
+        await close_db(client=app.state.db_client)
+
 
 
 def get_application() -> FastAPI:
     _app = FastAPI(
         title="fast-backend",
         description="This is a backend for a card management system. The idea is that it be useable by playtesters and game developers alike.",
-        debug=settings.DEBUG,
+        debug=True,#settings.DEBUG,
         lifespan=lifespan,
     )
     # _app.include_router(get_auth_router())

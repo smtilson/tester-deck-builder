@@ -12,12 +12,11 @@ class Card(BasicModel):
     """
     name: Indexed(str, unique=True)
     game: Optional[Link[Game]]= None
-    card_type: str = Field(default="")
-    traits: list[str] = Field(default_factory=list)
+    #card_type: str = Field(default="")
+    #traits: list[str] = Field(default_factory=list)
     text: Optional[str] = None
-    collector_number: Optional[str] = None
-    image_url: Optional[str] = None
-    version: str
+    #collector_number: Optional[str] = None
+    #image_url: Optional[str] = None
     
     class Settings:
         name = "cards"

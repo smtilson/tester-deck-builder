@@ -14,9 +14,9 @@ class DeckCard(BaseModel):
     name: str
     card_type: str = Field(default="")
     traits: list[str] = Field(default_factory=list)
-    text: Optional[str] = None
-    collector_number: Optional[str] = None
-    image_url: Optional[str] = None
-    version: str
+    text: Optional[str] = Field(default="")
+    collector_number: Optional[str] = Field(default="")
+    image_url: Optional[str] = Field(default="")
+    version: Optional[str] = Field(default="")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

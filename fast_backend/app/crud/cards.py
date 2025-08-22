@@ -6,7 +6,7 @@ from fast_backend.app.schemas.cards import CardCreate, CardUpdate, CardResponse
 class CardRepo:
 
     @staticmethod
-    async def create_card(card_data: CardCreate) -> CardResponse:
+    async def create_card(card_in: CardCreate) -> CardResponse:
         """
             Create a card.
 
@@ -16,7 +16,12 @@ class CardRepo:
         Returns:
             The created card as a Pydantic schema instance.
         """
-        card_obj = await CardModel.create(**card_data.model_dump())
+        if not isinstance(card_in, CardCreate):
+            raise ValueError("Invalid card data provided")
+        print("entering crud")
+        card_obj = CardModel(**card_in.model_dump())
+        print("card obj created")
+        await card_obj.insert()
         return CardResponse.model_validate(card_obj)
 
     @staticmethod
@@ -43,7 +48,7 @@ class CardRepo:
         Returns:
             A list of all cards as Pydantic schema instances.
         """
-        card_objs = await CardModel.all()
+        card_objs = await CardModel.find_all().to_list()
         return [CardResponse.model_validate(card) for card in card_objs]
 
     @staticmethod

@@ -11,3 +11,5 @@ class User(BasicModel, BeanieBaseUser):
     designing: list[Link["Game"]] = Field(default_factory=list)
     developing: list[Link["Game"]] = Field(default_factory=list)
 
+    class Settings:
+        name="users"
