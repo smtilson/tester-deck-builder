@@ -1,9 +1,15 @@
 from typing import Optional
-from fast_backend.app.models.decks import Deck as DeckModel
-from fast_backend.app.models.users import User as UserModel
-from fast_backend.app.schemas.decks import DeckBase, DeckCreate, DeckUpdate, DeckResponse
+from fast_backend.app.models.old_decks import Deck as DeckModel
+from fast_backend.app.models.old_users import User as UserModel
+from fast_backend.app.schemas.decks import (
+    DeckBase,
+    DeckCreate,
+    DeckUpdate,
+    DeckResponse,
+)
 
-#I think this can be refactored into a base class pattern.
+
+# I think this can be refactored into a base class pattern.
 class DeckRepo:
     @staticmethod
     async def create_deck_record(deck_data: DeckCreate) -> DeckResponse:
@@ -33,9 +39,9 @@ class DeckRepo:
             The deck as a Pydantic schema, or None if it doesn't exist.
         """
         # this response model doesn't have the cards in it.
-        deck_obj = await DeckModel.get_or_none(
-            id=deck_id
-        ).prefetch_related("owner")  # .prefetch_related("deck_cards__card")
+        deck_obj = await DeckModel.get_or_none(id=deck_id).prefetch_related(
+            "owner"
+        )  # .prefetch_related("deck_cards__card")
         if deck_obj:
             return DeckResponse.model_validate(deck_obj)
         return None
@@ -50,7 +56,9 @@ class DeckRepo:
         """
         # prefetch owner as well once users are implemented
         # cards are not in this response model
-        decks = await DeckModel.all().prefetch_related("owner")  # .prefetch_related("deck_cards__card")
+        decks = await DeckModel.all().prefetch_related(
+            "owner"
+        )  # .prefetch_related("deck_cards__card")
         return [DeckResponse.model_validate(deck) for deck in decks]
 
     @staticmethod
@@ -66,7 +74,9 @@ class DeckRepo:
         """
         owner = await UserModel.get_or_none(id=deck_data.owner.id)
         if not owner:
-            raise ValueError(f"User with id: {deck_data.owner.id} does not exist. Deck has no valid owner.")
+            raise ValueError(
+                f"User with id: {deck_data.owner.id} does not exist. Deck has no valid owner."
+            )
         return owner
 
     @staticmethod

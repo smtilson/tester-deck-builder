@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, status
 
-from fast_backend.app.models.deck_cards import DeckCard as DeckCardModel
+from fast_backend.app.models.old_deck_cards import DeckCard as DeckCardModel
 from fast_backend.app.schemas.deck_cards import (
     DeckCardResponse,
     DeckCardCreate,
     DeckCardUpdate,
 )
-from fast_backend.app.models.decks import Deck as DeckModel
-from fast_backend.app.models.cards import Card as CardModel
+from fast_backend.app.models.old_decks import Deck as DeckModel
+from fast_backend.app.models.old_cards import Card as CardModel
 from fast_backend.app.crud.deck_cards import DeckCardRepo as crud
 
 router = APIRouter()
@@ -18,15 +18,8 @@ router = APIRouter()
     response_model=DeckCardResponse,
     status_code=status.HTTP_201_CREATED,
 )
-async def add_card_to_deck(deck_id: int, cards_to_add: list[DeckCardCreate]):
+async def add_card_to_deck(deck_id: int, card_data: DeckCardCreate):
     """Add a card to a deck."""
-    deck_ids = list({card.deck_id for card in cards_to_add})
-    if len(deck_ids) != 1:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You can only add cards to one deck at a time.",
-        )
-    deck_id = deck_ids[0]
     deck = await DeckModel.get_or_none(id=deck_id)
     if not deck:
         raise HTTPException(
@@ -34,25 +27,24 @@ async def add_card_to_deck(deck_id: int, cards_to_add: list[DeckCardCreate]):
             detail=f"Deck with ID {deck_id} not found",
         )
 
-    cards_data = [(card.card_id, card.quantity) for card in cards_to_add]
-    cards = await CardModel.filter(id__in=[card[0] for card in cards_data])
-    if not cards:
+    card_db = await CardModel.get_or_none(id=card_data.card_id)
+    if not card_db:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Card with ID {card_to_add.card_id} not found",
+            detail=f"No card with ID in {card_data.card_id} was found.",
         )
     # Check if the card already exists in the deck
     existing_deck_card = await DeckCardModel.get_or_none(
-        deck_id=deck_id, card_id=card_to_add.card_id
+        deck_id=deck_id, card_id=card_data.card_id
     )
     if existing_deck_card:
-        existing_deck_card.quantity += card_to_add.quantity
+        existing_deck_card.quantity += card_data.quantity
         await existing_deck_card.save()
         return existing_deck_card
     else:
         # Create the deck card relation
         deck_card = await DeckCardModel.create(
-            deck_id=deck_id, card_id=card_to_add.card_id, quantity=card_to_add.quantity
+            deck_id=deck_id, card_id=card_data.card_id, quantity=card_data.quantity
         )
         return deck_card
 

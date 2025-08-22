@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fast_backend.app.auth.manager import get_user_manager
-from fast_backend.app.models.users import User
+from fast_backend.app.models.old_users import User
 from fast_backend.app.db.users_db import get_user_db
 from fast_backend.app.models import UserCreate
 

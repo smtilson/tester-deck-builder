@@ -1,5 +1,8 @@
 from fast_backend.app.schemas.decks import DeckCreate
-from fast_backend.app.models.decks import Deck as DeckModel, DeckCard as DeckCardModel
+from fast_backend.app.models.old_decks import (
+    Deck as DeckModel,
+    DeckCard as DeckCardModel,
+)
 from fast_backend.app.crud.decks import DeckCrud
 
 

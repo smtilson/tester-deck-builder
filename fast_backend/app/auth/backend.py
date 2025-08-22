@@ -11,7 +11,7 @@ from fastapi_users_tortoise.access_token import (
     TortoiseAccessTokenDatabase,
 )
 from fast_backend.app.auth.manager import get_user_manager
-from fast_backend.app.models.users import User
+from fast_backend.app.models.old_users import User
 
 JWT_SECRET = os.getenv("SECRET_KEY", "your-secret-key")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")

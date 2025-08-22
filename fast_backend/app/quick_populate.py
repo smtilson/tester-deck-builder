@@ -17,10 +17,10 @@ import random
 
 from fastapi_users.password import PasswordHelper
 
-from fast_backend.app.models.users import User
-from fast_backend.app.models.cards import Card
-from fast_backend.app.models.decks import Deck
-from fast_backend.app.models.deck_cards import DeckCard
+from fast_backend.app.models.old_users import User
+from fast_backend.app.models.old_cards import Card
+from fast_backend.app.models.old_decks import Deck
+from fast_backend.app.models.old_deck_cards import DeckCard
 from fast_backend.app.db.config_db import init_db, close_db
 
 

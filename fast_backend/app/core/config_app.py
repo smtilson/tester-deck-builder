@@ -3,15 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from pydantic import (
-    AnyHttpUrl,
-    EmailStr,
-    HttpUrl,
-    PostgresDsn,
-    validator,
-)
+from pydantic import AnyHttpUrl, EmailStr, HttpUrl, field_validator, model_validator
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 try:
     from enum import StrEnum
@@ -36,48 +30,36 @@ class Paths:
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file="fast_backend/.env", case_sensitive=True, extra="ignore"
+    )
+
     @property
     def PATHS(self) -> Paths:
         return Paths()
 
-    APP_NAME: str = "test"
+    APP_NAME: str = "fast-backend"
+    ENVIRONMENT: Environment = Environment.dev
     DEBUG: bool = True
-    ADMIN_EMAIL: str = "seantilson@gmail.com"
-    DATABASE_URI: str = "postgres://s_user:yadda@localhost:5432/tester_deck_builder"
-    DEFAULT_FROM_EMAIL: EmailStr = "seantilson@gmail.com"
-    DEFAULT_FROM_NAME: str | None = None
 
-    @validator("DATABASE_URI")
-    def assemble_db_connection(cls, v: Any) -> str:
-        if isinstance(v, str):
-            return v
-        return str(v)
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-
-
-class PreSettings(BaseSettings):
-    @property
-    def PATHS(self) -> Paths:
-        return Paths()
-
-    ENVIRONMENT: Environment = "dev"
-    SECRET_KEY: str = "yadda"
-    DEBUG: bool = True
+    SECRET_KEY: str
     AUTH_TOKEN_LIFETIME_SECONDS: int = 3600
+
     SERVER_HOST: AnyHttpUrl = "http://localhost:8000"  # type:ignore
+
+    # --- MongoDB settings ---
+    DATABASE_URI: str = "mongodb://localhost:27017"
+    DATABASE_NAME: str = "tester_deck_builder"
+
+    # --- Sentry DSN ---
     SENTRY_DSN: HttpUrl | None = None
+
     PAGINATION_PER_PAGE: int = 20
-    ADMIN_EMAIL: str = "seantilson@gmail.com"
-    DATABASE_URI: str = "postgres://s_user:yadda@localhost:5432/tester_deck_builder"
 
-    REDIS_URL: str = "redis://dummy"
+    ADMIN_EMAIL: EmailStr = "seantilson@gmail.com"
 
-    BACKEND_CORS_ORIGINS: list[AnyHttpUrl] = []
-
-    @validator("BACKEND_CORS_ORIGINS", pre=True)
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before", check_fields=False)
+    @classmethod
     def assemble_cors_origins(cls, v: str | list[str]) -> list[str] | str:
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
@@ -85,28 +67,41 @@ class PreSettings(BaseSettings):
             return v
         raise ValueError(v)
 
-    DATABASE_URI: str = "postgres://s_user:yadda@localhost:5432/tester_deck_builder"
-
+    # --- Email/SES Settings ---
     SES_ACCESS_KEY: str | None = None
     SES_SECRET_KEY: str | None = None
     SES_REGION: str | None = None
     DEFAULT_FROM_EMAIL: EmailStr = "seantilson@gmail.com"
-    DEFAULT_FROM_NAME: str | None = None
-    EMAILS_ENABLED: bool = True #False true put in for testing purposes?
+    DEFAULT_FROM_NAME: str | None = "Sean"
+    EMAILS_ENABLED: bool = False
+    # SMTP_HOST: str | None = None
+    # SMTP_PORT: int | None = None
 
-    @validator("EMAILS_ENABLED", pre=True)
-    def get_emails_enabled(cls, _: bool, values: dict[str, Any]) -> bool:
-        return bool(
-            values.get("SMTP_HOST")
-            and values.get("SMTP_PORT")
-            and values.get("DEFAULT_FROM_EMAIL")
-        )
+    @model_validator(mode="before")
+    @classmethod
+    def check_emails_enabled(cls, data: dict[str, Any]) -> dict[str, Any]:
+        if isinstance(data, dict):
+            access = bool(data.get("SES_ACCESS_KEY"))
+            secret = bool(data.get("SES_SECRET_KEY"))
+            region = bool(data.get("SES_REGION"))
+            if access and secret and region:
+                data["EMAILS_ENABLED"] = True
+        return data
 
     FIRST_SUPERUSER_EMAIL: EmailStr = "seantilson@gmail.com"
-    FIRST_SUPERUSER_PASSWORD: str = "yadda"
+    FIRST_SUPERUSER_PASSWORD: str
 
-    class Config:
-        env_file = ".env"
+    """
+    # this was not working since there is already a default value?
+    @field_validator("EMAILS_ENABLED", mode="before")
+    @classmethod
+    def get_emails_enabled(cls, _: bool, values: dict[str, Any]) -> bool:
+        return bool(
+            values.get("SES_ACCESS_KEY")
+            and values.get("SES_SECRET_KEY")
+            and values.get("SES_REGION")
+        )
+    """
 
 
-settings = PreSettings()
+settings = Settings()

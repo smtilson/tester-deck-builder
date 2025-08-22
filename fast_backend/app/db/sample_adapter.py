@@ -1,5 +1,5 @@
 from .users_db import get_user_db, MyTortoiseUserDatabase
-from fast_backend.app.models.users import User as UserORM
+from fast_backend.app.models.old_users import User as UserORM
 from fastapi_users_tortoise import TortoiseUserDatabase
 from tortoise import Tortoise, run_async
 from tortoise.models import Model

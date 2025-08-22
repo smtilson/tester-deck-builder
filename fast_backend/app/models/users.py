@@ -1,23 +1,13 @@
-from __future__ import annotations
-
-from fastapi_users_tortoise import (
-    TortoiseBaseUserAccountModelUUID,
-    TortoiseUserDatabase,
-)
-from tortoise import fields
+from fastapi_users.db import BeanieBaseUser, BeanieUserDatabase
+from beanie import Link
+from pydantic import Field
 
 from .base import BasicModel
 
 
-class User(TortoiseBaseUserAccountModelUUID, BasicModel):
-    username = fields.CharField(max_length=255, unique=True)
-    # email, is_superuser, is_active, is_verified,
-    # and hashed_password are inherited from TortoiseBaseUserAccountModelUUID
-    name = fields.CharField(max_length=255, null=True)
-    is_admin = fields.BooleanField(default=False)
+class User(BasicModel, BeanieBaseUser):
+    is_staff: bool = Field(default=False)
+    playtesting: list[Link["Game"]] = Field(default_factory=list)
+    designing: list[Link["Game"]] = Field(default_factory=list)
+    developing: list[Link["Game"]] = Field(default_factory=list)
 
-    class Meta:
-        table = "users"
-
-    def __str__(self):
-        return self.username or self.name or self.email

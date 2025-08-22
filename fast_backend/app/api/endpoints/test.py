@@ -2,26 +2,38 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Any
+from beanie import Document
+from pydantic import Field
 
-from fast_backend.app.models.decks import Deck
-from fast_backend.app.models.cards import Card
-from fast_backend.app.models.deck_cards import DeckCard
+
+from fast_backend.app.models.old_decks import Deck
+from fast_backend.app.models.old_cards import Card
+from fast_backend.app.models.old_deck_cards import DeckCard
 
 # prefix="/test", tags=["test"] should be passed to the below maybe
 # but it looks like this is done in the routes file.
-router = APIRouter()
+router = APIRouter(tags=["test"])
 
+
+class TestDocument(Document):
+    """A simple test document to verify database connection."""
+    value: strclass Settings:
+
+    class Settings:
+        name = "test_documents"
 
 @router.get("/db-connection")
 async def test_db_connection():
     """Test that the database connection is working."""
     try:
-        # Try to count decks
-        deck_count = await Deck.all().count()
-        # Try to count cards
-        card_count = await Card.all().count()
-        deck_card_count = await DeckCard.all().count()
-
+        test_doc = TestDocument(value="Connection Successful.")
+        await test_doc.insert()
+        found_doc = await TestDocument.find_one(TestDocument.value == "Connection Successful.")
+        if found_doc:
+            await found_doc.delete()
+            return {"message": "Database connection is working"}
+        else:
+            raise HTTPException(status_code=500, detail="Test document not found after insertion.")
         return {
             "status": "success",
             "message": "Database connection is working",
@@ -36,37 +48,8 @@ async def test_db_connection():
             status_code=500, detail=f"Database connection error: {str(e)}"
         )
 
-
 @router.get("/")
 async def test_route():
     return {"message": "Test route"}
 
 
-@router.get("/decks")
-async def test_get_decks() -> list[dict[str, Any]]:
-    """Get all decks with their cards to test relationships."""
-    try:
-        decks = await Deck.all().prefetch_related("deck_cards__card")
-
-        result = []
-        for deck in decks:
-            deck_data = {
-                "id": deck.id,
-                "name": deck.name,
-                "description": deck.description,
-                "cards": [],
-            }
-
-            # Get all cards in this deck
-            deck_cards = await deck.deck_cards.all()
-            for deck_card in deck_cards:
-                card = await deck_card.card
-                deck_data["cards"].append(
-                    {"id": card.id, "name": card.name, "quantity": deck_card.quantity}
-                )
-
-            result.append(deck_data)
-
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving decks: {str(e)}")

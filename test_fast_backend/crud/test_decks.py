@@ -4,10 +4,11 @@ import random
 from tortoise.exceptions import IntegrityError, DoesNotExist
 
 from fast_backend.app.crud.decks import DeckRepo
-from fast_backend.app.models.decks import Deck
+from fast_backend.app.models.old_decks import Deck
 from fast_backend.app.crud.users import UserRepo
 from fast_backend.app.schemas.decks import DeckCreate, DeckUpdate
 from fast_backend.app.schemas.users import UserCreate
+
 
 @pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db")
@@ -18,7 +19,9 @@ class TestDeckRepoCreate:
     async def test_create_deck_success(self, deck_test_data, single_user):
         """Test successful deck creation with valid data."""
         deck_data = random.choice(deck_test_data)
-        deck_create = DeckCreate(**deck_data, owner=single_user,
+        deck_create = DeckCreate(
+            **deck_data,
+            owner=single_user,
         )
 
         result = await DeckRepo.create_deck_record(deck_create)
@@ -59,6 +62,7 @@ class TestDeckRepoCreate:
         # Attempt to create second deck with same name should fail
         with pytest.raises(IntegrityError):
             await DeckRepo.create_deck_record(deck_create)
+
 
 @pytest.mark.skip("standard")
 @pytest.mark.asyncio
@@ -114,7 +118,9 @@ class TestDeckRepoUpdate:
         """Test successful deck update."""
         owner, deck = single_deck["owner"], single_deck["test_deck"]
         all_other_user_data = [
-            user_data for user_data in user_test_data if user_data["username"] != owner.username
+            user_data
+            for user_data in user_test_data
+            if user_data["username"] != owner.username
         ]
         new_user_data = random.choice(all_other_user_data)
         new_owner = await UserRepo.create_user(UserCreate(**new_user_data))
@@ -210,6 +216,7 @@ class TestDeckRepoUpdate:
 
         assert result is None
 
+
 @pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
@@ -250,6 +257,7 @@ class TestDeckRepoDelete:
         # Second deletion should fail
         result2 = await DeckRepo.delete_deck(single_deck["test_deck"].id)
         assert result2 is False
+
 
 @pytest.mark.skip("special")
 @pytest.mark.asyncio

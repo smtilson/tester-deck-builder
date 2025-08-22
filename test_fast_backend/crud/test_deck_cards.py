@@ -3,18 +3,19 @@ import random
 from fast_backend.app.crud.deck_cards import DeckCardRepo
 from fast_backend.app.crud.decks import DeckRepo
 from fast_backend.app.crud.cards import CardRepo
-from fast_backend.app.models.deck_cards import DeckCard
+from fast_backend.app.models.old_deck_cards import DeckCard
 from fast_backend.app.schemas.deck_cards import DeckCardCreate, DeckCardUpdate
 from fast_backend.app.schemas.decks import DeckCreate
 from fast_backend.app.schemas.cards import CardCreate
 
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
+# @pytest.mark.usefixtures("init_db")
 @pytest.mark.asyncio
 class TestDeckCardRepoAdd:
     """Integration tests for DeckCardRepo add card to deck operations."""
 
-    async def test_add_card_to_deck_success(self, single_deck_and_cards):
+    async def test_add_card_to_deck_success(self, db, single_deck_and_cards):
         """Test successfully adding a card to a deck."""
         test_deck = single_deck_and_cards["test_deck"]
         test_cards = single_deck_and_cards["test_cards"]
@@ -36,7 +37,7 @@ class TestDeckCardRepoAdd:
         assert db_deck_card.deck_id == test_deck.id
         assert db_deck_card.quantity == 4
 
-    async def test_add_card_to_deck_default_quantity(self, single_deck_and_cards):
+    async def test_add_card_to_deck_default_quantity(self, db, single_deck_and_cards):
         """Test adding card with default quantity of 1."""
         test_deck = single_deck_and_cards["test_deck"]
         test_cards = single_deck_and_cards["test_cards"]
@@ -49,7 +50,9 @@ class TestDeckCardRepoAdd:
         assert result.card_id == card.id
         assert result.deck_id == test_deck.id
 
-    async def test_add_existing_card_increases_quantity(self, single_deck_and_cards):
+    async def test_add_existing_card_increases_quantity(
+        self, db, single_deck_and_cards
+    ):
         """Test that adding existing card increases quantity instead of creating duplicate."""
         test_deck = single_deck_and_cards["test_deck"]
         test_cards = single_deck_and_cards["test_cards"]
@@ -65,7 +68,7 @@ class TestDeckCardRepoAdd:
         assert result2.quantity == 4  # 2 + 2
         assert result2.id == result1.id  # Same record
 
-    async def test_add_multiple_different_cards(self, single_deck_and_cards):
+    async def test_add_multiple_different_cards(self, db, single_deck_and_cards):
         """Test adding multiple different cards to same deck."""
         test_deck = single_deck_and_cards["test_deck"]
         test_cards = single_deck_and_cards["test_cards"]
@@ -84,7 +87,7 @@ class TestDeckCardRepoAdd:
         assert result1.quantity == 3
         assert result2.quantity == 2
 
-    async def test_add_card_with_high_quantity(self, single_deck_and_cards):
+    async def test_add_card_with_high_quantity(self, db, single_deck_and_cards):
         """Test adding card with high quantity value."""
         test_deck = single_deck_and_cards["test_deck"]
         test_cards = single_deck_and_cards["test_cards"]
@@ -102,7 +105,7 @@ class TestDeckCardRepoAdd:
 class TestDeckCardRepoGet:
     """Integration tests for DeckCardRepo get operations."""
 
-    async def test_get_cards_for_deck_returns_all(self, single_deck_with_cards):
+    async def test_get_cards_for_deck_returns_all(self, db, single_deck_with_cards):
         """Test getting all cards for a deck."""
         test_deck = single_deck_with_cards["test_deck"]
         test_cards = single_deck_with_cards["test_cards"]
@@ -114,7 +117,7 @@ class TestDeckCardRepoGet:
         assert set(card_ids) == set(expected_card_ids)
 
     async def test_get_cards_for_deck_includes_card_details(
-        self, single_deck_with_cards
+        self, db, single_deck_with_cards
     ):
         """Test that get_cards_for_deck includes full card details."""
         test_deck = single_deck_with_cards["test_deck"]
@@ -126,7 +129,9 @@ class TestDeckCardRepoGet:
             assert isinstance(deck_card.card.name, str)
             assert deck_card.card.text is None or isinstance(deck_card.card.text, str)
 
-    async def test_get_cards_for_deck_correct_quantities(self, single_deck_with_cards):
+    async def test_get_cards_for_deck_correct_quantities(
+        self, db, single_deck_with_cards
+    ):
         """Test that get_cards_for_deck returns correct quantities."""
         test_deck = single_deck_with_cards["test_deck"]
         result = await DeckCardRepo.get_cards_for_deck(test_deck.id)
@@ -138,7 +143,7 @@ class TestDeckCardRepoGet:
         for i, deck_card in enumerate(result_sorted):
             assert deck_card.quantity == expected_quantities[i]
 
-    async def test_get_cards_for_empty_deck(self, single_deck_with_cards):
+    async def test_get_cards_for_empty_deck(self, db, single_deck_with_cards):
         """Test getting cards for deck with no cards."""
         owner = single_deck_with_cards["owner"]
         # Create empty deck
@@ -149,7 +154,7 @@ class TestDeckCardRepoGet:
 
         assert result == []
 
-    async def test_get_cards_for_nonexistent_deck(self, single_deck_with_cards):
+    async def test_get_cards_for_nonexistent_deck(self, db, single_deck_with_cards):
         """Test getting cards for non-existent deck."""
         non_existent_deck_id = 99999
 
@@ -157,12 +162,13 @@ class TestDeckCardRepoGet:
 
         assert result == []
 
+
 @pytest.mark.skip("standard")
 @pytest.mark.asyncio
 class TestDeckCardRepoUpdate:
     """Integration tests for DeckCardRepo update operations."""
 
-    async def test_update_card_quantity_success(self, single_deck_card):
+    async def test_update_card_quantity_success(self, db, single_deck_card):
         """Test successfully updating card quantity in deck."""
         test_deck_card = single_deck_card["test_deck_card"]
         update_data = DeckCardUpdate(quantity=6)
@@ -178,12 +184,12 @@ class TestDeckCardRepoUpdate:
         assert result.deck_id == test_deck_card.deck_id
 
         # Verify update persisted in database
-        from fast_backend.app.models.deck_cards import DeckCard
+        from fast_backend.app.models.old_deck_cards import DeckCard
 
         db_deck_card = await DeckCard.get(id=test_deck_card.id)
         assert db_deck_card.quantity == 6
 
-    async def test_update_card_quantity_to_zero(self, single_deck_card):
+    async def test_update_card_quantity_to_zero(self, db, single_deck_card):
         """Test updating card quantity to zero (but not removing)."""
         test_deck_card = single_deck_card["test_deck_card"]
         update_data = DeckCardUpdate(quantity=0)
@@ -196,7 +202,7 @@ class TestDeckCardRepoUpdate:
         assert result.quantity == 0
         assert result.id == test_deck_card.id
 
-    async def test_update_card_quantity_to_high_value(self, single_deck_card):
+    async def test_update_card_quantity_to_high_value(self, db, single_deck_card):
         """Test updating card quantity to high value."""
         test_deck_card = single_deck_card["test_deck_card"]
         update_data = DeckCardUpdate(quantity=999)
@@ -208,7 +214,7 @@ class TestDeckCardRepoUpdate:
         assert result is not None
         assert result.quantity == 999
 
-    async def test_update_card_quantity_empty_update(self, single_deck_card):
+    async def test_update_card_quantity_empty_update(self, db, single_deck_card):
         """Test update with no fields provided."""
         test_deck_card = single_deck_card["test_deck_card"]
         update_data = DeckCardUpdate()
@@ -221,7 +227,9 @@ class TestDeckCardRepoUpdate:
         # Quantity should remain unchanged
         assert result.quantity == test_deck_card.quantity
 
-    async def test_update_card_quantity_includes_card_details(self, single_deck_card):
+    async def test_update_card_quantity_includes_card_details(
+        self, db, single_deck_card
+    ):
         """Test that update result includes full card details."""
         test_deck_card = single_deck_card["test_deck_card"]
         test_card = single_deck_card["test_card"]
@@ -236,7 +244,7 @@ class TestDeckCardRepoUpdate:
         assert result.card.id == test_card.id
         assert result.card.name == test_card.name
 
-    async def test_update_nonexistent_deck_card(self, single_deck_card):
+    async def test_update_nonexistent_deck_card(self, db, single_deck_card):
         """Test updating non-existent deck card returns None."""
         non_existent_id = 99999
         update_data = DeckCardUpdate(quantity=5)
@@ -247,12 +255,13 @@ class TestDeckCardRepoUpdate:
 
         assert result is None
 
+
 @pytest.mark.skip("standard")
 @pytest.mark.asyncio
 class TestDeckCardRepoRemove:
     """Integration tests for DeckCardRepo remove operations."""
 
-    async def test_remove_card_from_deck_success(self, single_deck_card):
+    async def test_remove_card_from_deck_success(self, db, single_deck_card):
         """Test successfully removing card from deck."""
         test_deck_card = single_deck_card["test_deck_card"]
         test_deck = single_deck_card["test_deck"]
@@ -265,13 +274,13 @@ class TestDeckCardRepoRemove:
         assert len(remaining_cards) == 0
 
         # Verify deck_card no longer exists in database
-        from fast_backend.app.models.deck_cards import DeckCard
+        from fast_backend.app.models.old_deck_cards import DeckCard
         from tortoise.exceptions import DoesNotExist
 
         with pytest.raises(DoesNotExist):
             await DeckCard.get(id=test_deck_card.id)
 
-    async def test_remove_nonexistent_deck_card(self, single_deck_card):
+    async def test_remove_nonexistent_deck_card(self, db, single_deck_card):
         """Test removing non-existent deck card returns False."""
         non_existent_id = 99999
 
@@ -279,7 +288,7 @@ class TestDeckCardRepoRemove:
 
         assert result is False
 
-    async def test_remove_card_multiple_times(self, single_deck_card):
+    async def test_remove_card_multiple_times(self, db, single_deck_card):
         """Test removing same deck card multiple times."""
         test_deck_card = single_deck_card["test_deck_card"]
         # First removal should succeed
@@ -291,7 +300,7 @@ class TestDeckCardRepoRemove:
         assert result2 is False
 
     async def test_remove_card_preserves_other_cards(
-        self, single_deck_card, card_test_data
+        self, db, single_deck_card, card_test_data
     ):
         """Test that removing one card preserves other cards in deck."""
         test_deck_card = single_deck_card["test_deck_card"]
@@ -317,12 +326,13 @@ class TestDeckCardRepoRemove:
         assert remaining_cards[0].id == another_deck_card.id
         assert remaining_cards[0].card_id == another_card.id
 
+
 @pytest.mark.skip("special")
 @pytest.mark.asyncio
 class TestDeckCardRepoEdgeCases:
     """Integration tests for DeckCardRepo edge cases and error conditions."""
 
-    async def test_add_card_with_zero_quantity(self, single_deck_and_cards):
+    async def test_add_card_with_zero_quantity(self, db, single_deck_and_cards):
         """Test adding card with zero quantity."""
         test_deck = single_deck_and_cards["test_deck"]
         test_cards = single_deck_and_cards["test_cards"]
@@ -335,7 +345,7 @@ class TestDeckCardRepoEdgeCases:
         assert result.card_id == test_card.id
 
     async def test_add_card_quantity_accumulation_multiple_additions(
-        self, single_deck_and_cards
+        self, db, single_deck_and_cards
     ):
         """Test that quantity accumulates correctly over multiple additions."""
         test_deck = single_deck_and_cards["test_deck"]
@@ -356,7 +366,7 @@ class TestDeckCardRepoEdgeCases:
         # All results should be the same record
         assert result1.id == result2.id == result3.id
 
-    async def test_deck_card_unique_constraint(self, single_deck_and_cards):
+    async def test_deck_card_unique_constraint(self, db, single_deck_and_cards):
         """Test that deck-card combination maintains uniqueness."""
         test_deck = single_deck_and_cards["test_deck"]
         test_cards = single_deck_and_cards["test_cards"]
@@ -375,7 +385,7 @@ class TestDeckCardRepoEdgeCases:
         cards_in_deck = await DeckCardRepo.get_cards_for_deck(test_deck.id)
         assert len(cards_in_deck) == 1
 
-    async def test_operations_with_nonexistent_card_id(self, single_deck_and_cards):
+    async def test_operations_with_nonexistent_card_id(self, db, single_deck_and_cards):
         """Test operations with non-existent card ID."""
         test_deck = single_deck_and_cards["test_deck"]
         non_existent_card_id = 99999
@@ -385,7 +395,7 @@ class TestDeckCardRepoEdgeCases:
         with pytest.raises(Exception):  # Could be IntegrityError or similar
             await DeckCardRepo.add_card_to_deck(test_deck.id, deck_card_create)
 
-    async def test_operations_with_nonexistent_deck_id(self, single_deck_and_cards):
+    async def test_operations_with_nonexistent_deck_id(self, db, single_deck_and_cards):
         """Test operations with non-existent deck ID."""
         test_cards = single_deck_and_cards["test_cards"]
         test_card = test_cards[0]

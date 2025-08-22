@@ -1,47 +1,21 @@
+from motor.motor_asyncio import AsyncIOMotorClient
+from beanie import init_beanie
 from fastapi import FastAPI
-from tortoise.contrib.fastapi import register_tortoise
-from tortoise import Tortoise
 
 from fast_backend.app.core.config_app import settings
-
-
-MODEL_PATHS = [
-    "fast_backend.app.models.users",
-    "fast_backend.app.models.decks",
-    "fast_backend.app.models.deck_cards",
-    "fast_backend.app.models.cards",
-]
-
-AERICH_PATH = ["aerich.models"]
-
+from fast_backend.app.models import User, Deck, DeckCard, Card, Game
+from fast_backend.app.api.endpoints.test import TestDocument
+DOCUMENT_MODELS=[User, Deck, Card, Game, TestDocument]
 PATHS = MODEL_PATHS + AERICH_PATH
 
-TORTOISE_ORM = {
-    "connections": {"default": settings.DATABASE_URI},
-    "apps": {
-        "models": {
-            "models": PATHS,
-            "default_connection": "default",
-        },
-    },
-}
 
 
 async def init_db():
     """Initializes the database connection."""
-    await Tortoise.init(db_url=settings.DATABASE_URI, modules={"models": MODEL_PATHS})
-    await Tortoise.generate_schemas()
+    client = AsyncIOMotorClient(settings.DATABASE_URI)
+    await init_beanie(database=client[settings.DATABASE_NAME], document_models=DOCUMENT_MODELS)
+    return client
 
-
-async def close_db():
-    """Close the database connection."""
-    await Tortoise.close_connections()
-
-
-def register_db(app: FastAPI) -> None:
-    register_tortoise(
-        app,
-        config=TORTOISE_ORM,
-        generate_schemas=True,
-        add_exception_handlers=True,
-    )
+async def close_db(client):
+    """Closes the database connection."""
+    await client.close()

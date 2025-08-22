@@ -6,6 +6,7 @@ __pycache__/
 
 # Virtualenv
 venv/
+venv-3.10/
 
 # VS Code
 .vscode/

@@ -1,4 +1,4 @@
-from fast_backend.app.models.cards import Card
+from fast_backend.app.models.old_cards import Card
 
 # should we have any of these schemas
 from fast_backend.app.schemas.cards import CardResponse

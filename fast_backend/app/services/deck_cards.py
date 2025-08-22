@@ -5,8 +5,8 @@ from tortoise.transactions import atomic
 
 from fast_backend.app.schemas.cards import CardInDB
 from fast_backend.app.schemas.deck_cards import DeckCardCreate
-from fast_backend.app.models.deck_cards import DeckCard as DeckCardModel
-from fast_backend.app.models.decks import Deck as DeckModel
+from fast_backend.app.models.old_deck_cards import DeckCard as DeckCardModel
+from fast_backend.app.models.old_decks import Deck as DeckModel
 
 from fast_backend.app.exceptions.cards import CardsNotFound
 from fast_backend.app.exceptions.decks import DeckNotFound, DeckException

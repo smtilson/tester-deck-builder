@@ -14,7 +14,7 @@ from fast_backend.app.services.email import render_email_template
 from fast_backend.app.services.worker import queue
 
 
-from fast_backend.app.models.users import User
+from fast_backend.app.models.old_users import User
 from fast_backend.app.db.users_db import get_user_db
 
 

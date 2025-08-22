@@ -4,7 +4,7 @@ from fastapi_users.password import PasswordHelper
 from passlib.context import CryptContext
 
 
-from fast_backend.app.models.users import User as UserModel
+from fast_backend.app.models.old_users import User as UserModel
 from fast_backend.app.schemas.users import UserCreate, UserUpdate, UserResponse
 
 
