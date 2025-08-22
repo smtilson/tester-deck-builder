@@ -1,4 +1,5 @@
 from typing import Optional
+from beanie.odm.fields import PydanticObjectId
 from fast_backend.app.models.cards import Card as CardModel
 from fast_backend.app.schemas.cards import CardCreate, CardUpdate, CardResponse
 
@@ -21,7 +22,7 @@ class CardRepo:
         return CardResponse.model_validate(card_obj)
 
     @staticmethod
-    async def get_card(card_id: int) -> Optional[CardResponse]:
+    async def get_card(card_id: PydanticObjectId) -> Optional[CardResponse]:
         """
         Get a card by its ID.
 
@@ -31,7 +32,7 @@ class CardRepo:
         Returns:
             The card as a Pydantic schema, or None if it doesn't exist.
         """
-        card_obj = await CardModel.find_one(id=card_id)
+        card_obj = await CardModel.get(card_id)
         if card_obj:
             return CardResponse.model_validate(card_obj)
         return None

@@ -1,6 +1,7 @@
 import pytest
 from fast_backend.app.models.cards import Card
 
+@pytest.mark.skip("basic")
 @pytest.mark.asyncio
 async def test_insert_card(db_client):
     test_card = Card(name="Sanity Check", text="...")

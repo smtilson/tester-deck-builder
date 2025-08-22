@@ -15,7 +15,7 @@ async def setup_cards(init_db, card_test_data):
     """Create test cards for read operations."""
     created_cards = []
     for card_data in card_test_data:
-        card_create = CardCreate(name=card_data["name"], text=card_data["text"])
+        card_create = CardCreate(**card_data)
         created_card = await CardRepo.create_card(card_create)
         created_cards.append(created_card)
     return created_cards

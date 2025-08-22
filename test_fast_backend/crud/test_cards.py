@@ -1,13 +1,13 @@
 import pytest
-
 import random
+from beanie.odm.fields import PydanticObjectId
 
 from fast_backend.app.crud.cards import CardRepo
 from fast_backend.app.models.cards import Card
 from fast_backend.app.schemas.cards import CardCreate, CardUpdate
 
 
-@pytest.mark.skip("standard")
+# @pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestCardRepoCreate:
@@ -16,20 +16,18 @@ class TestCardRepoCreate:
     async def test_create_card_success(self, card_test_data):
         """Test successful card creation with valid data."""
         card_data = random.choice(card_test_data)
-        card_create = CardCreate(name=card_data["name"], text=card_data["text"])
+        card_create = CardCreate(**card_data)
 
         result = await CardRepo.create_card(card_create)
 
         assert result.name == card_data["name"]
         assert result.text == card_data["text"]
-        assert isinstance(result.id, int)
+        assert isinstance(result.id, PydanticObjectId)
         assert result.created_at is not None
-        assert result.updated_at is not None
+        assert result.updated_at is None
 
         # Verify card exists in database
-        from fast_backend.app.models.cards import Card
-
-        db_card = await Card.get(id=result.id)
+        db_card = await Card.get(result.id)
         assert db_card.name == card_data["name"]
         assert db_card.text == card_data["text"]
 
@@ -42,7 +40,7 @@ class TestCardRepoCreate:
 
         assert result.name == "Minimal Card"
         assert result.text is None
-        assert isinstance(result.id, int)
+        assert isinstance(result.id, PydanticObjectId)
 
     async def test_create_multiple_cards_different_names(self):
         """Test creating multiple cards with different names succeeds."""

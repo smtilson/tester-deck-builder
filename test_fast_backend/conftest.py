@@ -6,10 +6,11 @@ from beanie import init_beanie
 
 # import the models you want available in tests
 from fast_backend.app.db.config_db import DOCUMENT_MODELS
+from .sample_data import *
 
 
 @pytest_asyncio.fixture
-async def db_client():
+async def init_db():
     """
     Initialize Beanie once per test session.
     """
