@@ -10,6 +10,9 @@ from .base import BaseDocument
 # Docs say it should be BeanieBaseUser[PydanticObjectId]
 # but the documentation on the github repo is different.
 class User(BeanieBaseUser, Document):
+    username: Optional[str] = None
+    email: str
+    name: Optional[str] = None
     is_staff: bool = Field(default=False)
     playtesting: list[Link["Game"]] = Field(default_factory=list)  # type: ignore
     designing: list[Link["Game"]] = Field(default_factory=list)  # type: ignore

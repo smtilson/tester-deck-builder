@@ -36,6 +36,11 @@ class DeckResponse(DeckBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
+class DeckListItem(DeckBase):
+    id: PydanticObjectId
+    owner: UserListItem
+    game: GameListItem
+    is_public: bool
 
 class DeckResponseWithCards(DeckResponse):
     cards: list[DeckCardListItem] = Field(default_factory=list)
