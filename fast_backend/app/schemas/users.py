@@ -10,7 +10,6 @@ class UserResponse(schemas.BaseUser[uuid.UUID]):
     Pydantic schema for reading user data (output).
     Inherits from BaseUser and specifies uuid.UUID as the ID type.
     """
-
     username: str
     email: str
     name: Optional[str] = None

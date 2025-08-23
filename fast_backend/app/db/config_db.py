@@ -10,8 +10,9 @@ DOCUMENT_MODELS=[User, Deck, Card, Game, TestDocument]
 
 async def init_db():
     """Initializes the database connection."""
-    client = AsyncIOMotorClient(settings.DATABASE_URI)
-    await init_beanie(database=client[settings.DATABASE_NAME], document_models=DOCUMENT_MODELS)
+    client = AsyncIOMotorClient(settings.DATABASE_URI, uuidRepresentation="standard")
+    db = client[settings.DATABASE_NAME]
+    await init_beanie(database=db, document_models=DOCUMENT_MODELS)
     return client
 
 async def close_db(client: AsyncIOMotorClient):

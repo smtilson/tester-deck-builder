@@ -1,7 +1,6 @@
 aioaws==0.15.1
 aiofiles==24.1.0
 aiosqlite==0.21.0
-
 annotated-types==0.7.0
 anyio==4.9.0
 argon2-cffi==23.1.0
@@ -101,6 +100,7 @@ python-multipart==0.0.20
 python-slugify==8.0.4
 pytz==2025.2
 PyYAML==6.0.2
+redis==5.3.1
 requests==2.32.4
 rich==14.0.0
 rich-toolkit==0.14.8
