@@ -1,6 +1,8 @@
 import pytest
 import uuid
 from typing import Any
+from datetime import datetime
+import random
 
 
 @pytest.fixture
@@ -94,7 +96,7 @@ def deck_test_data(user_test_data) -> list[dict[str, Any]]:
         },
     ]
 
-
+'''
 @pytest.fixture
 def deck_card_test_data(card_test_data, deck_test_data) -> list[dict[str, Any]]:
     """Create test deck_card data for database creation."""
@@ -131,42 +133,105 @@ def deck_card_test_data(card_test_data, deck_test_data) -> list[dict[str, Any]]:
         },
     ]
 
-
+'''
 @pytest.fixture
-def all_test_data(user_test_data, card_test_data, deck_test_data, deck_card_test_data):
+def game_test_data() -> list[dict[str, Any]]:
+    """Create test game data for database creation based on Game model."""
+    return [
+        {
+            "name": "Magic: The Gathering",
+            "version": "1.0.0",
+            "description": "A collectible card game created by Richard Garfield.",
+            "designers": [],  # Fill with Link[User] objects if needed
+            "publisher": "Wizards of the Coast",
+            "developers": [],  # Fill with Link[User] objects if needed
+            "release_date": datetime(1993, 8, 5),
+        },
+        {
+            "name": "Pokémon TCG",
+            "version": "2.1.0",
+            "description": "A trading card game based on Pokémon franchise.",
+            "designers": [],
+            "publisher": "The Pokémon Company",
+            "developers": [],
+            "release_date": datetime(1996, 10, 20),
+        },
+        {
+            "name": "Yu-Gi-Oh!",
+            "version": "3.0.0",
+            "description": "A Japanese collectible card game developed by Konami.",
+            "designers": [],
+            "publisher": "Konami",
+            "developers": [],
+            "release_date": datetime(1999, 2, 4),
+        },
+    ]
+@pytest.fixture
+def all_test_data(user_test_data, card_test_data, deck_test_data, game_test_data):
     """Composite fixture that provides all test data."""
 
     class TestData:
-        def __init__(self):
+        def __init__(self, already_picked=None):
             self.user_data = user_test_data
             self.card_data = card_test_data
             self.deck_data = deck_test_data
-            self.deck_card_data = deck_card_test_data
+            #self.deck_card_data = deck_card_test_data
+            self.game_data = game_test_data
+            if already_picked is None:
+                self.already_picked = {"users":set(),"cards":set(),"decks":set(),"deck_cards":set(),"games":set()}
+            else:
+                self.already_picked = already_picked
+        
+        def _get_by_key(self, data_list, key, value) -> dict[str, Any]:
+            """Generic method to get an item by key from a list of dicts."""
+            for item in data_list:
+                if item.get(key, None) == value:
+                    return item
+            raise ValueError(f"{key.capitalize()} with value '{value}' not found")
 
         def get_user_by_username(self, username: str) -> dict[str, Any]:
-            """Get user data by username."""
-            for user in self.user_data:
-                if user["username"] == username:
-                    return user
-            raise ValueError(f"User with username '{username}' not found")
+            return self._get_by_key(self.user_data, "username", username)
 
         def get_card_by_name(self, name: str) -> dict[str, Any]:
-            """Get card data by name."""
-            for card in self.card_data:
-                if card["name"] == name:
-                    return card
-            raise ValueError(f"Card with name '{name}' not found")
+            return self._get_by_key(self.card_data, "name", name)
 
         def get_deck_by_name(self, name: str) -> dict[str, Any]:
-            """Get deck data by name."""
-            for deck in self.deck_data:
-                if deck["name"] == name:
-                    return deck
-            raise ValueError(f"Deck with name '{name}' not found")
+            return self._get_by_key(self.deck_data, "name", name)
 
+        def get_game_by_name(self, name: str) -> dict[str, Any]:
+            return self._get_by_key(self.game_data, "name", name)
+        
+        '''
         def get_deck_cards_by_deck_id(self, deck_id: int) -> list[dict[str, Any]]:
             """Get all deck_card data for a specific deck."""
             return [dc for dc in self.deck_card_data if dc["deck_id"] == deck_id]
+        '''
+
+        def _pick_random(self, data_list, key, picked_set):
+            if len(picked_set) == len(data_list):
+                raise ValueError(f"All {key}s have been picked")
+            item = random.choice(data_list)
+            while item[key] in picked_set:
+                item = random.choice(data_list)
+            picked_set.add(item[key])
+            return item
+
+        @property
+        def game(self) -> dict[str, Any]:
+            return self._pick_random(self.game_data, "name", self.already_picked["games"])
+
+        @property
+        def card(self) -> dict[str, Any]:
+            return self._pick_random(self.card_data, "name", self.already_picked["cards"])
+
+        @property
+        def user(self) -> dict[str, Any]:
+            return self._pick_random(self.user_data, "username", self.already_picked["users"])
+
+        @property
+        def deck(self) -> dict[str, Any]:
+            return self._pick_random(self.deck_data, "name", self.already_picked["decks"])
+
 
     return TestData()
 

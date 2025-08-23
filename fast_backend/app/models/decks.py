@@ -21,5 +21,7 @@ class Deck(BaseDocument):
     # similarly version should be a computed field.
     cards: list[DeckCard] = Field(default_factory=list)
 
-    class Settings:
+    class Settings(BaseDocument.Settings):
         name = "decks"
+        use_state_management = True  # Enable state management for this model
+        is_root = True

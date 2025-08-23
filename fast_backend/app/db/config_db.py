@@ -3,7 +3,7 @@ from beanie import init_beanie
 from fastapi import FastAPI
 
 from fast_backend.app.core.config_app import settings
-from fast_backend.app.models import User, Deck, DeckCard, Card, Game
+from fast_backend.app.models import User, Deck, DeckCard, Card, Game, BaseDocument
 from fast_backend.app.models.test import TestDocument
 
 DOCUMENT_MODELS=[User, Deck, Card, Game, TestDocument]

@@ -1,7 +1,10 @@
 from typing import Optional
 from beanie.odm.fields import PydanticObjectId
+from datetime import datetime
+
 from fast_backend.app.models.cards import Card as CardModel
 from fast_backend.app.schemas.cards import CardCreate, CardUpdate, CardResponse
+from fast_backend.app.core.exceptions import NotFoundException
 
 
 class CardRepo:
@@ -22,6 +25,26 @@ class CardRepo:
         return CardResponse.model_validate(card_obj)
 
     @staticmethod
+    async def get_model(card_id: PydanticObjectId) -> CardModel:
+        """
+        Get a card by its ID.
+
+        Args:
+            card_id: The ID of the card to retrieve
+
+        Returns:
+            The card as a Pydantic schema, or None if it doesn't exist.
+        """
+        print("get_model called")
+        card_model = await CardModel.get(card_id)
+        if not card_model:
+            print("record not found")
+            raise NotFoundException(f"No Card with ID {card_id} was found.")
+        print("record found")
+        print("exiting get_model")
+        return card_model
+
+    @staticmethod
     async def get_card(card_id: PydanticObjectId) -> Optional[CardResponse]:
         """
         Get a card by its ID.
@@ -32,11 +55,13 @@ class CardRepo:
         Returns:
             The card as a Pydantic schema, or None if it doesn't exist.
         """
-        card_obj = await CardModel.get(card_id)
-        if card_obj:
-            return CardResponse.model_validate(card_obj)
-        return None
+        print("get_card called")
+        card_obj = await CardRepo.get_model(card_id)
+        print("card model found.")
+        print("converting to CardResponse and exiting get card")
+        return CardResponse.model_validate(card_obj)
 
+    
     @staticmethod
     async def get_all_cards() -> list[CardResponse]:
         """
@@ -50,7 +75,7 @@ class CardRepo:
 
     @staticmethod
     async def update_card(
-        card_id: int, card_data: CardUpdate
+        card_id: PydanticObjectId, card_data: CardUpdate
     ) -> Optional[CardResponse]:
         """
         Update a card.
@@ -62,18 +87,16 @@ class CardRepo:
         Returns:
             The updated card as a Pydantic schema, or None if the card doesn't exist.
         """
-        card_obj = await CardModel.find_one(id=card_id)
-        if card_obj:
-            # Use model_dump(exclude_unset=True) to only get provided fields
-            update_data = card_data.model_dump(exclude_unset=True)
-            if update_data:  # Only update if there is data
-                card_obj.set(update_data)
-                await card_obj.replace()
-            return CardResponse.model_validate(card_obj)
-        return None
-
+        card_obj = await CardRepo.get_model(card_id)
+        update_data = card_data.model_dump(exclude_unset=True)
+        if update_data:
+            update_data["updated_at"] = datetime.now()
+            await card_obj.set(update_data)
+            await card_obj.save()
+        return CardResponse.model_validate(card_obj)
+        
     @staticmethod
-    async def delete_card(card_id: int) -> bool:
+    async def delete_card(card_id: PydanticObjectId) -> bool:
         """
         Delete a card.
 
@@ -83,8 +106,9 @@ class CardRepo:
         Returns:
             True if the card was deleted, False if it doesn't exist
         """
-        card_obj = await CardModel.find_one(id=card_id)
-        if card_obj:
-            await card_obj.delete()
-            return True
-        return False
+        print("delete card called")
+        card_obj = await CardRepo.get_model(card_id)
+        print("card found for deletion")
+        await card_obj.delete()
+        print("card deleted")
+        return True

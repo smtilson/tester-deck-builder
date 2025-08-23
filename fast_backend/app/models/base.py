@@ -10,4 +10,5 @@ class BaseDocument(Document):
     updated_at: Optional[datetime] = None
 
     class Settings:
-        is_root = True
+        is_root = False
+        use_state_management = True
