@@ -8,7 +8,7 @@ from fast_backend.app.schemas.deck_cards import (
 )
 from fast_backend.app.models.decks import Deck as DeckModel
 from fast_backend.app.models.cards import Card as CardModel
-from fast_backend.app.crud.deck_cards import DeckCardRepo as crud
+from fast_backend.app.crud.deck_cards import DeckCardManager as crud
 
 router = APIRouter()
 

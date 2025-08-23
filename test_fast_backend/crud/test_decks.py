@@ -2,9 +2,9 @@ import pytest
 
 import random
 
-from fast_backend.app.crud.decks import DeckRepo
+from fast_backend.app.crud.decks import DeckManager
 from fast_backend.app.models.decks import Deck
-from fast_backend.app.crud.users import UserRepo
+from fast_backend.app.crud.users import UserManager
 from fast_backend.app.schemas.decks import DeckCreate, DeckUpdate
 from fast_backend.app.schemas.users import UserCreate
 
@@ -12,8 +12,8 @@ from fast_backend.app.schemas.users import UserCreate
 @pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db")
 @pytest.mark.asyncio
-class TestDeckRepoCreate:
-    """Integration tests for DeckRepo create operations."""
+class TestDeckManagerCreate:
+    """Integration tests for DeckManager create operations."""
 
     async def test_create_deck_success(self, deck_test_data, single_user):
         """Test successful deck creation with valid data."""
@@ -23,7 +23,7 @@ class TestDeckRepoCreate:
             owner=single_user,
         )
 
-        result = await DeckRepo.create_deck_record(deck_create)
+        result = await DeckManager.create_deck_record(deck_create)
 
         assert result.name == deck_data["name"]
         assert result.description == deck_data["description"]
@@ -44,7 +44,7 @@ class TestDeckRepoCreate:
         """Test creating deck with minimal required data."""
         deck_create = DeckCreate(name="Minimal Deck", owner=single_user)
 
-        result = await DeckRepo.create_deck_record(deck_create)
+        result = await DeckManager.create_deck_record(deck_create)
 
         assert result.name == "Minimal Deck"
         assert result.description is None
@@ -56,23 +56,23 @@ class TestDeckRepoCreate:
         deck_create = DeckCreate(name="Unique Deck Name", owner=single_user)
 
         # Create first deck
-        await DeckRepo.create_deck_record(deck_create)
+        await DeckManager.create_deck_record(deck_create)
 
         # Attempt to create second deck with same name should fail
         with pytest.raises(IntegrityError):
-            await DeckRepo.create_deck_record(deck_create)
+            await DeckManager.create_deck_record(deck_create)
 
 
 @pytest.mark.skip("standard")
 @pytest.mark.asyncio
-class TestDeckRepoRead:
-    """Integration tests for DeckRepo read operations."""
+class TestDeckManagerRead:
+    """Integration tests for DeckManager read operations."""
 
     async def test_get_deck_by_id_success(self, setup_decks):
         """Test successful retrieval of deck by ID."""
         created_deck = random.choice(setup_decks)
 
-        result = await DeckRepo.get_deck(created_deck.id)
+        result = await DeckManager.get_deck(created_deck.id)
 
         assert result is not None
         assert result.id == created_deck.id
@@ -85,13 +85,13 @@ class TestDeckRepoRead:
         """Test that getting non-existent deck returns None."""
         non_existent_id = 99999
 
-        result = await DeckRepo.get_deck(non_existent_id)
+        result = await DeckManager.get_deck(non_existent_id)
 
         assert result is None
 
     async def test_get_all_decks_returns_all(self, setup_decks, deck_test_data):
         """Test that get_all_decks returns all created decks."""
-        result = await DeckRepo.get_all_decks()
+        result = await DeckManager.get_all_decks()
 
         assert len(result) == len(deck_test_data)
         deck_names = [deck.name for deck in result]
@@ -103,15 +103,15 @@ class TestDeckRepoRead:
         # Clear all decks
         await Deck.all().delete()
 
-        result = await DeckRepo.get_all_decks()
+        result = await DeckManager.get_all_decks()
 
         assert result == []
 
 
 @pytest.mark.skip("standard")
 @pytest.mark.asyncio
-class TestDeckRepoUpdate:
-    """Integration tests for DeckRepo update operations."""
+class TestDeckManagerUpdate:
+    """Integration tests for DeckManager update operations."""
 
     async def test_update_deck_success(self, user_test_data, single_deck):
         """Test successful deck update."""
@@ -122,7 +122,7 @@ class TestDeckRepoUpdate:
             if user_data["username"] != owner.username
         ]
         new_user_data = random.choice(all_other_user_data)
-        new_owner = await UserRepo.create_user(UserCreate(**new_user_data))
+        new_owner = await UserManager.create_user(UserCreate(**new_user_data))
         update_data = DeckUpdate(
             name=deck.name + " Updated",
             description=deck.description + " Updated",
@@ -130,7 +130,7 @@ class TestDeckRepoUpdate:
             owner=new_owner,
         )
 
-        result = await DeckRepo.update_deck(single_deck["test_deck"].id, update_data)
+        result = await DeckManager.update_deck(single_deck["test_deck"].id, update_data)
 
         assert result is not None
         assert result.id == single_deck["test_deck"].id
@@ -151,7 +151,7 @@ class TestDeckRepoUpdate:
         """Test partial deck update with only name field."""
         update_data = DeckUpdate(name="Only Name Changed")
 
-        result = await DeckRepo.update_deck(single_deck["test_deck"].id, update_data)
+        result = await DeckManager.update_deck(single_deck["test_deck"].id, update_data)
 
         assert result is not None
         assert result.name == "Only Name Changed"
@@ -164,7 +164,7 @@ class TestDeckRepoUpdate:
         """Test partial deck update with only description field."""
         update_data = DeckUpdate(description="Only description changed")
 
-        result = await DeckRepo.update_deck(single_deck["test_deck"].id, update_data)
+        result = await DeckManager.update_deck(single_deck["test_deck"].id, update_data)
 
         assert result is not None
         assert result.description == "Only description changed"
@@ -177,7 +177,7 @@ class TestDeckRepoUpdate:
         """Test updating deck description to null."""
         update_data = DeckUpdate(description=None)
 
-        result = await DeckRepo.update_deck(single_deck["test_deck"].id, update_data)
+        result = await DeckManager.update_deck(single_deck["test_deck"].id, update_data)
 
         assert result is not None
         assert result.description is None
@@ -188,7 +188,7 @@ class TestDeckRepoUpdate:
         new_validity = not single_deck["test_deck"].is_valid
         update_data = DeckUpdate(is_valid=new_validity)
 
-        result = await DeckRepo.update_deck(single_deck["test_deck"].id, update_data)
+        result = await DeckManager.update_deck(single_deck["test_deck"].id, update_data)
 
         assert result is not None
         assert result.is_valid == new_validity
@@ -198,7 +198,7 @@ class TestDeckRepoUpdate:
         """Test update with no fields provided."""
         update_data = DeckUpdate()
 
-        result = await DeckRepo.update_deck(single_deck["test_deck"].id, update_data)
+        result = await DeckManager.update_deck(single_deck["test_deck"].id, update_data)
 
         assert result is not None
         # All fields should remain unchanged
@@ -211,7 +211,7 @@ class TestDeckRepoUpdate:
         non_existent_id = 99999
         update_data = DeckUpdate(name="New Name")
 
-        result = await DeckRepo.update_deck(non_existent_id, update_data)
+        result = await DeckManager.update_deck(non_existent_id, update_data)
 
         assert result is None
 
@@ -219,8 +219,8 @@ class TestDeckRepoUpdate:
 @pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
-class TestDeckRepoDelete:
-    """Integration tests for DeckRepo delete operations."""
+class TestDeckManagerDelete:
+    """Integration tests for DeckManager delete operations."""
 
     async def test_delete_deck_success(self, single_deck):
         """Test successful deck deletion."""
@@ -229,12 +229,12 @@ class TestDeckRepoDelete:
         deck_db = Deck.get(id=deck_id)
         assert deck_db is not None
 
-        result = await DeckRepo.delete_deck(deck_id)
+        result = await DeckManager.delete_deck(deck_id)
 
         assert result is True
 
         # Verify deck is actually deleted
-        deleted_deck = await DeckRepo.get_deck(deck_id)
+        deleted_deck = await DeckManager.get_deck(deck_id)
         assert deleted_deck is None
         with pytest.raises(DoesNotExist):
             deleted_deck_db = await Deck.get(id=deck_id)
@@ -243,32 +243,32 @@ class TestDeckRepoDelete:
         """Test deleting non-existent deck returns False."""
         non_existent_id = 99999
 
-        result = await DeckRepo.delete_deck(non_existent_id)
+        result = await DeckManager.delete_deck(non_existent_id)
 
         assert result is False
 
     async def test_delete_deck_multiple_times(self, single_deck):
         """Test deleting same deck multiple times."""
         # First deletion should succeed
-        result1 = await DeckRepo.delete_deck(single_deck["test_deck"].id)
+        result1 = await DeckManager.delete_deck(single_deck["test_deck"].id)
         assert result1 is True
 
         # Second deletion should fail
-        result2 = await DeckRepo.delete_deck(single_deck["test_deck"].id)
+        result2 = await DeckManager.delete_deck(single_deck["test_deck"].id)
         assert result2 is False
 
 
 @pytest.mark.skip("special")
 @pytest.mark.asyncio
-class TestDeckRepoEdgeCases:
-    """Integration tests for DeckRepo edge cases and error conditions."""
+class TestDeckManagerEdgeCases:
+    """Integration tests for DeckManager edge cases and error conditions."""
 
     async def test_create_deck_with_very_long_name(self, init_db, single_user):
         """Test creating deck with maximum length name."""
         long_name = "A" * 255  # Maximum length according to model
         deck_create = DeckCreate(name=long_name, owner=single_user)
 
-        result = await DeckRepo.create_deck_record(deck_create)
+        result = await DeckManager.create_deck_record(deck_create)
 
         assert result.name == long_name
         assert len(result.name) == 255
@@ -282,7 +282,7 @@ class TestDeckRepoEdgeCases:
             owner=single_user,
         )
 
-        result = await DeckRepo.create_deck_record(deck_create)
+        result = await DeckManager.create_deck_record(deck_create)
 
         assert result.description == long_description
         assert result.name == "Long Description Deck"
@@ -295,20 +295,20 @@ class TestDeckRepoEdgeCases:
             name="Empty Description Deck", description="", owner=single_user
         )
 
-        result = await DeckRepo.create_deck_record(deck_create)
+        result = await DeckManager.create_deck_record(deck_create)
 
         assert result.description == ""
         assert result.name == "Empty Description Deck"
 
     async def test_deck_id_autoincrement(self, init_db, single_user):
         """Test that deck IDs are properly auto-incremented."""
-        deck1 = await DeckRepo.create_deck_record(
+        deck1 = await DeckManager.create_deck_record(
             DeckCreate(name="Deck 1", owner=single_user)
         )
-        deck2 = await DeckRepo.create_deck_record(
+        deck2 = await DeckManager.create_deck_record(
             DeckCreate(name="Deck 2", owner=single_user)
         )
-        deck3 = await DeckRepo.create_deck_record(
+        deck3 = await DeckManager.create_deck_record(
             DeckCreate(name="Deck 3", owner=single_user)
         )
 
@@ -319,10 +319,10 @@ class TestDeckRepoEdgeCases:
     async def test_update_deck_duplicate_name_constraint(self, init_db, single_user):
         """Test that updating deck to duplicate name fails."""
         # Create two decks
-        deck1 = await DeckRepo.create_deck_record(
+        deck1 = await DeckManager.create_deck_record(
             DeckCreate(name="First Deck", owner=single_user)
         )
-        deck2 = await DeckRepo.create_deck_record(
+        deck2 = await DeckManager.create_deck_record(
             DeckCreate(name="Second Deck", owner=single_user)
         )
 
@@ -330,17 +330,17 @@ class TestDeckRepoEdgeCases:
         update_data = DeckUpdate(name="First Deck")
 
         with pytest.raises(IntegrityError):
-            await DeckRepo.update_deck(deck2.id, update_data)
+            await DeckManager.update_deck(deck2.id, update_data)
 
     async def test_deck_owner_relationship_constraint(self, init_db, single_user):
         """Test that deck requires valid owner relationship."""
         # Create deck with valid owner
         deck_create = DeckCreate(name="Test Deck", owner=single_user)
-        deck = await DeckRepo.create_deck_record(deck_create)
+        deck = await DeckManager.create_deck_record(deck_create)
 
         # Verify owner relationship exists
         assert deck.owner_id == single_user.id
 
         # Verify deck can be retrieved with owner relationship
-        retrieved_deck = await DeckRepo.get_deck(deck.id)
+        retrieved_deck = await DeckManager.get_deck(deck.id)
         assert retrieved_deck.owner_id == single_user.id

@@ -5,10 +5,14 @@ from passlib.context import CryptContext
 
 
 from fast_backend.app.models.users import User as UserModel
+from fast_backend.app.auth.manager import UserManager
 from fast_backend.app.schemas.users import UserCreate, UserUpdate, UserResponse
 
 
 class UserRepo:
+    def __init__(self) -> None:
+        raise NotImplementedError("This class should not be instantiated.")
+
     context = CryptContext(schemes=["argon2", "bcrypt"], deprecated="auto")
     password_helper = PasswordHelper(context)
 
@@ -28,7 +32,9 @@ class UserRepo:
         user_dict = user_data.model_dump(exclude={"password"})
 
         # Hash the password and add it to the dict
-        user_dict["hashed_password"] = UserRepo.password_helper.hash(user_data.password)
+        user_dict["hashed_password"] = UserManager.password_helper.hash(
+            user_data.password
+        )
 
         # Create the user with the hashed password
         user_obj = await UserModel.create(**user_dict)

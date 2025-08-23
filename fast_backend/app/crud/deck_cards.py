@@ -4,15 +4,13 @@ from fast_backend.app.models.deck_cards import DeckCard as DeckCardModel
 from fast_backend.app.schemas.deck_cards import (
     DeckCardCreate,
     DeckCardUpdate,
-    #DeckCardResponseWithCard,
+    DeckCardResponse,
 )
+from fast_backend.app.crud.base_manager import BaseManager
 
-
-class DeckCardRepo:
+class DeckCardManager(BaseManager[DeckCardModel, DeckCardCreate, DeckCardUpdate, DeckCardResponse]):
     @staticmethod
-    async def add_card_to_deck(
-        deck_id: int, card_data: DeckCardCreate
-    ):
+    async def add_card_to_deck(deck_id: int, card_data: DeckCardCreate):
         """
         Add a card to a deck. If the card is already in the deck, its quantity is increased.
 
@@ -37,10 +35,10 @@ class DeckCardRepo:
 
         # Fetch the related card to ensure it's included in the response schema
         await link.fetch_related("card")
-        #return DeckCardResponseWithCard.model_validate(link)
+        # return DeckCardResponseWithCard.model_validate(link)
 
     @staticmethod
-    async def get_cards_for_deck(deck_id: int):# -> list[DeckCardResponseWithCard]:
+    async def get_cards_for_deck(deck_id: int):  # -> list[DeckCardResponseWithCard]:
         """
         Get all card links for a specific deck.
 
@@ -51,12 +49,12 @@ class DeckCardRepo:
             A list of DeckCard links as Pydantic schema instances.
         """
         links = await DeckCardModel.filter(deck_id=deck_id).select_related("card")
-        #return [DeckCardResponseWithCard.model_validate(link) for link in links]
+        # return [DeckCardResponseWithCard.model_validate(link) for link in links]
 
     @staticmethod
     async def update_card_quantity_in_deck(
         deck_card_id: int, deck_card_data: DeckCardUpdate
-    ):# -> Optional[DeckCardResponseWithCard]:
+    ):  # -> Optional[DeckCardResponseWithCard]:
         """
         Update the quantity of a card in a deck.
 
@@ -75,7 +73,7 @@ class DeckCardRepo:
                 await deck_card_obj.save()
 
             await deck_card_obj.fetch_related("card")
-            #return DeckCardResponseWithCard.model_validate(deck_card_obj)
+            # return DeckCardResponseWithCard.model_validate(deck_card_obj)
         return None
 
     @staticmethod
@@ -94,3 +92,5 @@ class DeckCardRepo:
             await deck_card_obj.delete()
             return True
         return False
+
+deck_card_manager = DeckCardManager(DeckCardModel, DeckCardResponse)

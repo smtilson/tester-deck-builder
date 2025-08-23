@@ -1,18 +1,18 @@
-from fast_backend.app.crud.cards import CardRepo
-from fast_backend.app.crud.decks import DeckRepo
-from fast_backend.app.crud.deck_cards import DeckCardRepo
+from fast_backend.app.crud.cards import CardManager
+from fast_backend.app.crud.decks import DeckManager
+from fast_backend.app.crud.deck_cards import DeckCardManager
 from fast_backend.app.schemas.cards import CardCreate, CardUpdate, CardResponse
 from fast_backend.app.schemas.decks import DeckCreate, DeckUpdate, DeckResponse
 from fast_backend.app.schemas.deck_cards import (
     DeckCardCreate,
     DeckCardUpdate,
-    #DeckCardResponseWithCard,
+    # DeckCardResponseWithCard,
 )
 from fastapi import HTTPException, status
 
 
 class CardService:
-    def __init__(self, card_repo: CardRepo):
+    def __init__(self, card_repo: CardManager):
         self.card_repo = card_repo
 
     # this should be accepting a different cind of object and it should check that a user has permissions

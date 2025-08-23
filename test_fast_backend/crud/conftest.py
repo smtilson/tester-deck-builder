@@ -1,56 +1,61 @@
 import pytest_asyncio
 import random
 
-from fast_backend.app.crud.cards import CardRepo
-from fast_backend.app.crud.decks import DeckRepo
-from fast_backend.app.crud.cards import CardRepo
-from fast_backend.app.crud.users import UserRepo
+from fast_backend.app.crud.cards import card_manager as CardManager
+from fast_backend.app.crud.decks import deck_manager as DeckManager
+from fast_backend.app.crud.deck_cards import deck_card_manager as DeckCardManager
+from fast_backend.app.crud.games import game_manager as GameManager
+from fast_backend.app.crud.users import UserManager
 from fast_backend.app.schemas.cards import CardCreate
 from fast_backend.app.schemas.decks import DeckCreate
 from fast_backend.app.schemas.users import UserCreate
 
 
+#@pytest_asyncio.fixture(scope="function")
+async def _setup_items(create_schema, item_manager, item_data):
+    created_items = []
+    for datum in item_data:
+        item_create = create_schema(**datum)
+        created_item = await item_manager.create(item_create)
+        created_items.append(created_item)
+    return created_items
+
+#@pytest_asyncio.fixture(scope="function")
+async def _single_item(create_schema, item_manager, datum):
+    item_create = create_schema(**datum)
+    created_item = await item_manager.create(item_create)
+    return created_item
+
 @pytest_asyncio.fixture(scope="function")
 async def setup_cards(init_db, all_test_data):
     """Create test cards for read operations."""
-    created_cards = []
-    for card_data in all_test_data.card_data:
-        card_create = CardCreate(**card_data)
-        created_card = await CardRepo.create_card(card_create)
-        created_cards.append(created_card)
-    return created_cards
-
+    return await _setup_items(CardCreate, CardManager, all_test_data.card_data)
+    
+    
 
 @pytest_asyncio.fixture(scope="function")
 async def single_card(init_db, all_test_data):
     """Create a test card for update operations."""
-    card_data = all_test_data.card
-    card_create = CardCreate(**card_data)
-    test_card = await CardRepo.create_card(card_create)
-    return test_card
-
-
+    return await _single_item(CardCreate, CardManager, all_test_data.card)
 
 
 @pytest_asyncio.fixture(scope="function")
-async def single_deck_and_cards(
-    init_db, all_test_data
-):
+async def single_deck_and_cards(init_db, all_test_data):
     """Create test deck and cards for deck_card operations."""
     # Create user
     user_data = all_test_data.user
-    owner = await UserRepo.create_user(UserCreate(**user_data))
+    owner = await UserManager.create_user(UserCreate(**user_data))
 
     # Create deck
     deck_data = all_test_data.deck
     deck_create = DeckCreate(**deck_data)
-    test_deck = await DeckRepo.create_deck_record(deck_create)
+    test_deck = await DeckManager.create_deck_record(deck_create)
 
     # Create cards
     test_cards = []
     for card_data in all_test_data.card_data:
         card_create = CardCreate(**card_data)
-        created_card = await CardRepo.create_card(card_create)
+        created_card = await CardManager.create(card_create)
         test_cards.append(created_card)
 
     return {"owner": owner, "test_deck": test_deck, "test_cards": test_cards}
@@ -60,15 +65,15 @@ async def single_deck_and_cards(
 async def setup_decks(init_db, setup_users, all_test_data):
     """Create test decks for read operations."""
     # Create owners first
-    user1 = await UserRepo.create_user(UserCreate(**all_test_data.user))
-    user2 = await UserRepo.create_user(UserCreate(**all_test_data.user))
+    user1 = await UserManager.create_user(UserCreate(**all_test_data.user))
+    user2 = await UserManager.create_user(UserCreate(**all_test_data.user))
 
     # Create decks
     created_decks = []
     for deck_data in all_test_data.deck_data:
         deck_data["owner"] = random.choice([user1, user2])
         deck_create = DeckCreate(**deck_data)
-        created_deck = await DeckRepo.create_deck_record(deck_create)
+        created_deck = await DeckManager.create_deck_record(deck_create)
         created_decks.append(created_deck)
     return created_decks
 
@@ -79,7 +84,7 @@ async def single_deck(init_db, all_test_data, single_user):
     deck_data = all_test_data.deck
     deck_data["owner"] = single_user
     deck_create = DeckCreate(**deck_data)
-    test_deck = await DeckRepo.create_deck_record(deck_create)
+    test_deck = await DeckManager.create_deck_record(deck_create)
     return {"owner": single_user, "test_deck": test_deck}
 
 
@@ -89,7 +94,7 @@ async def setup_users(init_db, all_test_data):
     created_users = []
     for user_data in all_test_data.user_data:
         user_create = UserCreate(**user_data)
-        created_user = await UserRepo.create_user(user_create)
+        created_user = await UserManager.create_user(user_create)
         created_users.append(created_user)
     return created_users
 
@@ -99,7 +104,7 @@ async def single_user(init_db, all_test_data):
     """Create a test user for update operations."""
     user_data = all_test_data.user
     user_create = UserCreate(**user_data)
-    test_user = await UserRepo.create_user(user_create)
+    test_user = await UserManager.create_user(user_create)
     return test_user
 
 
@@ -109,5 +114,5 @@ async def setup_admin(init_db, all_test_data):
     # Select one admin and one regular user randomly
     user_data = all_test_data.user
     user_data["is_admin"] = True
-    admin_user = await UserRepo.create_user(UserCreate(**user_data))
+    admin_user = await UserManager.create_user(UserCreate(**user_data))
     return admin_user

@@ -2,7 +2,7 @@ import pytest
 import uuid
 import random
 
-from fast_backend.app.crud.users import UserRepo
+from fast_backend.app.crud.users import UserManager
 from fast_backend.app.models.users import User
 from fast_backend.app.schemas.users import UserCreate, UserUpdate
 
@@ -10,15 +10,15 @@ from fast_backend.app.schemas.users import UserCreate, UserUpdate
 @pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db")
 @pytest.mark.asyncio
-class TestUserRepoCreate:
-    """Integration tests for UserRepo create operations."""
+class TestUserManagerCreate:
+    """Integration tests for UserManager create operations."""
 
     async def test_create_user_success(self, user_test_data):
         """Test successful user creation with valid data."""
         user_data = random.choice(user_test_data)
         user_create = UserCreate(**user_data)
 
-        result = await UserRepo.create_user(user_create)
+        result = await UserManager.create_user(user_create)
 
         assert result.username == user_data["username"]
         assert result.email == user_data["email"]
@@ -43,7 +43,7 @@ class TestUserRepoCreate:
         user_create = UserCreate(**user_data)
 
         # Create first user
-        await UserRepo.create_user(user_create)
+        await UserManager.create_user(user_create)
 
         # Attempt to create second user with same username should fail
         other_users = [
@@ -54,7 +54,7 @@ class TestUserRepoCreate:
         duplicate_create = UserCreate(**duplicate_data)
 
         with pytest.raises(IntegrityError):
-            await UserRepo.create_user(duplicate_create)
+            await UserManager.create_user(duplicate_create)
 
     async def test_create_user_duplicate_email_fails(self, user_test_data):
         """Test that creating a user with duplicate email fails."""
@@ -62,7 +62,7 @@ class TestUserRepoCreate:
         user_create = UserCreate(**user_data)
 
         # Create first user
-        await UserRepo.create_user(user_create)
+        await UserManager.create_user(user_create)
 
         # Attempt to create second user with same email should fail
         other_users = [
@@ -73,7 +73,7 @@ class TestUserRepoCreate:
         duplicate_create = UserCreate(**duplicate_data)
 
         with pytest.raises(IntegrityError):
-            await UserRepo.create_user(duplicate_create)
+            await UserManager.create_user(duplicate_create)
 
     async def test_create_user_password_is_hashed(self, user_test_data):
         """Test that user password is properly hashed during creation."""
@@ -81,7 +81,7 @@ class TestUserRepoCreate:
         original_password = user_data["password"]
         user_create = UserCreate(**user_data)
 
-        result = await UserRepo.create_user(user_create)
+        result = await UserManager.create_user(user_create)
 
         # Verify password was hashed by checking the user in database
         db_user = await User.get(id=result.id)
@@ -92,15 +92,15 @@ class TestUserRepoCreate:
 @pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db")
 @pytest.mark.asyncio
-class TestUserRepoRead:
-    """Integration tests for UserRepo read operations."""
+class TestUserManagerRead:
+    """Integration tests for UserManager read operations."""
 
     async def test_get_user_by_id_success(self, setup_users):
         """Test successful retrieval of user by ID."""
         created_user = random.choice(setup_users)
         user_id = created_user.id
 
-        result = await UserRepo.get_user(user_id)
+        result = await UserManager.get_user(user_id)
 
         assert result is not None
         assert result.id == user_id
@@ -110,14 +110,14 @@ class TestUserRepoRead:
     async def test_get_user_by_id_not_found(self, setup_users):
         """Test that getting non-existent user returns None."""
         non_existent_id = uuid.uuid4()
-        result = await UserRepo.get_user(non_existent_id)
+        result = await UserManager.get_user(non_existent_id)
         assert result is None
 
     async def test_get_user_by_email_success(self, setup_users):
         """Test successful retrieval of user by email."""
         user = random.choice(setup_users)
 
-        result = await UserRepo.get_user_by_email(user.email)
+        result = await UserManager.get_user_by_email(user.email)
 
         assert result is not None
         assert result.email == user.email
@@ -127,7 +127,7 @@ class TestUserRepoRead:
     async def test_get_user_by_email_not_found(self):
         """Test that getting user by non-existent email returns None."""
         email = "nonexistent@example.com"
-        result = await UserRepo.get_user_by_email(email)
+        result = await UserManager.get_user_by_email(email)
 
         assert result is None
 
@@ -135,7 +135,7 @@ class TestUserRepoRead:
         """Test successful retrieval of user by username."""
         user_data = random.choice(setup_users)
 
-        result = await UserRepo.get_user_by_username(user_data.username)
+        result = await UserManager.get_user_by_username(user_data.username)
 
         assert result is not None
         assert result.username == user_data.username
@@ -144,13 +144,13 @@ class TestUserRepoRead:
 
     async def test_get_user_by_username_not_found(self):
         """Test that getting user by non-existent username returns None."""
-        result = await UserRepo.get_user_by_username("nonexistent_user")
+        result = await UserManager.get_user_by_username("nonexistent_user")
 
         assert result is None
 
     async def test_get_all_users_returns_all(self, setup_users):
         """Test that get_all_users returns all created users."""
-        result = await UserRepo.get_all_users()
+        result = await UserManager.get_all_users()
 
         assert len(result) == len(setup_users)
         assert len(result) > 0
@@ -163,7 +163,7 @@ class TestUserRepoRead:
         # Clear all users
         await User.all().delete()
 
-        result = await UserRepo.get_all_users()
+        result = await UserManager.get_all_users()
 
         assert result == []
 
@@ -171,8 +171,8 @@ class TestUserRepoRead:
 @pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db", "single_user")
 @pytest.mark.asyncio
-class TestUserRepoUpdate:
-    """Integration tests for UserRepo update operations."""
+class TestUserManagerUpdate:
+    """Integration tests for UserManager update operations."""
 
     async def test_update_user_success(self, single_user):
         """Test successful user update."""
@@ -181,7 +181,7 @@ class TestUserRepoUpdate:
             name=single_user.name + " Updated", is_admin=admin_status
         )
 
-        result = await UserRepo.update_user(single_user.id, update_data)
+        result = await UserManager.update_user(single_user.id, update_data)
 
         assert result is not None
         assert result.id == single_user.id
@@ -201,7 +201,7 @@ class TestUserRepoUpdate:
         """Test partial user update with only one field."""
         update_data = UserUpdate(name="Only Name Changed")
 
-        result = await UserRepo.update_user(single_user.id, update_data)
+        result = await UserManager.update_user(single_user.id, update_data)
 
         assert result is not None
         assert result.name == "Only Name Changed"
@@ -214,7 +214,7 @@ class TestUserRepoUpdate:
         """Test update with no fields provided."""
         update_data = UserUpdate()
 
-        result = await UserRepo.update_user(single_user.id, update_data)
+        result = await UserManager.update_user(single_user.id, update_data)
 
         assert result is not None
         # All fields should remain unchanged
@@ -227,7 +227,7 @@ class TestUserRepoUpdate:
         non_existent_id = uuid.uuid4()
         update_data = UserUpdate(name="New Name")
 
-        result = await UserRepo.update_user(non_existent_id, update_data)
+        result = await UserManager.update_user(non_existent_id, update_data)
 
         assert result is None
 
@@ -235,17 +235,17 @@ class TestUserRepoUpdate:
 @pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db", "single_user")
 @pytest.mark.asyncio
-class TestUserRepoDelete:
-    """Integration tests for UserRepo delete operations."""
+class TestUserManagerDelete:
+    """Integration tests for UserManager delete operations."""
 
     async def test_delete_user_success(self, single_user):
         """Test successful user deletion."""
-        result = await UserRepo.delete_user(single_user.id)
+        result = await UserManager.delete_user(single_user.id)
 
         assert result is True
 
         # Verify user is actually deleted
-        deleted_user = await UserRepo.get_user(single_user.id)
+        deleted_user = await UserManager.get_user(single_user.id)
         assert deleted_user is None
 
         # Verify user no longer exists in database
@@ -256,7 +256,7 @@ class TestUserRepoDelete:
         """Test deleting non-existent user returns False."""
         non_existent_id = uuid.uuid4()
 
-        result = await UserRepo.delete_user(non_existent_id)
+        result = await UserManager.delete_user(non_existent_id)
 
         assert result is False
 
@@ -265,18 +265,18 @@ class TestUserRepoDelete:
 @pytest.mark.skip("special")
 @pytest.mark.usefixtures("init_db")
 @pytest.mark.asyncio
-class TestUserRepoAdminOperations:
-    """Integration tests for UserRepo admin-related operations."""
+class TestUserManagerAdminOperations:
+    """Integration tests for UserManager admin-related operations."""
 
     async def test_is_admin_true_for_admin_user(self, setup_admin):
         """Test is_admin returns True for admin users."""
-        result = await UserRepo.is_admin(setup_admin["admin_user"].id)
+        result = await UserManager.is_admin(setup_admin["admin_user"].id)
 
         assert result is True
 
     async def test_is_admin_false_for_regular_user(self, setup_admin):
         """Test is_admin returns False for regular users."""
-        result = await UserRepo.is_admin(setup_admin["regular_user"].id)
+        result = await UserManager.is_admin(setup_admin["regular_user"].id)
 
         assert result is False
 
@@ -284,19 +284,21 @@ class TestUserRepoAdminOperations:
         """Test is_admin returns False for non-existent users."""
         non_existent_id = uuid.uuid4()
 
-        result = await UserRepo.is_admin(non_existent_id)
+        result = await UserManager.is_admin(non_existent_id)
 
         assert result is False
 
     async def test_set_admin_status_to_true(self, setup_admin):
         """Test promoting regular user to admin."""
-        result = await UserRepo.set_admin_status(setup_admin["regular_user"].id, True)
+        result = await UserManager.set_admin_status(
+            setup_admin["regular_user"].id, True
+        )
 
         assert result is not None
         assert result.is_admin is True
 
         # Verify in database
-        is_admin = await UserRepo.is_admin(setup_admin["regular_user"].id)
+        is_admin = await UserManager.is_admin(setup_admin["regular_user"].id)
         assert is_admin is True
 
         # Verify directly in database model
@@ -307,19 +309,19 @@ class TestUserRepoAdminOperations:
 
     async def test_set_admin_status_to_false(self, setup_admin):
         """Test demoting admin user to regular."""
-        result = await UserRepo.set_admin_status(setup_admin["admin_user"].id, False)
+        result = await UserManager.set_admin_status(setup_admin["admin_user"].id, False)
 
         assert result is not None
         assert result.is_admin is False
 
         # Verify in database
-        is_admin = await UserRepo.is_admin(setup_admin["admin_user"].id)
+        is_admin = await UserManager.is_admin(setup_admin["admin_user"].id)
         assert is_admin is False
 
     async def test_set_admin_status_user_not_found(self):
         """Test setting admin status for non-existent user returns None."""
         non_existent_id = uuid.uuid4()
 
-        result = await UserRepo.set_admin_status(non_existent_id, True)
+        result = await UserManager.set_admin_status(non_existent_id, True)
 
         assert result is None

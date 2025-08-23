@@ -8,11 +8,18 @@ from fast_backend.app.schemas.decks import (
     DeckResponse,
 )
 
+from fast_backend.app.crud.base_manager import BaseManager
+
+class DeckManager(BaseManager[DeckModel, DeckCreate, DeckUpdate, DeckResponse]):
+    pass
+
+deck_manager = DeckManager(doc_model=DeckModel, response_schema=DeckResponse)
+
 
 # I think this can be refactored into a base class pattern.
-class DeckRepo:
+class OldDeckManager:
     @staticmethod
-    async def create_deck_record(deck_data: DeckCreate) -> DeckResponse:
+    async def create(deck_data: DeckCreate) -> DeckResponse:
         """
         Create a deck.
 
@@ -23,12 +30,12 @@ class DeckRepo:
             The created deck as a Pydantic schema instance.
         """
         deck_data_dict = deck_data.model_dump(exclude={"cards", "owner"})
-        deck_data_dict["owner"] = await DeckRepo.get_owner_in_db(deck_data)
+        deck_data_dict["owner"] = await DeckManager.get_owner_in_db(deck_data)
         deck_obj = await DeckModel.create(**deck_data_dict)
         return DeckResponse.model_validate(deck_obj)
 
     @staticmethod
-    async def get_deck(deck_id: int) -> Optional[DeckResponse]:
+    async def get(deck_id: int) -> Optional[DeckResponse]:
         """
         Get a deck by its ID.
 
@@ -47,7 +54,7 @@ class DeckRepo:
         return None
 
     @staticmethod
-    async def get_all_decks() -> list[DeckResponse]:
+    async def get_all() -> list[DeckResponse]:
         """
         Get all decks.
 
@@ -80,7 +87,7 @@ class DeckRepo:
         return owner
 
     @staticmethod
-    async def update_deck(
+    async def update(
         deck_id: int, deck_data: DeckUpdate
     ) -> Optional[DeckResponse]:
         """
@@ -107,7 +114,7 @@ class DeckRepo:
         return DeckResponse.model_validate(deck_in_db)
 
     @staticmethod
-    async def delete_deck(deck_id: int) -> bool:
+    async def delete(deck_id: int) -> bool:
         """
         Delete a deck.
 

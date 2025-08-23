@@ -4,6 +4,7 @@ from datetime import datetime
 from beanie.odm.fields import PydanticObjectId
 
 from .base import BaseSchema
+from .users import UserListItem
 
 class GameBase(BaseSchema):
     name: str
@@ -29,8 +30,8 @@ class GameListItem(GameBase):
     
 class GameResponse(GameListItem):
     description: Optional[str] = None
-    designers: Optional[list["UserListItem"]] = None
-    developers: Optional[list["UserListItem"]] = None
+    designers: Optional[list[UserListItem]] = None
+    developers: Optional[list[UserListItem]] = None
     publisher: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
