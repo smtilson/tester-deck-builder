@@ -41,3 +41,5 @@ class CardManager(BaseManager[CardModel, CardCreate, CardUpdate, CardResponse, C
         query = self.doc_model.find_all()
         cards = await query.fetch_link(self.doc_model.game).to_list()
         return [self.response_schema.model_validate(card) for card in cards]
+    
+card_manager = CardManager()

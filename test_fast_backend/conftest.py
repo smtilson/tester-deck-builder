@@ -9,7 +9,7 @@ from fastapi_users.db import BeanieUserDatabase
 from fast_backend.app.auth.manager import UserManager, get_user_manager
 from fast_backend.app.models.users import get_user_db
 from fast_backend.app.db.config_db import DOCUMENT_MODELS
-from .sample_data import *
+from .sample_data import all_test_data
 
 
 @pytest_asyncio.fixture

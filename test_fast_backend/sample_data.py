@@ -3,6 +3,7 @@ import uuid
 from typing import Any
 from datetime import datetime
 import random
+from beanie.odm.fields import PydanticObjectId
 
 
 @pytest.fixture
@@ -10,7 +11,7 @@ def user_test_data() -> list[dict[str, Any]]:
     """Create test user data for database creation."""
     return [
         {
-            "id": uuid.UUID("d4700669-9c60-41f8-b3f7-de64b4d6798f"),
+            "id": PydanticObjectId(),
             "username": "testuser1",
             "email": "test1@example.com",
             "password": "password123",
@@ -21,7 +22,7 @@ def user_test_data() -> list[dict[str, Any]]:
             "is_admin": False,
         },
         {
-            "id": uuid.UUID("2c9d71f6-f1ff-419e-8225-ead1b372306e"),
+            "id": PydanticObjectId(),
             "username": "admin_user",
             "email": "admin@example.com",
             "password": "adminpass123",
@@ -32,7 +33,7 @@ def user_test_data() -> list[dict[str, Any]]:
             "is_admin": True,
         },
         {
-            "id": uuid.UUID("9c536596-d0e6-4634-842b-ff035fefcd01"),
+            "id": PydanticObjectId(),
             "username": "inactive_user",
             "email": "inactive@example.com",
             "password": "password123",
