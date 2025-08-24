@@ -18,6 +18,7 @@ from fast_backend.app.schemas.games import GameListItem
 SECRET = os.getenv("SECRET", "your-secret-key")
 
 
+
 class UserManager(ObjectIDIDMixin, BaseUserManager[User, PydanticObjectId]):
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET
@@ -65,3 +66,4 @@ class UserManager(ObjectIDIDMixin, BaseUserManager[User, PydanticObjectId]):
 
 async def get_user_manager(user_db: BeanieUserDatabase = Depends(get_user_db)):
     yield UserManager(user_db)
+

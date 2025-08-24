@@ -13,11 +13,12 @@ class CardBase(BaseSchema):
 
 
 class CardCreate(CardBase):
-    game: Optional[GameListItem] = None
+    game_id: Optional[PydanticObjectId] = None
     text: Optional[str] = None
 
-class CardUpdate(CardCreate):
+class CardUpdate(CardBase):
     name: Optional[str] = None
+    text: Optional[str] = None
     version: Optional[str] = None
 
 class CardListItem(CardBase):

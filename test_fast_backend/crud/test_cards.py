@@ -3,7 +3,7 @@ import random
 from beanie.odm.fields import PydanticObjectId
 
 from fast_backend.app.core.exceptions import NotFoundException
-from fast_backend.app.crud.cards import card_manager as CardManager
+from fast_backend.app.crud.cards import card_manager
 from fast_backend.app.models.cards import Card
 from fast_backend.app.schemas.cards import CardCreate, CardUpdate
 
@@ -11,21 +11,25 @@ from fast_backend.app.schemas.cards import CardCreate, CardUpdate
 # Note: these tests are incomplete as they do not check for the presence of
 # all fields, that validation is done correctly, that nested objects are
 # presented correctly.
+
 #@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestCardManagerCreate:
-    """Integration tests for CardManager create operations."""
+    """Integration tests for card_manager. create operations."""
 
-    async def test_create_card_success(self, card_test_data):
+    async def test_create_card_success(self, all_test_data, single_game):
         """Test successful card creation with valid data."""
-        card_data = random.choice(card_test_data)
+        card_data = all_test_data.card
+        game = single_game
+        card_data["game_id"] = game.id
         card_create = CardCreate(**card_data)
 
-        result = await CardManager.create(card_create)
+        result = await card_manager.create(card_create)
 
         assert result.name == card_data["name"]
         assert result.text == card_data["text"]
+        assert result.game.id == game.id
         assert isinstance(result.id, PydanticObjectId)
         assert result.created_at is not None
         assert result.updated_at is None
@@ -40,7 +44,7 @@ class TestCardManagerCreate:
 
         card_create = CardCreate(name="Minimal Card")
 
-        result = await CardManager.create(card_create)
+        result = await card_manager.create(card_create)
 
         assert result.name == "Minimal Card"
         assert result.text is None
@@ -52,26 +56,26 @@ class TestCardManagerCreate:
         card1 = CardCreate(name="First Card", text="First card text")
         card2 = CardCreate(name="Second Card", text="Second card text")
 
-        result1 = await CardManager.create(card1)
-        result2 = await CardManager.create(card2)
+        result1 = await card_manager.create(card1)
+        result2 = await card_manager.create(card2)
 
         assert result1.id != result2.id
         assert result1.name == "First Card"
         assert result2.name == "Second Card"
 
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestCardManagerRead:
-    """Integration tests for CardManager read operations."""
+    """Integration tests for card_manager. read operations."""
 
     async def test_get_card_by_id_success(self, setup_cards):
         """Test successful retrieval of card by ID."""
 
         created_card = random.choice(setup_cards)
 
-        result = await CardManager.get(created_card.id)
+        result = await card_manager.get(created_card.id)
 
         assert result is not None
         assert result.id == created_card.id
@@ -83,14 +87,14 @@ class TestCardManagerRead:
 
         random_id = PydanticObjectId()
         with pytest.raises(NotFoundException) as e:
-            result = await CardManager.get(random_id)
+            result = await card_manager.get(random_id)
 
         assert str(random_id) in str(e.value)
 
     async def test_get_all_cards_returns_all(self, setup_cards):
         """Test that get_all_cards returns all created cards."""
 
-        result = await CardManager.get_all()
+        result = await card_manager.get_all()
 
         assert len(result) == len(setup_cards)
         card_names = [card.name for card in result]
@@ -103,12 +107,12 @@ class TestCardManagerRead:
 
         await Card.all().delete()
 
-        result = await CardManager.get_all()
+        result = await card_manager.get_all()
 
         assert result == []
 
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestCardManagerUpdate:
@@ -121,7 +125,7 @@ class TestCardManagerUpdate:
             text=single_card.text + " updated",
         )
 
-        result = await CardManager.update(single_card.id, update_data)
+        result = await card_manager.update(single_card.id, update_data)
 
         assert result is not None
         assert result.id == single_card.id
@@ -139,7 +143,7 @@ class TestCardManagerUpdate:
         """Test partial card update with only name field."""
         update_data = CardUpdate(name="Only Name Changed")
 
-        result = await CardManager.update(single_card.id, update_data)
+        result = await card_manager.update(single_card.id, update_data)
 
         assert result is not None
         assert result.name == "Only Name Changed"
@@ -151,7 +155,7 @@ class TestCardManagerUpdate:
         """Test partial card update with only text field."""
         update_data = CardUpdate(text="Only text changed")
 
-        result = await CardManager.update(single_card.id, update_data)
+        result = await card_manager.update(single_card.id, update_data)
 
         assert result is not None
         assert result.text == "Only text changed"
@@ -163,7 +167,7 @@ class TestCardManagerUpdate:
         """Test updating card text to null."""
         update_data = CardUpdate(text=None)
 
-        result = await CardManager.update(single_card.id, update_data)
+        result = await card_manager.update(single_card.id, update_data)
 
         assert result is not None
         assert result.text is None
@@ -174,7 +178,7 @@ class TestCardManagerUpdate:
         """Test update with no fields provided."""
         update_data = CardUpdate()
 
-        result = await CardManager.update(single_card.id, update_data)
+        result = await card_manager.update(single_card.id, update_data)
 
         assert result is not None
         # All fields should remain unchanged
@@ -188,12 +192,12 @@ class TestCardManagerUpdate:
         update_data = CardUpdate(name="New Name")
 
         with pytest.raises(NotFoundException) as e:
-            result = await CardManager.update(random_id, update_data)
+            result = await card_manager.update(random_id, update_data)
 
         assert str(random_id) in str(e.value)
 
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestCardManagerDelete:
@@ -202,14 +206,14 @@ class TestCardManagerDelete:
     async def test_delete_card_success(self):
         """Test successful card deletion."""
         print("success test begun")
-        card = await CardManager.create(CardCreate(name="Test Card", text="Test Text"))
+        card = await card_manager.create(CardCreate(name="Test Card", text="Test Text"))
         id = card.id
-        result = await CardManager.delete(id)
+        result = await card_manager.delete(id)
         assert result is True
 
         # Verify card is actually deleted
         with pytest.raises(NotFoundException) as e:
-            await CardManager.get(id)
+            await card_manager.get(id)
         assert str(id) in str(e.value)
 
         # Verify card no longer exists in database
@@ -220,19 +224,19 @@ class TestCardManagerDelete:
         """Test deleting non-existent card returns False."""
         random_id = PydanticObjectId()
         with pytest.raises(NotFoundException) as e:
-            await CardManager.delete(random_id)
+            await card_manager.delete(random_id)
         assert str(random_id) in str(e)
 
     async def test_delete_card_multiple_times(self, single_card):
         """Test deleting same card multiple times."""
         # First deletion should succeed
         id = single_card.id
-        result1 = await CardManager.delete(id)
+        result1 = await card_manager.delete(id)
         assert result1 is True
 
         # Second deletion should fail
         with pytest.raises(NotFoundException) as e:
-            await CardManager.delete(id)
+            await card_manager.delete(id)
         assert str(id) in str(e.value)
 
 
@@ -247,7 +251,7 @@ class TestCardManagerEdgeCases:
         long_name = "A" * 255  # Maximum length according to model
         card_create = CardCreate(name=long_name, text="Test text")
 
-        result = await CardManager.create(card_create)
+        result = await card_manager.create(card_create)
 
         assert result.name == long_name
         assert len(result.name) == 255
@@ -257,7 +261,7 @@ class TestCardManagerEdgeCases:
         long_text = "This is a very long text. " * 100  # Very long text
         card_create = CardCreate(name="Long Text Card", text=long_text)
 
-        result = await CardManager.create(card_create)
+        result = await card_manager.create(card_create)
 
         assert result.text == long_text
         assert result.name == "Long Text Card"
@@ -266,7 +270,7 @@ class TestCardManagerEdgeCases:
         """Test creating card with empty string as text."""
         card_create = CardCreate(name="Empty Text Card", text="")
 
-        result = await CardManager.create(card_create)
+        result = await card_manager.create(card_create)
 
         assert result.text == ""
         assert result.name == "Empty Text Card"
@@ -276,17 +280,17 @@ class TestCardManagerEdgeCases:
         non_existent_id = 99999
         update_data = CardUpdate(name="Test Name")
 
-        result1 = await CardManager.update(non_existent_id, update_data)
-        result2 = await CardManager.update(non_existent_id, update_data)
+        result1 = await card_manager.update(non_existent_id, update_data)
+        result2 = await card_manager.update(non_existent_id, update_data)
 
         assert result1 is None
         assert result2 is None
 
     async def test_card_id_autoincrement(self):
         """Test that card IDs are properly auto-incremented."""
-        card1 = await CardManager.create(CardCreate(name="Card 1"))
-        card2 = await CardManager.create(CardCreate(name="Card 2"))
-        card3 = await CardManager.create(CardCreate(name="Card 3"))
+        card1 = await card_manager.create(CardCreate(name="Card 1"))
+        card2 = await card_manager.create(CardCreate(name="Card 2"))
+        card3 = await card_manager.create(CardCreate(name="Card 3"))
 
         # IDs should be different and in ascending order
         assert card1.id != card2.id != card3.id

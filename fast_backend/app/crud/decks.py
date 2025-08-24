@@ -6,15 +6,16 @@ from fast_backend.app.schemas.decks import (
     DeckCreate,
     DeckUpdate,
     DeckResponse,
+    DeckListItem
 )
 
 from fast_backend.app.crud.base_manager import BaseManager
 
-class DeckManager(BaseManager[DeckModel, DeckCreate, DeckUpdate, DeckResponse]):
-    pass
+class DeckManager(BaseManager[DeckModel, DeckCreate, DeckUpdate, DeckResponse, DeckListItem]):
+    def __init__(self):
+        super().__init__(doc_model=DeckModel, response_schema=DeckResponse, list_item_schema=DeckListItem)
 
-deck_manager = DeckManager(doc_model=DeckModel, response_schema=DeckResponse)
-
+deck_manager = DeckManager()
 
 # I think this can be refactored into a base class pattern.
 class OldDeckManager:

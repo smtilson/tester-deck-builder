@@ -14,14 +14,29 @@ DocType = TypeVar("DocType", bound=Document)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 ResponseSchemaType = TypeVar("ResponseSchemaType", bound=BaseModel)
+ListItemSchemaType = TypeVar("ListItemSchemaType", bound=BaseModel)
 
 
 
-class BaseManager(Generic[DocType, CreateSchemaType, UpdateSchemaType, ResponseSchemaType]):
-    def __init__(self, doc_model: Type[DocType], response_schema: Type[ResponseSchemaType]):
+class BaseManager(Generic[DocType, CreateSchemaType, UpdateSchemaType, ResponseSchemaType, ListItemSchemaType]):
+    def __init__(self, doc_model: Type[DocType], response_schema: Type[ResponseSchemaType], list_item_schema: Type[ListItemSchemaType]):
         self.doc_model = doc_model
         self.response_schema = response_schema
+        self.list_item_schema = list_item_schema
 
+    async def create_from_dict(self, item_data: dict) -> DocType:
+        """
+            Create an item from a dictionary.
+        Args:
+            item_data: The item data from the request
+
+        Returns:
+            The created item as a Pydantic schema instance.
+        """
+        db_obj = self.doc_model(**item_data)
+        await db_obj.insert()
+        return db_obj
+    
     async def create(self, item_in: CreateSchemaType) -> ResponseSchemaType:
         """
             Create an item.
@@ -31,8 +46,7 @@ class BaseManager(Generic[DocType, CreateSchemaType, UpdateSchemaType, ResponseS
         Returns:
             The created item as a Pydantic schema instance.
         """
-        db_obj = self.doc_model(**item_in.model_dump())
-        await db_obj.insert()
+        db_obj = await self.create_from_dict(item_in.model_dump())
         return self.response_schema.model_validate(db_obj)
 
     async def get_model(self, item_id: PydanticObjectId) -> DocType:
@@ -49,6 +63,19 @@ class BaseManager(Generic[DocType, CreateSchemaType, UpdateSchemaType, ResponseS
         if not item:
             raise NotFoundException(f"No {self.doc_model.__name__} with ID {item_id} was found.")
         return item
+
+    async def get_list_item(self, item_id: PydanticObjectId) -> Optional[ListItemSchemaType]:
+        """
+        Get a list item by its ID.
+
+        Args:
+            item_id: The ID of the item to retrieve.
+
+        Returns:
+            The item as a Pydantic schema, or None if it doesn't exist.
+        """
+        item = await self.get_model(item_id)
+        return self.list_item_schema.model_validate(item)
 
     async def get(self, item_id: PydanticObjectId) -> Optional[ResponseSchemaType]:
         """

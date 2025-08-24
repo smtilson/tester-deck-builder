@@ -5,10 +5,14 @@ from fast_backend.app.schemas.deck_cards import (
     DeckCardCreate,
     DeckCardUpdate,
     DeckCardResponse,
+    DeckCardListItem,
 )
 from fast_backend.app.crud.base_manager import BaseManager
 
-class DeckCardManager(BaseManager[DeckCardModel, DeckCardCreate, DeckCardUpdate, DeckCardResponse]):
+class DeckCardManager(BaseManager[DeckCardModel, DeckCardCreate, DeckCardUpdate, DeckCardResponse, DeckCardListItem]):
+    def __init__(self):
+        super().__init__(doc_model=DeckCardModel, response_schema=DeckCardResponse, list_item_schema=DeckCardListItem)
+
     @staticmethod
     async def add_card_to_deck(deck_id: int, card_data: DeckCardCreate):
         """
@@ -93,4 +97,4 @@ class DeckCardManager(BaseManager[DeckCardModel, DeckCardCreate, DeckCardUpdate,
             return True
         return False
 
-deck_card_manager = DeckCardManager(DeckCardModel, DeckCardResponse)
+deck_card_manager = DeckCardManager()
