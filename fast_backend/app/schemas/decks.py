@@ -11,13 +11,14 @@ from .base import BaseSchema
 
 class DeckBase(BaseSchema):
     name: str
-    version: str = "0.0.0"
+    # maybe this should just be set to 1.0 or something in the create method of the manager.
+    # it is already set in the base schema
+    # version: str = "0.0.0"
 
 class DeckCreate(DeckBase):
     owner_id: PydanticObjectId
     game_id: PydanticObjectId
     description: Optional[str] = None
-    is_public: bool = Field(default=False)
     
 
 

@@ -4,14 +4,19 @@ import pytest_asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 from fastapi_users.db import BeanieUserDatabase
+from typing import AsyncGenerator
 
 # import the models you want available in tests
 from fast_backend.app.auth.manager import UserManager, get_user_manager
 from fast_backend.app.models.users import get_user_db
 from fast_backend.app.db.config_db import DOCUMENT_MODELS
-from .sample_data import all_test_data
+from fast_backend.app.crud.cards import CardManager
+from fast_backend.app.crud.decks import DeckManager
+from fast_backend.app.crud.deck_cards import DeckCardManager
+from fast_backend.app.crud.games import GameManager
+from .sample_data import *
 
-
+# --- Database Fixtures ---
 @pytest_asyncio.fixture
 async def init_db():
     """
@@ -60,10 +65,25 @@ async def user_db(init_db) -> BeanieUserDatabase:
     await db_generator.aclose()
     
     
-
+# --- Manager Fixtures ---
+@pytest_asyncio.fixture(scope="function")
+async def game_manager(init_db) -> GameManager:
+    return GameManager()
+    
+@pytest_asyncio.fixture(scope="function")
+async def card_manager(init_db) -> CardManager:
+    return CardManager()
 
 @pytest_asyncio.fixture(scope="function")
-async def user_manager(user_db: BeanieUserDatabase) -> UserManager:
+async def deck_manager(init_db) -> DeckManager:
+    return DeckManager()
+
+@pytest_asyncio.fixture(scope="function")
+async def deck_card_manager(init_db) -> DeckCardManager:
+    return DeckCardManager()
+
+@pytest_asyncio.fixture(scope="function")
+async def user_manager(user_db: BeanieUserDatabase) -> AsyncGenerator[UserManager]:
     """Fixture to get the UserManager instance."""
     # Replicate the logic of get_user_manager: yield UserManager(user_db)
     manager_generator = get_user_manager(user_db=user_db)

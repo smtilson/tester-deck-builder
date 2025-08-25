@@ -1,10 +1,7 @@
 import pytest_asyncio
 import random
 
-from fast_backend.app.crud.cards import card_manager
-from fast_backend.app.crud.decks import deck_manager
-from fast_backend.app.crud.deck_cards import deck_card_manager
-from fast_backend.app.crud.games import game_manager
+
 # user_manager is a fixture
 from fast_backend.app.schemas.cards import CardCreate
 from fast_backend.app.schemas.decks import DeckCreate
@@ -17,13 +14,13 @@ async def _create_single_item(manager, create_schema, item_data):
     created_item = await manager.create(item_create)
     return created_item
 
-async def _create_many_items(manager, create_schema, items_data):
+async def _create_many_items(_single_item, num_items):
     created_items = []
-    for item_data in items_data:
-        item_create = create_schema(**item_data)
-        created_item = await manager.create(item_create)
+    for _ in range(num_items):
+        created_item = await _single_item
         created_items.append(created_item)
     return created_items
+
 
 # --- Single Item Fixtures ---
 @pytest_asyncio.fixture(scope="function")
@@ -44,23 +41,23 @@ async def single_game(init_db, all_test_data, game_manager, single_user):
     return await _create_single_item(game_manager, GameCreate, game_data)
 
 @pytest_asyncio.fixture(scope="function")
-async def single_card(init_db, all_test_data, single_game):
+async def single_card(init_db, all_test_data, single_game, card_manager):
     """Create a test card for update operations."""
     card_data = all_test_data.card
     card_data["game_id"] = single_game.id
     return await _create_single_item(card_manager, CardCreate, card_data)
 
 @pytest_asyncio.fixture(scope="function")
-async def single_deck_no_cards(init_db, all_test_data, single_game, single_user):
+async def single_deck_no_cards(init_db, all_test_data, single_game, single_user, deck_manager):
     deck_data = all_test_data.deck
     deck_data["owner_id"] = single_user.id
     deck_data["game_id"] = single_game.id
     return await _create_single_item(deck_manager, DeckCreate, deck_data)
 
 @pytest_asyncio.fixture(scope="function")
-async def setup_users(init_db, all_test_data, user_manager):
+async def setup_users(init_db, single_user, all_test_data):
     """Create test users for read operations."""
-    return await _create_many_items(user_manager, UserCreate, all_test_data.user_data)
+    return await _create_many_items(single_user, len(all_test_data.user_data))
 
 
 @pytest_asyncio.fixture(scope="function")

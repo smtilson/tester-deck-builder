@@ -15,7 +15,7 @@ class DeckManager(BaseManager[DeckModel, DeckCreate, DeckUpdate, DeckResponse, D
     def __init__(self):
         super().__init__(doc_model=DeckModel, response_schema=DeckResponse, list_item_schema=DeckListItem)
 
-deck_manager = DeckManager()
+
 
 # I think this can be refactored into a base class pattern.
 class OldDeckManager:

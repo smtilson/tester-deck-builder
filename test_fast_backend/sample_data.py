@@ -11,37 +11,22 @@ def user_test_data() -> list[dict[str, Any]]:
     """Create test user data for database creation."""
     return [
         {
-            "id": PydanticObjectId(),
             "username": "testuser1",
             "email": "test1@example.com",
             "password": "password123",
-            "name": "Test User One",
-            "is_active": True,
-            "is_superuser": False,
-            "is_verified": True,
-            "is_admin": False,
+            "confirm_password":"password123",
         },
         {
-            "id": PydanticObjectId(),
             "username": "admin_user",
             "email": "admin@example.com",
             "password": "adminpass123",
-            "name": "Admin User",
-            "is_active": True,
-            "is_superuser": True,
-            "is_verified": True,
-            "is_admin": True,
+            "confirm_password": "adminpass123",
         },
         {
-            "id": PydanticObjectId(),
             "username": "inactive_user",
             "email": "inactive@example.com",
             "password": "password123",
-            "name": "Inactive User",
-            "is_active": False,
-            "is_superuser": False,
-            "is_verified": False,
-            "is_admin": False,
+            "confirm_password": "password123",
         },
     ]
 
@@ -70,30 +55,21 @@ def card_test_data() -> list[dict[str, Any]]:
 
 
 @pytest.fixture
-def deck_test_data(user_test_data) -> list[dict[str, Any]]:
+def deck_test_data() -> list[dict[str, Any]]:
     """Create test deck data for database creation."""
     # Use the first user as the default owner
-    default_owner_id = user_test_data[0]["id"]
-    admin_owner_id = user_test_data[1]["id"]
-
     return [
         {
             "name": "Red Burn Deck",
             "description": "A fast aggressive red deck focused on dealing damage quickly.",
-            "is_valid": True,
-            "owner_id": default_owner_id,
         },
         {
             "name": "Blue Control",
             "description": "A control deck that counters spells and draws cards.",
-            "is_valid": True,
-            "owner_id": admin_owner_id,
         },
         {
             "name": "Work in Progress",
             "description": "An incomplete deck still being built.",
-            "is_valid": False,
-            "owner_id": default_owner_id,
         },
     ]
 
@@ -135,6 +111,7 @@ def deck_card_test_data(card_test_data, deck_test_data) -> list[dict[str, Any]]:
     ]
 
 '''
+
 @pytest.fixture
 def game_test_data() -> list[dict[str, Any]]:
     """Create test game data for database creation based on Game model."""
@@ -175,13 +152,15 @@ def all_test_data(user_test_data, card_test_data, deck_test_data, game_test_data
         def __init__(self, already_picked=None):
             self.user_data = user_test_data
             self.card_data = card_test_data
-            self.deck_data = deck_test_data
             #self.deck_card_data = deck_card_test_data
             self.game_data = game_test_data
+            self.deck_data = deck_test_data
+            # I don't think I need the id business
+            #self.default_user_id = deck_test_data[0]["owner_id"]
             if already_picked is None:
                 self.already_picked = {"users":set(),"cards":set(),"decks":set(),"deck_cards":set(),"games":set()}
             else:
-                self.already_picked = already_picked
+                self.already_picked = already_picked            
         
         def _get_by_key(self, data_list, key, value) -> dict[str, Any]:
             """Generic method to get an item by key from a list of dicts."""

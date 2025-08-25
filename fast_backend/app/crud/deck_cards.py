@@ -97,4 +97,3 @@ class DeckCardManager(BaseManager[DeckCardModel, DeckCardCreate, DeckCardUpdate,
             return True
         return False
 
-deck_card_manager = DeckCardManager()

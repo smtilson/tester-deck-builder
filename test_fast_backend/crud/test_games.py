@@ -3,7 +3,6 @@ import random
 from beanie.odm.fields import PydanticObjectId
 
 from fast_backend.app.core.exceptions import NotFoundException
-from fast_backend.app.crud.games import game_manager
 from fast_backend.app.models.games import Game
 from fast_backend.app.schemas.games import GameCreate, GameUpdate
 
@@ -14,7 +13,7 @@ from fast_backend.app.schemas.games import GameCreate, GameUpdate
 class TestGameManagerCreate:
     """Integration tests for GameManager create operations."""
 
-    async def test_create_game_success(self, all_test_data, single_user):
+    async def test_create_game_success(self, game_manager, all_test_data, single_user):
         game_data = all_test_data.game
         
         designer_ids = [single_user.id for _ in range(3)]
@@ -62,7 +61,7 @@ class TestGameManagerCreate:
 class TestGameManagerRead:
     """Integration tests for GameManager read operations."""
 
-    async def test_get_game_by_id_success(self, setup_games):
+    async def test_get_game_by_id_success(self, game_manager, setup_games):
         created_game = random.choice(setup_games)
 
         result = await game_manager.get(created_game.id)
@@ -72,13 +71,13 @@ class TestGameManagerRead:
         assert result.name == created_game.name
         assert result.version == created_game.version
 
-    async def test_get_game_by_id_not_found(self, setup_games):
+    async def test_get_game_by_id_not_found(self, game_manager, setup_games):
         random_id = PydanticObjectId()
         with pytest.raises(NotFoundException) as e:
             await game_manager.get(random_id)
         assert str(random_id) in str(e.value)
 
-    async def test_get_all_games_returns_all(self, setup_games):
+    async def test_get_all_games_returns_all(self, game_manager, setup_games):
         result = await game_manager.get_all()
 
         assert len(result) == len(setup_games)
@@ -98,7 +97,7 @@ class TestGameManagerRead:
 class TestGameManagerUpdate:
     """Integration tests for GameManager update operations."""
 
-    async def test_update_game_success(self, single_game):
+    async def test_update_game_success(self, game_manager, single_game):
         update_data = GameUpdate(
             name=single_game.name + " updated",
             version="9.9.9",
@@ -116,7 +115,7 @@ class TestGameManagerUpdate:
         assert db_game.name == single_game.name + " updated"
         assert db_game.version == "9.9.9"
 
-    async def test_update_game_partial_update_name_only(self, single_game):
+    async def test_update_game_partial_update_name_only(self, game_manager, single_game):
         update_data = GameUpdate(name="Only Name Changed")
 
         result = await game_manager.update(single_game.id, update_data)
@@ -126,7 +125,7 @@ class TestGameManagerUpdate:
         assert result.version == single_game.version
         assert result.id == single_game.id
 
-    async def test_update_game_partial_update_version_only(self, single_game):
+    async def test_update_game_partial_update_version_only(self, game_manager, single_game):
         update_data = GameUpdate(version="Only Version Changed")
 
         result = await game_manager.update(single_game.id, update_data)
@@ -136,7 +135,7 @@ class TestGameManagerUpdate:
         assert result.name == single_game.name
         assert result.id == single_game.id
 
-    async def test_update_game_empty_update(self, single_game):
+    async def test_update_game_empty_update(self, game_manager, single_game):
         update_data = GameUpdate()
 
         result = await game_manager.update(single_game.id, update_data)
@@ -182,7 +181,7 @@ class TestGameManagerDelete:
             await game_manager.delete(random_id)
         assert str(random_id) in str(e.value)
 
-    async def test_delete_game_multiple_times(self, single_game):
+    async def test_delete_game_multiple_times(self, game_manager, single_game):
         id = single_game.id
         result1 = await game_manager.delete(id)
         assert result1 is True

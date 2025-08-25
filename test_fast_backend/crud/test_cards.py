@@ -3,7 +3,6 @@ import random
 from beanie.odm.fields import PydanticObjectId
 
 from fast_backend.app.core.exceptions import NotFoundException
-from fast_backend.app.crud.cards import card_manager
 from fast_backend.app.models.cards import Card
 from fast_backend.app.schemas.cards import CardCreate, CardUpdate
 
@@ -18,7 +17,7 @@ from fast_backend.app.schemas.cards import CardCreate, CardUpdate
 class TestCardManagerCreate:
     """Integration tests for card_manager. create operations."""
 
-    async def test_create_card_success(self, all_test_data, single_game):
+    async def test_create_card_success(self, card_manager, all_test_data, single_game):
         """Test successful card creation with valid data."""
         card_data = all_test_data.card
         game = single_game
@@ -39,7 +38,7 @@ class TestCardManagerCreate:
         assert db_card.name == card_data["name"]
         assert db_card.text == card_data["text"]
 
-    async def test_create_card_minimal_data(self):
+    async def test_create_card_minimal_data(self, card_manager):
         """Test creating card with only required fields."""
 
         card_create = CardCreate(name="Minimal Card")
@@ -50,7 +49,7 @@ class TestCardManagerCreate:
         assert result.text is None
         assert isinstance(result.id, PydanticObjectId)
 
-    async def test_create_multiple_cards_different_names(self):
+    async def test_create_multiple_cards_different_names(self, card_manager):
         """Test creating multiple cards with different names succeeds."""
 
         card1 = CardCreate(name="First Card", text="First card text")
@@ -70,7 +69,7 @@ class TestCardManagerCreate:
 class TestCardManagerRead:
     """Integration tests for card_manager. read operations."""
 
-    async def test_get_card_by_id_success(self, setup_cards):
+    async def test_get_card_by_id_success(self, card_manager, setup_cards):
         """Test successful retrieval of card by ID."""
 
         created_card = random.choice(setup_cards)
@@ -82,7 +81,7 @@ class TestCardManagerRead:
         assert result.name == created_card.name
         assert result.text == created_card.text
 
-    async def test_get_card_by_id_not_found(self, setup_cards):
+    async def test_get_card_by_id_not_found(self, card_manager, setup_cards):
         """Test that getting non-existent card returns None."""
 
         random_id = PydanticObjectId()
@@ -91,7 +90,7 @@ class TestCardManagerRead:
 
         assert str(random_id) in str(e.value)
 
-    async def test_get_all_cards_returns_all(self, setup_cards):
+    async def test_get_all_cards_returns_all(self, card_manager, setup_cards):
         """Test that get_all_cards returns all created cards."""
 
         result = await card_manager.get_all()
@@ -118,7 +117,7 @@ class TestCardManagerRead:
 class TestCardManagerUpdate:
     """Integration tests for CardManager update operations."""
 
-    async def test_update_card_success(self, single_card):
+    async def test_update_card_success(self, card_manager, single_card):
         """Test successful card update."""
         update_data = CardUpdate(
             name=single_card.name + " updated",
@@ -139,7 +138,7 @@ class TestCardManagerUpdate:
         assert db_card.name == single_card.name + " updated"
         assert db_card.text == single_card.text + " updated"
 
-    async def test_update_card_partial_update_name_only(self, single_card):
+    async def test_update_card_partial_update_name_only(self, card_manager, single_card):
         """Test partial card update with only name field."""
         update_data = CardUpdate(name="Only Name Changed")
 
@@ -151,7 +150,7 @@ class TestCardManagerUpdate:
         assert result.text == single_card.text
         assert result.id == single_card.id
 
-    async def test_update_card_partial_update_text_only(self, single_card):
+    async def test_update_card_partial_update_text_only(self, card_manager, single_card):
         """Test partial card update with only text field."""
         update_data = CardUpdate(text="Only text changed")
 
@@ -163,7 +162,7 @@ class TestCardManagerUpdate:
         assert result.name == single_card.name
         assert result.id == single_card.id
 
-    async def test_update_card_set_text_to_null(self, single_card):
+    async def test_update_card_set_text_to_null(self, card_manager, single_card):
         """Test updating card text to null."""
         update_data = CardUpdate(text=None)
 
@@ -174,7 +173,7 @@ class TestCardManagerUpdate:
         assert result.name == single_card.name
         assert result.id == single_card.id
 
-    async def test_update_card_empty_update(self, single_card):
+    async def test_update_card_empty_update(self, card_manager, single_card):
         """Test update with no fields provided."""
         update_data = CardUpdate()
 
@@ -227,7 +226,7 @@ class TestCardManagerDelete:
             await card_manager.delete(random_id)
         assert str(random_id) in str(e)
 
-    async def test_delete_card_multiple_times(self, single_card):
+    async def test_delete_card_multiple_times(self, card_manager, single_card):
         """Test deleting same card multiple times."""
         # First deletion should succeed
         id = single_card.id

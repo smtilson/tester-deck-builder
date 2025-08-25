@@ -36,6 +36,3 @@ class GameManager(BaseManager[GameModel, GameCreate, GameUpdate, GameResponse, G
         if game_obj.id:
             return await self.get(game_obj.id)
         return None
-
-
-game_manager = GameManager()
