@@ -7,7 +7,7 @@ from fast_backend.app.core.exceptions import NotFoundException
 from fast_backend.app.models import Card
 from fast_backend.app.schemas import CardCreate, CardUpdate, CardResponse
 
-@pytest.mark.skip("standard")
+#@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestCardManagerCreate:
@@ -57,7 +57,7 @@ class TestCardManagerCreate:
         assert result1.text == card1_data["text"]
         assert result2.text == card2_data["text"]
 
-@pytest.mark.skip("standard")
+#@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestCardManagerRead:
@@ -106,7 +106,7 @@ class TestCardManagerRead:
         result = await card_manager.get_all()
         assert result == []
 
-@pytest.mark.skip("standard")
+#@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestCardManagerUpdate:
@@ -189,7 +189,7 @@ class TestCardManagerUpdate:
             await card_manager.update(random_id, update_data)
         assert str(random_id) in str(e.value)
 
-@pytest.mark.skip("standard")
+#@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestCardManagerDelete:

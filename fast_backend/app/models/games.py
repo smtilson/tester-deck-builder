@@ -13,8 +13,8 @@ class Game(BaseDocument):
     version: str = "0.0.0"
     description: Optional[str] = None
     designers: Sequence[Link[User]] = Field(default_factory=list)
-    publisher: Optional[str] = None
     developers: Sequence[Link[User]] = Field(default_factory=list)
+    publisher: Optional[str] = None
     release_date: Optional[datetime] = None
 
     class Settings(BaseDocument.Settings):

@@ -29,6 +29,7 @@ class UserLogin(UserBase):
 
 
 class UserUpdate(UserBase):
+    id: PydanticObjectId
     username: Optional[str] = None
     name: Optional[str] = None
     email: Optional[str] = None
@@ -39,6 +40,7 @@ class UserUpdate(UserBase):
 class UserResponse(UserBase):
     id: PydanticObjectId
     is_staff: bool = False
+    name: Optional[str] = None
     playtesting: list["GameListItem"] = Field(default_factory=list)
     designing: list["GameListItem"] = Field(default_factory=list)
     developing: list["GameListItem"] = Field(default_factory=list)

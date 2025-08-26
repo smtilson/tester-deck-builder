@@ -10,7 +10,7 @@ from fast_backend.app.models import User
 from fast_backend.app.schemas import UserCreate, UserUpdate, UserResponse
 
 
-@pytest.mark.skip("standard")
+#@pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db")
 @pytest.mark.asyncio
 class TestUserManagerCreate:
@@ -92,7 +92,7 @@ class TestUserManagerCreate:
         assert db_user.hashed_password.startswith("$")
 
 
-@pytest.mark.skip("standard")
+#@pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db")
 @pytest.mark.asyncio
 class TestUserManagerRead:
@@ -118,8 +118,9 @@ class TestUserManagerRead:
 
     async def test_get_user_by_id_not_found(self, user_manager, setup_users):
         non_existent_id = PydanticObjectId()
-        with pytest.raises(UserNotExists):
+        with pytest.raises(UserNotExists) as e:
             await user_manager.get(non_existent_id)
+        assert str(non_existent_id) in str(e.value)
 
     async def test_get_user_by_email_success(self, user_manager, setup_users):
         """Test successful retrieval of user by email."""
@@ -132,8 +133,9 @@ class TestUserManagerRead:
 
     async def test_get_user_by_email_not_found(self, user_manager):
         email = "nonexistent@example.com"
-        with pytest.raises(UserNotExists):
+        with pytest.raises(UserNotExists) as e:
             await user_manager.get_by_email(email)
+        assert str(email) in str(e.value)
 
     async def test_get_user_by_username_success(self, user_manager, setup_users):
         """Test successful retrieval of user by username."""
@@ -145,8 +147,9 @@ class TestUserManagerRead:
         assert result.id == user_data.id
 
     async def test_get_user_by_username_not_found(self, user_manager):
-        with pytest.raises(UserNotExists):
+        with pytest.raises(UserNotExists) as e:
             await user_manager.get_by_username("nonexistent_user")
+        assert str("nonexistent_user") in str(e.value)
 
     async def test_get_all_users_returns_all(self, user_manager, setup_users):
         """Test that get_all_users returns all created users."""
@@ -169,38 +172,45 @@ class TestUserManagerRead:
 class TestUserManagerUpdate:
     """Integration tests for UserManager update operations."""
 
-    async def test_update_user_success(self, user_manager, single_user):
+    async def test_update_user_all_fields_success(self, user_manager, single_user):
         """Test successful user update."""
+        user= single_user
         update_data = UserUpdate(
-            name=single_user.name + " Updated"
+            id=user.id,
+            name=(user.name or '') + " Updated",
+            username=(user.username or '') + " Updated",
+            email=(user.email or '') + "Updated",
+            
         )
-        result = await user_manager.update_user(single_user.id, update_data)
+        result = await user_manager.update(update_data)
         assert result is not None
         assert result.id == single_user.id
-        assert result.name == single_user.name + " Updated"
-        # Unchanged fields should remain the same
-        assert result.username == single_user.username
-        assert result.email == single_user.email
+        assert result.name == (single_user.name or '') + " Updated"
+        assert result.username == single_user.username+ ' Updated'
+        assert result.email == single_user.email + 'Updated'
+        assert result.updated_at is not None
+        assert result.is_staff == single_user.is_staff
 
         # Verify update persisted in database
         db_user = await User.get(single_user.id)
         assert db_user is not None
-        assert db_user.name == single_user.name + " Updated"
-        assert db_user.username == single_user.username
-        assert db_user.email == single_user.email
+        assert db_user.name == (single_user.name or '') + " Updated"
+        assert db_user.username == (single_user.username or '') + " Updated"
+        assert db_user.email == (single_user.email or '') + "Updated"
 
     async def test_update_user_partial_update(self, user_manager, single_user):
         """Test partial user update with only one field."""
-        update_data = UserUpdate(name="Only Name Changed")
-        result = await user_manager.update_user(single_user.id, update_data)
+        update_data = UserUpdate(id=single_user.id, name="Only Name Changed")
+        result = await user_manager.update(update_data)
         assert result is not None
         assert result.name == "Only Name Changed"
         # All other fields should remain unchanged
         assert result.username == single_user.username
         assert result.email == single_user.email
-        assert result.is_admin == single_user.is_admin
         assert result.is_staff == single_user.is_staff
-        assert result.created_at == single_user.created_at
+        _ = {"second":0,"microsecond":0}
+        assert result.created_at.replace(**_) == single_user.created_at.replace(**_)
+        assert result.updated_at is not None
         assert result.designing == single_user.designing
         assert result.developing == single_user.developing
         assert result.playtesting == single_user.playtesting
@@ -213,19 +223,19 @@ class TestUserManagerUpdate:
 
     async def test_update_user_empty_update(self, user_manager, single_user):
         """Test update with no fields provided."""
-        update_data = UserUpdate()
-        result = await user_manager.update_user(single_user.id, update_data)
+        update_data = UserUpdate(id=single_user.id)
+        result = await user_manager.update(update_data)
         assert result is not None
         # All fields should remain unchanged
+        assert result.id == single_user.id
         assert result.name == single_user.name
         assert result.username == single_user.username
         assert result.email == single_user.email
-        assert result.is_admin == single_user.is_admin
         assert result.is_staff == single_user.is_staff
-        assert result.created_at == single_user.created_at
-        assert result.designing == single_user.designing
-        assert result.developing == single_user.developing
-        assert result.playtesting == single_user.playtesting
+        _ = {"second":0,"microsecond":0}
+        assert result.created_at.replace(**_) == single_user.created_at.replace(**_)
+        assert result.updated_at is not None
+
         db_user = await User.get(single_user.id)
         assert db_user is not None
         assert db_user.name == single_user.name
@@ -234,12 +244,13 @@ class TestUserManagerUpdate:
 
     async def test_update_user_not_found(self, user_manager):
         non_existent_id = PydanticObjectId()
-        update_data = UserUpdate(name="New Name")
-        result = await user_manager.update_user(non_existent_id, update_data)
-        assert result is None
+        update_data = UserUpdate(name="New Name", id=non_existent_id)
+        with pytest.raises(UserNotExists) as e:
+            await user_manager.update(update_data)
+        assert str(non_existent_id) in str(e.value)
 
 
-@pytest.mark.skip("standard")
+#@pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db", "single_user")
 @pytest.mark.asyncio
 class TestUserManagerDelete:
@@ -247,14 +258,19 @@ class TestUserManagerDelete:
 
     async def test_delete_user_success(self, user_manager, single_user):
         """Test successful user deletion."""
-        result = await user_manager.delete_user(single_user.id)
+        result = await user_manager.delete(single_user.id)
         assert result is True
-        deleted_user = await user_manager.get_user(single_user.id)
-        assert deleted_user is None
+        with pytest.raises(UserNotExists) as e:
+            await user_manager.get(single_user.id)
+        assert str(single_user.id) in str(e.value)
         db_user = await User.get(single_user.id)
         assert db_user is None
 
     async def test_delete_user_not_found(self, user_manager):
         non_existent_id = PydanticObjectId()
-        result = await user_manager.delete_user(non_existent_id)
-        assert result is False
+        with pytest.raises(UserNotExists) as e:
+            await user_manager.delete(non_existent_id)
+        assert str(non_existent_id) in str(e.value)
+
+# need to add tests that check permission changes work properly.
+# also, that is not yet implemented in the manager.

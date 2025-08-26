@@ -23,16 +23,17 @@ class GameManager(BaseManager[GameModel, GameCreate, GameUpdate, GameResponse, G
         game_data = item_in.model_dump(exclude={"designer_ids", "developer_ids"})
         designer_id_set = set(item_in.designer_ids or [])
         developer_id_set = set(item_in.developer_ids or [])
-        all_ids = list(designer_id_set | developer_id_set)
-        designers = []
-        developers = []
-        if all_ids:
-            users = await User.find({"_id": {"$in": all_ids}}).to_list()
-            designers = [u for u in users if u.id in designer_id_set]
-            developers = [u for u in users if u.id in developer_id_set]
         game_obj = self.doc_model(**game_data)
-        game_obj.designers = cast(Sequence[Link[User]], designers)
-        game_obj.developers = cast(Sequence[Link[User]], developers)
+        if designer_id_set:
+            designers = await User.find({"_id": 
+                {"$in": list(designer_id_set)}}).to_list()
+            if designers:
+                game_obj.designers = cast(Sequence[Link[User]], designers)
+        if developer_id_set:
+            developers = await User.find({"_id": 
+                {"$in": list(developer_id_set)}}).to_list()
+            if developers:
+                game_obj.developers = cast(Sequence[Link[User]], developers)
         await game_obj.insert()
         
         if game_obj.id:

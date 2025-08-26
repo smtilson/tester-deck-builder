@@ -15,13 +15,13 @@ async def single_user(init_db, all_test_data, user_manager):
     return await _create_single_item(user_manager, user_data)
 
 @pytest_asyncio.fixture(scope="function")
-async def single_game(init_db, all_test_data, game_manager, single_user):
+async def single_game(init_db, all_test_data, game_manager, setup_users):
     """Create a test game for update operations."""
     game_data = all_test_data.game
-    num_designers = random.randint(1, 4)
-    num_developers = random.randint(1, 4)
-    designer_ids = [single_user.id for _ in range(num_designers)]
-    developer_ids = [single_user.id for _ in range(num_developers)]
+    num_designers = random.randint(1, len(setup_users))
+    num_developers = random.randint(1, len(setup_users))
+    designer_ids = list({user.id for user in random.sample(setup_users, num_designers)})
+    developer_ids = list({user.id for user in random.sample(setup_users, num_developers)})
     game_data["designer_ids"] = designer_ids
     game_data["developer_ids"] = developer_ids
     return await _create_single_item(game_manager, game_data)
@@ -57,10 +57,12 @@ async def setup_games(init_db, game_manager, game_test_data, setup_users):
     """Create test games for read operations."""
     games = []
     for game_data in game_test_data:
-        game_data["designer_ids"] = {random.choice(setup_users).id 
-                        for _ in range(random.randint(1,4))}
-        game_data["developer_ids"] = {random.choice(setup_users).id 
-                        for _ in range(random.randint(1,4))}
+        num1 = random.randint(1,len(setup_users))
+        num2 = random.randint(1,len(setup_users))
+        designer_ids = list({user.id for user in random.sample(setup_users, num1)})
+        developer_ids = list({user.id for user in random.sample(setup_users, num2)})
+        game_data["designer_ids"] = designer_ids
+        game_data["developer_ids"] = developer_ids
         created_game = await game_manager.create_from_dict(game_data)
         games.append(created_game)
     return games
