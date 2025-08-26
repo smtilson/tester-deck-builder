@@ -6,7 +6,7 @@ from saq.worker import async_check_health as saq_check_health
 from fast_backend.app.core.logger import logger
 from fast_backend.app.services.worker import queue
 
-from fast_backend.app.models.users import User
+from fast_backend.app.models import User
 
 router = APIRouter(prefix="/health")
 

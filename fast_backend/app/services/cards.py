@@ -1,9 +1,9 @@
 from fast_backend.app.crud.cards import CardManager
 from fast_backend.app.crud.decks import DeckManager
 from fast_backend.app.crud.deck_cards import DeckCardManager
-from fast_backend.app.schemas.cards import CardCreate, CardUpdate, CardResponse
-from fast_backend.app.schemas.decks import DeckCreate, DeckUpdate, DeckResponse
-from fast_backend.app.schemas.deck_cards import (
+from fast_backend.app.schemas import CardCreate, CardUpdate, CardResponse
+from fast_backend.app.schemas import DeckCreate, DeckUpdate, DeckResponse
+from fast_backend.app.schemas import (
     DeckCardCreate,
     DeckCardUpdate,
     # DeckCardResponseWithCard,

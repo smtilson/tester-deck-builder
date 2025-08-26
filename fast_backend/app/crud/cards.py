@@ -3,11 +3,11 @@ from beanie.odm.fields import PydanticObjectId
 from beanie import Link
 from datetime import datetime
 
-from fast_backend.app.models.cards import Card as CardModel
-from fast_backend.app.schemas.cards import CardCreate, CardUpdate, CardResponse, CardListItem
+from fast_backend.app.models import Card as CardModel
+from fast_backend.app.schemas import CardCreate, CardUpdate, CardResponse, CardListItem
 from fast_backend.app.core.exceptions import NotFoundException
 from fast_backend.app.crud.base_manager import BaseManager
-from fast_backend.app.models.games import Game as GameModel
+from fast_backend.app.models import Game as GameModel
 
 class CardManager(BaseManager[CardModel, CardCreate, CardUpdate, CardResponse, CardListItem]):
     def __init__(self):
@@ -38,7 +38,8 @@ class CardManager(BaseManager[CardModel, CardCreate, CardUpdate, CardResponse, C
         return card
     
     async def get_all(self) -> list[CardResponse]:
-        query = self.doc_model.find_all()
-        cards = await query.fetch_link(self.doc_model.game).to_list()
+        cards = await self.doc_model.find_all().to_list()
+        for card in cards:
+            await card.fetch_link(self.doc_model.game)
         return [self.response_schema.model_validate(card) for card in cards]
     

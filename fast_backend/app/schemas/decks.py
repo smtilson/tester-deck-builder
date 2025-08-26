@@ -3,7 +3,7 @@ from pydantic import Field
 from beanie.odm.fields import PydanticObjectId
 from datetime import datetime
 
-from fast_backend.app.schemas.users import UserResponse
+from fast_backend.app.schemas import UserResponse
 from .deck_cards import DeckCardListItem
 from .users import UserListItem
 from .games import GameListItem

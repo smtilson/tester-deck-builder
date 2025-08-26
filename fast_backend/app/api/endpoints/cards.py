@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 
-from fast_backend.app.schemas.cards import CardCreate, CardUpdate, CardResponse
+from fast_backend.app.schemas import CardCreate, CardUpdate, CardResponse
 from fast_backend.app.crud.cards import CardManager as crud  # Import the crud module
 
 router = APIRouter()

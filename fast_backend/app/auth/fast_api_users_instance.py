@@ -2,8 +2,8 @@
 from beanie.odm.fields import PydanticObjectId
 from fastapi_users import FastAPIUsers
 from fast_backend.app.auth.backend import auth_backend
-from fast_backend.app.models.users import get_user_db
-from fast_backend.app.schemas.users import UserResponse
+from fast_backend.app.models import get_user_db
+from fast_backend.app.schemas import UserResponse
 
 
 # Instantiate FastAPIUsers

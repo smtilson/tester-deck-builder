@@ -1,8 +1,7 @@
 from typing import Optional
-from fast_backend.app.models.decks import Deck as DeckModel
-from fast_backend.app.models.users import User as UserModel
-from fast_backend.app.schemas.decks import (
-    DeckBase,
+from fast_backend.app.models import Deck as DeckModel
+from fast_backend.app.models import User as UserModel
+from fast_backend.app.schemas import (
     DeckCreate,
     DeckUpdate,
     DeckResponse,
@@ -70,7 +69,7 @@ class OldDeckManager:
         return [DeckResponse.model_validate(deck) for deck in decks]
 
     @staticmethod
-    async def get_owner_in_db(deck_data: DeckBase) -> Optional[UserModel]:
+    async def get_owner_in_db(deck_data) -> Optional[UserModel]:
         """
         Get the owner of a deck.
 

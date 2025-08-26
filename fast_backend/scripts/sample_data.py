@@ -8,10 +8,10 @@ import traceback
 # Add the parent directory to the path so we can import our app modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from fast_backend.app.models.cards import Card
-from fast_backend.app.models.decks import Deck
-from fast_backend.app.models.users import User
-from fast_backend.app.models.deck_cards import DeckCard
+from fast_backend.app.models import Card
+from fast_backend.app.models import Deck
+from fast_backend.app.models import User
+from fast_backend.app.models import DeckCard
 from fast_backend.app.db.config_db import init_db, close_db
 
 

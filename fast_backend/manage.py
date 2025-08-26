@@ -19,15 +19,15 @@ from honcho.manager import Manager as HonchoManager
 from beanie import init_beanie, Document
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from fast_backend.app.models.users import User as BeanieUser
-from fast_backend.app.schemas.users import UserCreate
+from fast_backend.app.models import User as BeanieUser
+from fast_backend.app.schemas import UserCreate
 from fast_backend.app.auth.manager import get_user_manager
 
 from fast_backend.app.core.config_app import settings
-from fast_backend.app.models.cards import Card
-from fast_backend.app.models.decks import Deck
-from fast_backend.app.models.deck_cards import DeckCard
-from fast_backend.app.models.games import Game
+from fast_backend.app.models import Card
+from fast_backend.app.models import Deck
+from fast_backend.app.models import DeckCard
+from fast_backend.app.models import Game
 
 cli = typer.Typer()
 

@@ -22,3 +22,4 @@ class Card(BaseDocument):
         name = "cards"
         use_state_management = True  # Enable state management for this model
         is_root = True
+        unique_together = (("name", "game", "version"),)

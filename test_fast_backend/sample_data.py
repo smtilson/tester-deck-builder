@@ -120,27 +120,27 @@ def game_test_data() -> list[dict[str, Any]]:
             "name": "Magic: The Gathering",
             "version": "1.0.0",
             "description": "A collectible card game created by Richard Garfield.",
-            "designers": [],  # Fill with Link[User] objects if needed
+            "designer_ids": [],  # Fill with Link[User] objects if needed
             "publisher": "Wizards of the Coast",
-            "developers": [],  # Fill with Link[User] objects if needed
+            "developer_ids": [],  # Fill with Link[User] objects if needed
             "release_date": datetime(1993, 8, 5),
         },
         {
             "name": "Pokémon TCG",
             "version": "2.1.0",
             "description": "A trading card game based on Pokémon franchise.",
-            "designers": [],
+            "designer_ids": [],
             "publisher": "The Pokémon Company",
-            "developers": [],
+            "developer_ids": [],
             "release_date": datetime(1996, 10, 20),
         },
         {
             "name": "Yu-Gi-Oh!",
             "version": "3.0.0",
             "description": "A Japanese collectible card game developed by Konami.",
-            "designers": [],
+            "designer_ids": [],
             "publisher": "Konami",
-            "developers": [],
+            "developer_ids": [],
             "release_date": datetime(1999, 2, 4),
         },
     ]
@@ -187,30 +187,30 @@ def all_test_data(user_test_data, card_test_data, deck_test_data, game_test_data
             return [dc for dc in self.deck_card_data if dc["deck_id"] == deck_id]
         '''
 
-        def _pick_random(self, data_list, key, picked_set):
-            if len(picked_set) == len(data_list):
-                raise ValueError(f"All {key}s have been picked")
+        def _pick_random(self, data_list, data_type, attr):
+            if len(self.already_picked[data_type]) == len(data_list):
+                raise ValueError(f"All {data_type}s have been picked")
             item = random.choice(data_list)
-            while item[key] in picked_set:
+            while item[attr] in self.already_picked[data_type]:
                 item = random.choice(data_list)
-            picked_set.add(item[key])
+            self.already_picked[data_type].add(item[attr])
             return item
 
         @property
         def game(self) -> dict[str, Any]:
-            return self._pick_random(self.game_data, "name", self.already_picked["games"])
+            return self._pick_random(self.game_data, "games", "name")
 
         @property
         def card(self) -> dict[str, Any]:
-            return self._pick_random(self.card_data, "name", self.already_picked["cards"])
+            return self._pick_random(self.card_data, "cards", "name")
 
         @property
         def user(self) -> dict[str, Any]:
-            return self._pick_random(self.user_data, "username", self.already_picked["users"])
+            return self._pick_random(self.user_data, "users", "username")
 
         @property
         def deck(self) -> dict[str, Any]:
-            return self._pick_random(self.deck_data, "name", self.already_picked["decks"])
+            return self._pick_random(self.deck_data, "decks", "name")
 
 
     return TestData()

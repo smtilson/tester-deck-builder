@@ -2,13 +2,15 @@
 import pytest
 import pytest_asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
+from unittest.mock import patch
+import mongomock
 from beanie import init_beanie
 from fastapi_users.db import BeanieUserDatabase
 from typing import AsyncGenerator
 
 # import the models you want available in tests
 from fast_backend.app.auth.manager import UserManager, get_user_manager
-from fast_backend.app.models.users import get_user_db
+from fast_backend.app.models import get_user_db
 from fast_backend.app.db.config_db import DOCUMENT_MODELS
 from fast_backend.app.crud.cards import CardManager
 from fast_backend.app.crud.decks import DeckManager
@@ -17,11 +19,13 @@ from fast_backend.app.crud.games import GameManager
 from .sample_data import *
 
 # --- Database Fixtures ---
+
 @pytest_asyncio.fixture
 async def init_db():
     """
     Initialize Beanie once per test session.
     """
+
     client = AsyncIOMotorClient("mongodb://localhost:27017")
     db = client["test_db"]
     # IMPORTANT: register your models here
@@ -46,7 +50,7 @@ async def clean_db(db_client):
 # and that 'get_user_db' depends on it indirectly.
 
 @pytest_asyncio.fixture(scope="function")
-async def user_db(init_db) -> BeanieUserDatabase:
+async def user_db(init_db) -> AsyncGenerator[BeanieUserDatabase]:
     """Fixture to get the BeanieUserDatabase instance."""
     # The get_user_db function is a generator, so we use 'anext' or manual iteration
     # to get the yielded value.

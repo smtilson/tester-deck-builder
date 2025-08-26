@@ -1,4 +1,4 @@
-from fast_backend.app.models.decks import Deck
+from fast_backend.app.models import Deck
 from .base import BaseCustomException
 
 

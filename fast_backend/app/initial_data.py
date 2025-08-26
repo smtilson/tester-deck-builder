@@ -3,7 +3,7 @@ from fastapi_users.exceptions import UserAlreadyExists
 from fast_backend.app.core.logger import logger
 
 from fast_backend.app.db.config_db import settings
-from fast_backend.app.schemas.users import UserCreate
+from fast_backend.app.schemas import UserCreate
 from fast_backend.app.user_utils import create_user
 
 

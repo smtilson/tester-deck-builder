@@ -1,11 +1,11 @@
-from typing import Optional
+from typing import Optional, cast, Sequence
 from beanie.odm.fields import PydanticObjectId
 from datetime import datetime
 from beanie import Link
 
-from fast_backend.app.models.games import Game as GameModel
-from fast_backend.app.schemas.games import GameCreate, GameUpdate, GameResponse, GameListItem
-from fast_backend.app.models.users import User
+from fast_backend.app.models import Game as GameModel
+from fast_backend.app.schemas import GameCreate, GameUpdate, GameResponse, GameListItem
+from fast_backend.app.models import User
 from fast_backend.app.core.exceptions import NotFoundException
 from fast_backend.app.crud.base_manager import BaseManager
 
@@ -20,19 +20,21 @@ class GameManager(BaseManager[GameModel, GameCreate, GameUpdate, GameResponse, G
         return game
 
     async def create(self, item_in: GameCreate) -> Optional[GameResponse]:
-        linked_designers : Optional[list[Link[User]]] = None
-        linked_developers : Optional[list[Link[User]]] = None
         game_data = item_in.model_dump(exclude={"designer_ids", "developer_ids"})
-        if item_in.designer_ids:
-            designers = await User.find(User.id.in_(item_in.designer_ids)).to_list()
-            linked_designers = [Link(designer, document_class=User) for designer in designers]
-        if item_in.developer_ids:
-            developers = await User.find(User.id.in_(item_in.developer_ids)).to_list()
-            linked_developers = [Link(developer, document_class=User) for developer in developers]
+        designer_id_set = set(item_in.designer_ids or [])
+        developer_id_set = set(item_in.developer_ids or [])
+        all_ids = list(designer_id_set | developer_id_set)
+        designers = []
+        developers = []
+        if all_ids:
+            users = await User.find({"_id": {"$in": all_ids}}).to_list()
+            designers = [u for u in users if u.id in designer_id_set]
+            developers = [u for u in users if u.id in developer_id_set]
         game_obj = self.doc_model(**game_data)
-        game_obj.designers = linked_designers if linked_designers else list()
-        game_obj.developers = linked_developers if linked_developers else list()
+        game_obj.designers = cast(Sequence[Link[User]], designers)
+        game_obj.developers = cast(Sequence[Link[User]], developers)
         await game_obj.insert()
+        
         if game_obj.id:
             return await self.get(game_obj.id)
         return None

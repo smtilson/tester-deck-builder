@@ -1,7 +1,7 @@
 from typing import Optional
 
-from fast_backend.app.models.deck_cards import DeckCard as DeckCardModel
-from fast_backend.app.schemas.deck_cards import (
+from fast_backend.app.models import DeckCard as DeckCardModel
+from fast_backend.app.schemas import (
     DeckCardCreate,
     DeckCardUpdate,
     DeckCardResponse,

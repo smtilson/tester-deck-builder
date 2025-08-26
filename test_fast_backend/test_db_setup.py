@@ -1,5 +1,5 @@
 import pytest
-from fast_backend.app.models.cards import Card
+from fast_backend.app.models import Card
 
 @pytest.mark.skip("basic")
 @pytest.mark.asyncio

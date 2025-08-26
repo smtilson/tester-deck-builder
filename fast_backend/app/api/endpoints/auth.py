@@ -5,7 +5,7 @@
 # and your user schemas (UserResponse, UserCreate, etc.).
 from fastapi import APIRouter
 
-from fast_backend.app.schemas.users import UserCreate, UserResponse, UserUpdate, UserLogin
+from fast_backend.app.schemas import UserCreate, UserResponse, UserUpdate, UserLogin
 from fast_backend.app.auth.backend import auth_backend
 from fast_backend.app.auth.fast_api_users_instance import (
     fastapi_users,

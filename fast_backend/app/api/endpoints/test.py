@@ -6,11 +6,11 @@ from beanie import Document
 from pydantic import Field
 
 
-from fast_backend.app.models.decks import Deck
-from fast_backend.app.models.cards import Card
+from fast_backend.app.models import Deck
+from fast_backend.app.models import Card
 from fast_backend.app.crud.cards import CardManager
-from fast_backend.app.schemas.cards import CardCreate, CardUpdate, CardResponse
-from fast_backend.app.models.deck_cards import DeckCard
+from fast_backend.app.schemas import CardCreate, CardUpdate, CardResponse
+from fast_backend.app.models import DeckCard
 from fast_backend.app.models.test import TestDocument
 from fast_backend.app.db.config_db import drop_db
 

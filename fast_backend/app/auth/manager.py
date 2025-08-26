@@ -8,12 +8,13 @@ from fastapi_users.authentication import (
     BearerTransport,
     JWTStrategy,
 )
+from fastapi_users.exceptions import UserAlreadyExists, UserNotExists
 from fastapi_users.db import BeanieUserDatabase, ObjectIDIDMixin
 import os
 
-from fast_backend.app.models.users import User, get_user_db
-from fast_backend.app.schemas.users import UserCreate, UserUpdate, UserResponse, UserUpdatePermissions
-from fast_backend.app.schemas.games import GameListItem
+from fast_backend.app.models import User, get_user_db
+from fast_backend.app.schemas import UserCreate, UserUpdate, UserResponse, UserUpdatePermissions
+from fast_backend.app.schemas import GameListItem
 
 SECRET = os.getenv("SECRET", "your-secret-key")
 
@@ -23,6 +24,41 @@ class UserManager(ObjectIDIDMixin, BaseUserManager[User, PydanticObjectId]):
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET
 
+    async def create_from_dict(self, user_dict:dict[str, Any]):
+        user = UserCreate(**user_dict)
+        # this is happening because my UserCreate schema does not inherit from
+        # BaseUserCreate. I don't because I don't want certain fields and want 
+        # the API to be clean
+        return await self.create(user)
+    
+    async def create(self, user_create: UserCreate) -> UserResponse:
+        username = user_create.username
+        exists = await User.find_one({"username": username})
+        if exists is not None:
+            raise UserAlreadyExists(f"A user with username: {username} already exists")
+        user = await super().create(user_create=user_create)
+        return UserResponse.model_validate(user)  # type: ignore
+    
+    async def get_by_username(self, username: str) -> UserResponse:
+        user = await User.find_one({"username": username})
+        if user is None:
+            raise UserNotExists(f"User with username: {username} does not exist")
+        return UserResponse.model_validate(user)  # type: ignore
+
+    async def get_model(self, id: PydanticObjectId) -> User:
+        user = await self.get(id)
+        if user is None:
+            raise UserNotExists(f"User with ID: {id} does not exist")
+        return user
+
+    async def get_by_id(self, id: PydanticObjectId) -> UserResponse:
+        user = await self.get_model(id)
+        return UserResponse.model_validate(user)  # type: ignore
+
+    async def get_all(self) -> list[UserResponse]:
+        users = await User.find().to_list()
+        return [UserResponse.model_validate(user) for user in users]
+    
     async def validate_password(self, password: str, user: UserCreate | User) -> None:
         # this is to determine if the password is strong enough
         return await super().validate_password(password, user)
@@ -42,7 +78,6 @@ class UserManager(ObjectIDIDMixin, BaseUserManager[User, PydanticObjectId]):
     ):
         # send email to verify email address?
         print(f"Verification requested for user {user.id}. Verification token: {token}")
-
 
     async def update_permissions(self, user: User, permission_data: UserUpdatePermissions) -> User:
         update_data = permission_data.model_dump(exclude_unset=True)

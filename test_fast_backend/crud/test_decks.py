@@ -3,10 +3,10 @@ import pytest
 import random
 
 from fast_backend.app.crud.decks import DeckManager
-from fast_backend.app.models.decks import Deck
+from fast_backend.app.models import Deck
 from fast_backend.app.crud.users import UserManager
-from fast_backend.app.schemas.decks import DeckCreate, DeckUpdate
-from fast_backend.app.schemas.users import UserCreate
+from fast_backend.app.schemas import DeckCreate, DeckUpdate
+from fast_backend.app.schemas import UserCreate
 
 
 @pytest.mark.skip("standard")

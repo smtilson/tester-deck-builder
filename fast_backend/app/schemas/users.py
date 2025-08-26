@@ -1,38 +1,43 @@
 # app/schemas/user.py
 from typing import Optional
-import uuid
 from fastapi_users import schemas
 from pydantic import Field, BaseModel
 from beanie import PydanticObjectId
 from fastapi_users import schemas
+from fastapi_users.schemas import CreateUpdateDictModel as CUDM
 from datetime import datetime
 
 from .base import SettingsSchema
 
 
-class UserBase(SettingsSchema):
-    username: Optional[str] = None
+class MinUserBase(SettingsSchema, CUDM):
+    pass
+class UserBase(MinUserBase):
+    username: str
+    email: str
 
 
 class UserCreate(UserBase):
-    email: str
     password: str
     confirm_password: str
 
 
-class UserLogin(BaseModel):
-    email: str
+class UserLogin(UserBase):
+    username: Optional[str] = None
+    email: Optional[str] = None
     password: str
 
 
 class UserUpdate(UserBase):
+    username: Optional[str] = None
     name: Optional[str] = None
     email: Optional[str] = None
     password: Optional[str] = None
     
 
 
-class UserResponse(UserBase, schemas.BaseUser[PydanticObjectId]):
+class UserResponse(UserBase):
+    id: PydanticObjectId
     is_staff: bool = False
     playtesting: list["GameListItem"] = Field(default_factory=list)
     designing: list["GameListItem"] = Field(default_factory=list)

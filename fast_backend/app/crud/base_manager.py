@@ -4,8 +4,8 @@ from beanie import Document
 from datetime import datetime
 from pydantic import BaseModel
 
-from fast_backend.app.models.cards import Card as CardModel
-from fast_backend.app.schemas.cards import CardCreate, CardUpdate, CardResponse
+from fast_backend.app.models import Card as CardModel
+from fast_backend.app.schemas import CardCreate, CardUpdate, CardResponse
 from fast_backend.app.core.exceptions import NotFoundException
 
 
@@ -134,3 +134,31 @@ class BaseManager(Generic[DocType, CreateSchemaType, UpdateSchemaType, ResponseS
         item_obj = await self.get_model(item_id)
         await item_obj.delete()
         return True
+
+    def validate_fields(self, item_data: dict) -> bool:
+        """
+        Validate the fields of the item data.
+
+        Args:
+            item_data: The item data to validate.
+
+        Returns:
+            True if the fields are valid, False otherwise.
+        """
+        # Implement your validation logic here
+        raise NotImplementedError("Field validation not implemented.")
+        return True
+
+    def validate_version(self, version: str) -> bool:
+        """
+        Validate the version string.
+
+        Args:
+            version: The version string to validate.
+
+        Returns:
+            True if the version is valid, False otherwise.
+        """
+        # Implement your version validation logic here
+        raise NotImplementedError("Version validation not implemented.")
+    

@@ -3,8 +3,8 @@ import random
 from beanie.odm.fields import PydanticObjectId
 
 from fast_backend.app.core.exceptions import NotFoundException
-from fast_backend.app.models.games import Game
-from fast_backend.app.schemas.games import GameCreate, GameUpdate
+from fast_backend.app.models import Game
+from fast_backend.app.schemas import GameCreate, GameUpdate
 
 
 @pytest.mark.skip("standard")

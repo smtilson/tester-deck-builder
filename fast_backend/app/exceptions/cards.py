@@ -1,7 +1,7 @@
-from fast_backend.app.models.cards import Card
+from fast_backend.app.models import Card
 
 # should we have any of these schemas
-from fast_backend.app.schemas.cards import CardResponse
+from fast_backend.app.schemas import CardResponse
 from .base import BaseCustomException
 
 
