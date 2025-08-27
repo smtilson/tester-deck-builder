@@ -38,4 +38,11 @@ class GameManager(BaseManager[GameModel, GameCreate, GameUpdate, GameResponse, G
         
         if game_obj.id:
             return await self.get(game_obj.id)
-        return None
+        raise Exception(f"There was an error when attemption to create game based on {item_in}")
+    
+    async def get(self, game_id:PydanticObjectId) ->GameResponse:
+        game = await self.get_model(game_id)
+        return GameResponse.model_validate(game)
+    
+    async def get_by_name(self, name: str) -> GameResponse:
+        return await self._get_by_key("name", name)

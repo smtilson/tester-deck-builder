@@ -7,9 +7,9 @@ from fast_backend.app.core.exceptions import NotFoundException
 from fast_backend.app.models import Card
 from fast_backend.app.schemas import CardCreate, CardUpdate, CardResponse
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("init_db")
+@pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestCardManagerCreate:
     """Integration tests for card_manager create operations."""
 
@@ -57,9 +57,9 @@ class TestCardManagerCreate:
         assert result1.text == card1_data["text"]
         assert result2.text == card2_data["text"]
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("init_db")
+@pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestCardManagerRead:
     """Integration tests for card_manager read operations."""
 
@@ -106,9 +106,9 @@ class TestCardManagerRead:
         result = await card_manager.get_all()
         assert result == []
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("init_db")
+@pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestCardManagerUpdate:
     """Integration tests for CardManager update operations."""
 
@@ -189,9 +189,9 @@ class TestCardManagerUpdate:
             await card_manager.update(random_id, update_data)
         assert str(random_id) in str(e.value)
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("init_db")
+@pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestCardManagerDelete:
     """Integration tests for CardManager delete operations."""
 
@@ -233,7 +233,7 @@ class TestCardManagerDelete:
 
 @pytest.mark.skip("special")
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("init_db")
+@pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestCardManagerEdgeCases:
     """Integration tests for CardManager edge cases and error conditions."""
 

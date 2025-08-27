@@ -20,7 +20,7 @@ from .sample_data import *
 
 # --- Database Fixtures ---
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="function")
 async def init_db():
     """
     Initialize Beanie once per test session.
@@ -40,12 +40,18 @@ async def init_db():
     await client.drop_database("test_db")
     client.close()
 
-@pytest_asyncio.fixture
-async def clean_db(db_client):
-    for name in await db_client.list_collection_names():
-        await db_client.drop_collection(name)
+@pytest_asyncio.fixture(scope="function")
+async def cleanup_db(init_db):
+    """
+    Cleans up the database after each test function.
+    `autouse=True` makes this fixture run automatically for every test.
+    """
+    for model in DOCUMENT_MODELS:
+        await model.find_all().delete_many()
     yield
-
+    # These delete_all() calls will run after each test.
+    # Add all your database models here.
+    
 # Assuming you already have a fixture for database initialization called 'init_db'
 # and that 'get_user_db' depends on it indirectly.
 

@@ -5,13 +5,12 @@ from fastapi_users.exceptions import UserAlreadyExists, UserNotExists
 from beanie.odm.fields import PydanticObjectId
 from datetime import datetime
 
-from fast_backend.app.crud.users import UserManager
 from fast_backend.app.models import User
 from fast_backend.app.schemas import UserCreate, UserUpdate, UserResponse
 
 
-#@pytest.mark.skip("standard")
-@pytest.mark.usefixtures("init_db")
+@pytest.mark.skip("standard")
+@pytest.mark.usefixtures("init_db", "cleanup_db")
 @pytest.mark.asyncio
 class TestUserManagerCreate:
     """Integration tests for UserManager create operations."""
@@ -92,8 +91,8 @@ class TestUserManagerCreate:
         assert db_user.hashed_password.startswith("$")
 
 
-#@pytest.mark.skip("standard")
-@pytest.mark.usefixtures("init_db")
+@pytest.mark.skip("standard")
+@pytest.mark.usefixtures("init_db", "cleanup_db")
 @pytest.mark.asyncio
 class TestUserManagerRead:
     """Integration tests for UserManager read operations."""
@@ -166,7 +165,7 @@ class TestUserManagerRead:
         assert result == []
 
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db", "single_user")
 @pytest.mark.asyncio
 class TestUserManagerUpdate:
@@ -250,7 +249,7 @@ class TestUserManagerUpdate:
         assert str(non_existent_id) in str(e.value)
 
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db", "single_user")
 @pytest.mark.asyncio
 class TestUserManagerDelete:

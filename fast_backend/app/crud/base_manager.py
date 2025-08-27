@@ -77,7 +77,13 @@ class BaseManager(Generic[DocType, CreateSchemaType, UpdateSchemaType, ResponseS
         item = await self.get_model(item_id)
         return self.list_item_schema.model_validate(item)
 
-    async def get(self, item_id: PydanticObjectId) -> Optional[ResponseSchemaType]:
+    async def _get_by_key(self, key: str, value: str) -> ResponseSchemaType:
+        item = await self.doc_model.find_one({key: value})
+        if not item:
+            raise NotFoundException(f"No {self.doc_model.__name__} found with {key}={value}")
+        return self.response_schema.model_validate(item)
+
+    async def get(self, item_id: PydanticObjectId) -> ResponseSchemaType:
         """
         Get an item by its ID.
 
@@ -88,6 +94,8 @@ class BaseManager(Generic[DocType, CreateSchemaType, UpdateSchemaType, ResponseS
             The item as a Pydantic schema, or None if it doesn't exist.
         """
         item = await self.get_model(item_id)
+        if not item:
+            raise NotFoundException(f"No {self.doc_model.__name__} was found with Id: {item_id}.")
         return self.response_schema.model_validate(item)
 
     async def get_all(self) -> list[ResponseSchemaType]:
@@ -98,6 +106,8 @@ class BaseManager(Generic[DocType, CreateSchemaType, UpdateSchemaType, ResponseS
             A list of all items as Pydantic schema instances.
         """
         item_objs = await self.doc_model.find_all().to_list()
+        if not item_objs:
+            raise NotFoundException(f"No records were found in the {self.doc_model.__name__} table.")
         return [self.response_schema.model_validate(item) for item in item_objs]
 
     async def update(self,

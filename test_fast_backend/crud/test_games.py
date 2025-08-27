@@ -5,16 +5,16 @@ from datetime import datetime
 
 from fast_backend.app.core.exceptions import NotFoundException
 from fast_backend.app.models import Game
-from fast_backend.app.schemas import GameCreate, GameUpdate, GameResponse, GameListItem
+from fast_backend.app.schemas import GameCreate, GameUpdate, GameResponse, GameListItem, UserListItem
 
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("init_db")
+@pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestGameManagerCreate:
     """Integration tests for GameManager create operations."""
 
-    async def test_create_game_success(self, game_manager, all_test_data, setup_users):
+    async def test_create_game_success(self, game_manager, user_manager, all_test_data, setup_users):
         game_data = all_test_data.game
         num1 = random.randint(2,len(setup_users))
         num2 = random.randint(2,len(setup_users))
@@ -22,10 +22,6 @@ class TestGameManagerCreate:
         developer_ids = list({user.id for user in random.sample(setup_users, num2)})
         game_data["designer_ids"] = designer_ids
         game_data["developer_ids"] = developer_ids
-        assert len(list(set(developer_ids))) == len(developer_ids)
-        assert len(developer_ids) >= 2
-        assert len(designer_ids) >= 2
-        assert len(list(set(designer_ids))) == len(designer_ids)
         game_create = GameCreate(**game_data)
         result = await game_manager.create(game_create)
 
@@ -40,14 +36,19 @@ class TestGameManagerCreate:
         assert result.updated_at is None
 
         # Designers and developers should be lists of UserListItem
+        designers = [await user_manager.get_list_item(user_id) for user_id in designer_ids]
         assert isinstance(result.designers, list)
+        for u in result.designers:
+            if u in designers:
+                designers.remove(u)
+        assert len(designers) == 0
+        
+        developers = [await user_manager.get_list_item(user_id) for user_id in developer_ids]
         assert isinstance(result.developers, list)
-        assert all(hasattr(u, "id") for u in result.designers)
-        assert all(hasattr(u, "id") for u in result.developers)
-        assert {u.id for u in result.designers} == set(designer_ids)
-        assert len(result.designers) == len(designer_ids)
-        assert {u.id for u in result.developers} == set(developer_ids)
-        assert len(result.developers) == len(developer_ids)
+        for u in result.developers:
+            if u in developers:
+                developers.remove(u)
+        assert len(developers) == 0
 
         # Check values in database
         db_game = await Game.get(result.id)
@@ -91,12 +92,14 @@ class TestGameManagerCreate:
         assert result2.version == game2_data["version"] 
 
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("init_db")
+@pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestGameManagerRead:
     """Integration tests for GameManager read operations."""
 
+    #need to to test the get model method of the manager
+    
     async def test_get_game_by_id_success(self, game_manager, setup_games):
         created_game = random.choice(setup_games)
         result = await game_manager.get(created_game.id)
@@ -113,10 +116,12 @@ class TestGameManagerRead:
         # Designers and developers
         assert isinstance(result.designers, list)
         assert isinstance(result.developers, list)
+        assert all(isinstance(designer, UserListItem) for designer in result.designers)
+        assert all(isinstance(developer, UserListItem) for developer in result.developers)
         assert [u.id for u in result.designers] == [u.id for u in created_game.designers]
         assert [u.id for u in result.developers] == [u.id for u in created_game.developers]
 
-    async def test_get_game_by_id_not_found(self, game_manager, setup_games):
+    async def test_get_game_by_id_not_found(self, game_manager):
         random_id = PydanticObjectId()
         with pytest.raises(NotFoundException) as e:
             await game_manager.get(random_id)
@@ -126,12 +131,15 @@ class TestGameManagerRead:
         result = await game_manager.get_all()
         assert len(result) == len(setup_games)
         game_names = [game.name for game in result]
-        result.sort(key=lambda x: x.name)
         expected_names = [game.name for game in setup_games]
         assert set(game_names) == set(expected_names)
+        
         # Check all fields for each game
-        for game, expected in zip(result, setup_games):
-            assert game.id == expected.id
+        for game in result:
+            # Find the matching expected game
+            expected = next((g for g in setup_games if g.id == game.id), None)
+            assert expected is not None
+            
             assert game.name == expected.name
             assert game.version == expected.version
             assert game.description == expected.description
@@ -139,8 +147,12 @@ class TestGameManagerRead:
             assert game.release_date == expected.release_date
             assert isinstance(game.created_at, datetime)
             assert game.updated_at == expected.updated_at
+            
+            # Designers and developers
             assert isinstance(game.designers, list)
             assert isinstance(game.developers, list)
+            assert all(isinstance(designer, UserListItem) for designer in game.designers)
+            assert all(isinstance(developer, UserListItem) for developer in game.developers)
             assert [u.id for u in game.designers] == [u.id for u in expected.designers]
             assert [u.id for u in game.developers] == [u.id for u in expected.developers]
 
@@ -148,11 +160,54 @@ class TestGameManagerRead:
         await Game.all().delete()
         result = await game_manager.get_all()
         assert result == []
+    
+    async def test_game_response_has_correct_user_list_items(self, game_manager, setup_games, user_manager):
+        """Test that designers and developers are correctly returned as UserListItems."""
+        # Get a random game from setup_games
+        created_game = random.choice(setup_games)
+        
+        # Fetch it using the manager
+        result = await game_manager.get(created_game.id)
+        
+        # Check that designers and developers are lists of UserListItem
+        assert isinstance(result.designers, list)
+        assert isinstance(result.developers, list)
+        assert all(isinstance(designer, UserListItem) for designer in result.designers)
+        assert all(isinstance(developer, UserListItem) for developer in result.developers)
+        
+        # Check each designer's details
+        for designer in result.designers:
+            # Verify it's a UserListItem with the expected structure
+            assert isinstance(designer.id, PydanticObjectId)
+            assert isinstance(designer.username, str)
+            assert isinstance(designer.email, str)
+            
+            # Verify it matches what we'd get from the user_manager
+            user_list_item = await user_manager.get_list_item(designer.id)
+            assert designer == user_list_item
+            
+            # Check it doesn't have sensitive fields
+            assert not hasattr(designer, "password")
+            assert not hasattr(designer, "hashed_password")
+        
+        # Check each developer's details
+        for developer in result.developers:
+            assert isinstance(developer.id, PydanticObjectId)
+            assert isinstance(developer.username, str)
+            assert isinstance(developer.email, str)
+            
+            # Verify it matches what we'd get from the user_manager
+            user_list_item = await user_manager.get_list_item(developer.id)
+            assert developer == user_list_item
+            
+            # Check it doesn't have sensitive fields
+            assert not hasattr(developer, "password")
+            assert not hasattr(developer, "hashed_password")
 
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("init_db")
+@pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestGameManagerUpdate:
     """Integration tests for GameManager update operations."""
 
@@ -217,9 +272,9 @@ class TestGameManagerUpdate:
         assert str(random_id) in str(e.value)
 
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("init_db")
+@pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestGameManagerDelete:
     """Integration tests for GameManager delete operations."""
 

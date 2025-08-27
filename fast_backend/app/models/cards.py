@@ -12,7 +12,7 @@ class Card(BaseDocument):
     name: str = Indexed(str, unique=True)
     game: Optional[Link[Game]] = None
     text: Optional[str] = None
-    version: str = "0.0.0"
+    version: str = "1.0.0"
     # add later
     # card_type: str = Field(default="")
     # traits: list[str] = Field(default_factory=list)

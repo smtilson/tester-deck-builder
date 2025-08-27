@@ -14,7 +14,7 @@ import os
 from datetime import datetime
 
 from fast_backend.app.models import User, get_user_db
-from fast_backend.app.schemas import UserCreate, UserUpdate, UserResponse, UserUpdatePermissions
+from fast_backend.app.schemas import UserCreate, UserUpdate, UserResponse, UserUpdatePermissions, UserListItem
 from fast_backend.app.schemas import GameListItem
 from fast_backend.app.core.exceptions import NotFoundException
 
@@ -54,7 +54,7 @@ class UserManager(ObjectIDIDMixin, BaseUserManager[User, PydanticObjectId]):
         await super().delete(user)
         return True
 
-    async def _get_by_key(self, key, value):
+    async def _get_by_key(self, key: str, value: str) -> UserResponse:
         try:
             user = await User.find_one({key: value})
         except UserNotExists:
@@ -70,6 +70,10 @@ class UserManager(ObjectIDIDMixin, BaseUserManager[User, PydanticObjectId]):
     async def get_by_email(self, email: str) -> UserResponse:
         user = await self._get_by_key("email", email)
         return UserResponse.model_validate(user)  # type: ignore
+
+    async def get_list_item(self, user_id: PydanticObjectId) -> UserListItem:
+        user = await self.get_model(user_id)
+        return UserListItem.model_validate(user)  # type: ignore
 
     async def get_model(self, id: PydanticObjectId) -> User:
         try:
