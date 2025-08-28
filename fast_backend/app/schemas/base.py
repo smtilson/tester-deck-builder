@@ -6,7 +6,3 @@ class SettingsSchema(BaseModel):
         from_attributes=True,
         extra="forbid"
     )
-
-class BaseSchema(SettingsSchema):
-    version: str = "0.0.0"
-    

@@ -7,20 +7,20 @@ from datetime import datetime
 from fast_backend.app.core.exceptions import NotFoundException
 from fast_backend.app.models import Deck
 from fast_backend.app.schemas import DeckCreate, DeckUpdate, DeckResponse
-from fast_backend.app.schemas import UserCreate
 
 
-#@pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 @pytest.mark.asyncio
 class TestDeckManagerCreate:
     """Integration tests for DeckManager create operations."""
 
-    async def test_create_deck_success(self, deck_manager, all_test_data, setup_users, single_game):
+    async def test_create_deck_success(self, deck_manager, setup):
         """Test successful deck creation with valid data."""
-        deck_data = all_test_data.deck
-        deck_data["owner_id"] = random.choice(setup_users).id
-        deck_data["game_id"] = single_game.id
+        deck_data = setup.data.deck
+        owner = await setup.user
+        game = await setup.game
+        deck_data["owner_id"] = owner.id
+        deck_data["game_id"] = game.id
         deck_create = DeckCreate(**deck_data)
 
         result = await deck_manager.create(deck_create)
@@ -28,29 +28,37 @@ class TestDeckManagerCreate:
         # Check all relevant fields in DeckResponse
         assert isinstance(result.id, PydanticObjectId)
         assert result.name == deck_data["name"]
-        assert result.description == deck_data["description"]
+        assert result.description == deck_data.get("description", None)
         assert result.is_public == deck_data.get("is_public", False)
-        assert result.version == "0.0.0"  # Default from BaseSchema
+        assert result.version == "1.0.0"
         assert isinstance(result.created_at, datetime)
         assert result.updated_at is None
-        assert result.owner.id == single_user.id
-        assert result.game.id == single_game.id
+        assert result.owner.id == owner.id
+        assert result.game.id == game.id
 
-        # Verify deck exists in database
+        # Verify deck exists in database and check all fields
         db_deck = await Deck.get(result.id)
         assert db_deck is not None
+        await db_deck.fetch_link(Deck.owner)
+        await db_deck.fetch_link(Deck.game)
         assert db_deck.name == deck_data["name"]
-        assert db_deck.description == deck_data["description"]
+        assert db_deck.description == deck_data.get("description", None)
         assert db_deck.is_public == deck_data.get("is_public", False)
-        assert db_deck.owner.id == single_user.id
-        assert db_deck.game.id == single_game.id
-    @pytest.mark.skip
-    async def test_create_deck_minimal_data(self, deck_manager, single_user, single_game):
+        assert db_deck.version == "1.0.0"
+        assert db_deck.owner.id == owner.id
+        assert db_deck.game.id == game.id
+        assert isinstance(db_deck.created_at, datetime)
+        assert db_deck.updated_at is None
+        assert db_deck.cards == []
+
+    async def test_create_deck_minimal_data(self, deck_manager, setup):
         """Test creating deck with minimal required data."""
+        owner = await setup.user
+        game = await setup.game
         deck_create = DeckCreate(
             name="Minimal Deck", 
-            owner_id=single_user.id,
-            game_id=single_game.id
+            owner_id=owner.id,
+            game_id=game.id
         )
 
         result = await deck_manager.create(deck_create)
@@ -58,42 +66,53 @@ class TestDeckManagerCreate:
         assert result.name == "Minimal Deck"
         assert result.description is None
         assert result.is_public is False  # Default value
-        assert result.owner.id == single_user.id
-        assert result.game is not None
-        assert result.game.id == single_game.id
+        assert result.version == "1.0.0"
+        assert result.owner.id == owner.id
+        assert result.game.id == game.id
+        assert isinstance(result.created_at, datetime)
+        assert result.updated_at is None
         
         # Check in database
         db_deck = await Deck.get(result.id)
         assert db_deck is not None
+        await db_deck.fetch_link(Deck.owner)
+        await db_deck.fetch_link(Deck.game)
         assert db_deck.name == "Minimal Deck"
         assert db_deck.description is None
         assert db_deck.is_public is False
-    @pytest.mark.skip
-    async def test_create_deck_duplicate_name_fails(self, deck_manager, single_user, single_game):
+        assert db_deck.version == "1.0.0"
+        assert db_deck.owner.id == owner.id
+        assert db_deck.game.id == game.id
+        assert isinstance(db_deck.created_at, datetime)
+        assert db_deck.updated_at is None
+        assert db_deck.cards == []
+
+    async def test_create_deck_duplicate_name_fails(self, deck_manager, setup):
         """Test that creating deck with duplicate name fails."""
+        owner = await setup.user
+        game = await setup.game
         deck_create = DeckCreate(
-            name="Unique Deck Name", 
-            owner_id=single_user.id,
-            game_id=single_game.id
+            name="Unique Deck Name",
+            owner_id=owner.id,
+            game_id=game.id
         )
 
         # Create first deck
         await deck_manager.create(deck_create)
 
         # Attempt to create second deck with same name should fail
-        # This may be a DuplicateKeyError or your custom exception
         with pytest.raises(Exception):  # Replace with specific exception when implemented
             await deck_manager.create(deck_create)
 
 
-@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestDeckManagerRead:
     """Integration tests for DeckManager read operations."""
 
-    async def test_get_deck_by_id_success(self, deck_manager, single_deck):
-        """Test successful retrieval of deck by ID."""
+    async def test_get_deck_by_id_success(self, deck_manager, setup):
+        decks = await setup.decks()
+        single_deck = random.choice(decks)
         deck_id = single_deck.id
 
         result = await deck_manager.get(deck_id)
@@ -115,25 +134,23 @@ class TestDeckManagerRead:
             assert result.updated_at.replace(**_) == single_deck.updated_at.replace(**_)
 
     async def test_get_deck_by_id_not_found(self, deck_manager):
-        """Test that getting non-existent deck raises NotFoundException."""
         non_existent_id = PydanticObjectId()
-
         with pytest.raises(NotFoundException) as e:
             await deck_manager.get(non_existent_id)
         assert str(non_existent_id) in str(e.value)
 
-    async def test_get_all_decks_returns_all(self, deck_manager, setup_decks):
-        """Test that get_all returns all created decks."""
+    async def test_get_all_decks_returns_all(self, deck_manager, setup):
+        decks = await setup.decks()
         result = await deck_manager.get_all()
 
-        assert len(result) == len(setup_decks)
+        assert len(result) == len(decks)
         deck_names = [deck.name for deck in result]
-        expected_names = [deck.name for deck in setup_decks]
+        expected_names = [deck.name for deck in decks]
         assert set(deck_names) == set(expected_names)
         
         # Check all fields for each deck
         for deck in result:
-            matching_deck = next(d for d in setup_decks if d.id == deck.id)
+            matching_deck = next(d for d in decks if d.id == deck.id)
             assert deck.name == matching_deck.name
             assert deck.description == matching_deck.description
             assert deck.is_public == matching_deck.is_public
@@ -142,24 +159,23 @@ class TestDeckManagerRead:
             assert deck.owner.id == matching_deck.owner.id
             assert deck.game is not None
             assert deck.game.id == matching_deck.game.id
+            assert isinstance(deck.created_at, datetime)
+            assert deck.updated_at == matching_deck.updated_at
 
     async def test_get_all_decks_empty_database(self, deck_manager):
-        """Test get_all with empty database."""
-        # Clear all decks
         await Deck.find().delete_all()
-
         result = await deck_manager.get_all()
         assert result == []
 
 
-@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestDeckManagerUpdate:
     """Integration tests for DeckManager update operations."""
 
-    async def test_update_deck_success(self, deck_manager, single_deck, single_user):
-        """Test successful deck update."""
+    async def test_update_deck_success(self, deck_manager, setup):
+        decks = await setup.decks()
+        single_deck = random.choice(decks)
         update_data = DeckUpdate(
             name=single_deck.name + " Updated",
             is_public=not single_deck.is_public,
@@ -183,12 +199,19 @@ class TestDeckManagerUpdate:
         # Verify update persisted in database
         db_deck = await Deck.get(single_deck.id)
         assert db_deck is not None
+        await db_deck.fetch_link(Deck.owner)
+        await db_deck.fetch_link(Deck.game)
         assert db_deck.name == single_deck.name + " Updated"
         assert db_deck.is_public is not single_deck.is_public
         assert db_deck.version == "2.0.0"
+        assert db_deck.description == single_deck.description
+        assert db_deck.owner.id == single_deck.owner.id
+        assert db_deck.game.id == single_deck.game.id
+        assert db_deck.updated_at is not None
 
-    async def test_update_deck_partial_name_only(self, deck_manager, single_deck):
-        """Test partial deck update with only name field."""
+    async def test_update_deck_partial_name_only(self, deck_manager, setup):
+        decks = await setup.decks()
+        single_deck = random.choice(decks)
         update_data = DeckUpdate(name="Only Name Changed")
 
         result = await deck_manager.update(single_deck.id, update_data)
@@ -202,8 +225,9 @@ class TestDeckManagerUpdate:
         assert result.owner.id == single_deck.owner.id
         assert result.game.id == single_deck.game.id
 
-    async def test_update_deck_is_public_only(self, deck_manager, single_deck):
-        """Test partial deck update with only is_public field."""
+    async def test_update_deck_is_public_only(self, deck_manager, setup):
+        decks = await setup.decks()
+        single_deck = random.choice(decks)
         update_data = DeckUpdate(is_public=not single_deck.is_public)
 
         result = await deck_manager.update(single_deck.id, update_data)
@@ -217,8 +241,9 @@ class TestDeckManagerUpdate:
         assert result.owner.id == single_deck.owner.id
         assert result.game.id == single_deck.game.id
 
-    async def test_update_deck_empty_update(self, deck_manager, single_deck):
-        """Test update with no fields provided."""
+    async def test_update_deck_empty_update(self, deck_manager, setup):
+        decks = await setup.decks()
+        single_deck = random.choice(decks)
         update_data = DeckUpdate()
 
         result = await deck_manager.update(single_deck.id, update_data)
@@ -233,7 +258,6 @@ class TestDeckManagerUpdate:
         assert result.game.id == single_deck.game.id
 
     async def test_update_deck_not_found(self, deck_manager):
-        """Test updating non-existent deck raises NotFoundException."""
         non_existent_id = PydanticObjectId()
         update_data = DeckUpdate(name="New Name")
 
@@ -242,14 +266,14 @@ class TestDeckManagerUpdate:
         assert str(non_existent_id) in str(e.value)
 
 
-@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestDeckManagerDelete:
     """Integration tests for DeckManager delete operations."""
 
-    async def test_delete_deck_success(self, deck_manager, single_deck):
-        """Test successful deck deletion."""
+    async def test_delete_deck_success(self, deck_manager, setup):
+        decks = await setup.decks()
+        single_deck = random.choice(decks)
         deck_id = single_deck.id
         
         # Ensure deck exists before deletion
@@ -269,23 +293,22 @@ class TestDeckManagerDelete:
         assert deleted_deck is None
 
     async def test_delete_deck_not_found(self, deck_manager):
-        """Test deleting non-existent deck raises NotFoundException."""
         non_existent_id = PydanticObjectId()
 
         with pytest.raises(NotFoundException) as e:
             await deck_manager.delete(non_existent_id)
         assert str(non_existent_id) in str(e.value)
 
-    async def test_delete_deck_multiple_times(self, deck_manager, single_deck):
-        """Test deleting same deck multiple times."""
-        # First deletion should succeed
-        result1 = await deck_manager.delete(single_deck.id)
+    async def test_delete_deck_multiple_times(self, deck_manager, setup):
+        decks = await setup.decks()
+        single_deck = random.choice(decks)
+        deck_id = single_deck.id
+        result1 = await deck_manager.delete(deck_id)
         assert result1 is True
 
-        # Second deletion should fail
         with pytest.raises(NotFoundException) as e:
-            await deck_manager.delete(single_deck.id)
-        assert str(single_deck.id) in str(e.value)
+            await deck_manager.delete(deck_id)
+        assert str(deck_id) in str(e.value)
 
 
 @pytest.mark.skip("special")
@@ -294,59 +317,69 @@ class TestDeckManagerDelete:
 class TestDeckManagerEdgeCases:
     """Integration tests for DeckManager edge cases and error conditions."""
 
-    async def test_create_deck_with_very_long_name(self, deck_manager, single_user, single_game):
-        """Test creating deck with maximum length name."""
+    async def test_create_deck_with_very_long_name(self, deck_manager, setup):
         long_name = "A" * 255  # Maximum length according to model
+        owner = await setup.user
+        game = await setup.game
         deck_create = DeckCreate(
             name=long_name, 
-            owner_id=single_user.id,
-            game_id=single_game.id
+            owner_id=owner.id,
+            game_id=game.id
         )
 
         result = await deck_manager.create(deck_create)
 
         assert result.name == long_name
         assert len(result.name) == 255
+        assert result.owner.id == owner.id
+        assert result.game.id == game.id
 
-    async def test_create_deck_with_very_long_description(self, deck_manager, single_user, single_game):
-        """Test creating deck with very long description."""
+    async def test_create_deck_with_very_long_description(self, deck_manager, setup):
         long_description = "This is a very long description. " * 100
+        owner = await setup.user
+        game = await setup.game
         deck_create = DeckCreate(
             name="Long Description Deck",
             description=long_description,
-            owner_id=single_user.id,
-            game_id=single_game.id
+            owner_id=owner.id,
+            game_id=game.id
         )
 
         result = await deck_manager.create(deck_create)
 
         assert result.description == long_description
         assert result.name == "Long Description Deck"
+        assert result.owner.id == owner.id
+        assert result.game.id == game.id
 
-    async def test_create_deck_with_empty_description_string(self, deck_manager, single_user, single_game):
-        """Test creating deck with empty string as description."""
+    async def test_create_deck_with_empty_description_string(self, deck_manager, setup):
+        owner = await setup.user
+        game = await setup.game
         deck_create = DeckCreate(
             name="Empty Description Deck", 
             description="", 
-            owner_id=single_user.id,
-            game_id=single_game.id
+            owner_id=owner.id,
+            game_id=game.id
         )
 
         result = await deck_manager.create(deck_create)
 
         assert result.description == ""
         assert result.name == "Empty Description Deck"
+        assert result.owner.id == owner.id
+        assert result.game.id == game.id
 
-    async def test_deck_id_uniqueness(self, deck_manager, single_user, single_game):
-        """Test that deck IDs are unique."""
+    async def test_deck_id_uniqueness(self, deck_manager, setup):
+        owner = await setup.user
+        game = await setup.game
         deck1 = await deck_manager.create(
-            DeckCreate(name="Deck 1", owner_id=single_user.id, game_id=single_game.id)
+            DeckCreate(name="Deck 1", owner_id=owner.id, game_id=game.id)
         )
         deck2 = await deck_manager.create(
-            DeckCreate(name="Deck 2", owner_id=single_user.id, game_id=single_game.id)
+            DeckCreate(name="Deck 2", owner_id=owner.id, game_id=game.id)
         )
         deck3 = await deck_manager.create(
-            DeckCreate(name="Deck 3", owner_id=single_user.id, game_id=single_game.id)
+            DeckCreate(name="Deck 3", owner_id=owner.id, game_id=game.id)
         )
 
         # IDs should be different
@@ -357,19 +390,18 @@ class TestDeckManagerEdgeCases:
         assert await Deck.get(deck2.id) is not None
         assert await Deck.get(deck3.id) is not None
 
-    async def test_update_deck_duplicate_name_constraint(self, deck_manager, single_user, single_game):
-        """Test that updating deck to duplicate name fails."""
-        # Create two decks
+    async def test_update_deck_duplicate_name_constraint(self, deck_manager, setup):
+        owner = await setup.user
+        game = await setup.game
         deck1 = await deck_manager.create(
-            DeckCreate(name="First Deck", owner_id=single_user.id, game_id=single_game.id)
+            DeckCreate(name="First Deck", owner_id=owner.id, game_id=game.id)
         )
         deck2 = await deck_manager.create(
-            DeckCreate(name="Second Deck", owner_id=single_user.id, game_id=single_game.id)
+            DeckCreate(name="Second Deck", owner_id=owner.id, game_id=game.id)
         )
 
         # Try to update deck2 to have same name as deck1
         update_data = DeckUpdate(name="First Deck")
 
-        # This may raise different exceptions depending on your implementation
         with pytest.raises(Exception):  # Replace with specific exception when implemented
             await deck_manager.update(deck2.id, update_data)

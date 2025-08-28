@@ -28,8 +28,8 @@ class DeckManager(BaseManager[DeckModel, DeckCreate, DeckUpdate, DeckResponse, D
         deck_data = item_in.model_dump(exclude={"owner_id","game_id"})
         owner = await User.get(item_in.owner_id)
         game = await Game.get(item_in.game_id)
-        del deck_data["version"]
-        deck_obj = await self.doc_model.create(**deck_data)
+        #del deck_data["version"]
+        deck_obj = self.doc_model(**deck_data)
         deck_obj.owner = cast(Link[User], owner)
         deck_obj.game = cast(Link[Game],game)
         await deck_obj.insert()

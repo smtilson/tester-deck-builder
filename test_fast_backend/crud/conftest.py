@@ -2,93 +2,114 @@ import pytest_asyncio
 import random
 
 
-# all managers are fixtures
-
-async def _create_single_item(manager, item_data):
-    return await manager.create_from_dict(item_data)
-
-# --- Single Item Fixtures ---
 @pytest_asyncio.fixture(scope="function")
-async def single_user(init_db, all_test_data, user_manager):
-    """Create a test user for update operations."""
-    user_data = all_test_data.user
-    return await _create_single_item(user_manager, user_data)
+async def setup(init_db, user_manager, game_manager, card_manager, deck_manager,
+                user_test_data, game_test_data, card_test_data, deck_test_data):
+    class Setup:
+        def __init__(self):
+            self._users = None
+            self._games = None
+            self._cards = None
+            self._decks = None
 
-@pytest_asyncio.fixture(scope="function")
-async def single_game(init_db, all_test_data, game_manager, setup_users):
-    """Create a test game for update operations."""
-    game_data = all_test_data.game
-    num_designers = random.randint(1, len(setup_users))
-    num_developers = random.randint(1, len(setup_users))
-    designer_ids = list({user.id for user in random.sample(setup_users, num_designers)})
-    developer_ids = list({user.id for user in random.sample(setup_users, num_developers)})
-    game_data["designer_ids"] = designer_ids
-    game_data["developer_ids"] = developer_ids
-    return await _create_single_item(game_manager, game_data)
+        @property
+        def data(self):
+            class DataDict:
+                def __init__(self, users, games, cards, decks):
+                    self.users = users
+                    self.games = games
+                    self.cards = cards
+                    self.decks = decks
 
-@pytest_asyncio.fixture(scope="function")
-async def single_card(init_db, all_test_data, single_game, card_manager):
-    """Create a test card for update operations."""
-    card_data = all_test_data.card
-    card_data["game_id"] = single_game.id
-    return await _create_single_item(card_manager, card_data)
+                @property
+                def user(self):
+                    return random.choice(self.users)
 
-@pytest_asyncio.fixture(scope="function")
-async def single_deck_no_cards(init_db, all_test_data, single_game, single_user, deck_manager):
-    deck_data = all_test_data.deck
-    deck_data["owner_id"] = single_user.id
-    deck_data["game_id"] = single_game.id
-    return await _create_single_item(deck_manager, deck_data)
+                @property
+                def game(self):
+                    return random.choice(self.games)
 
-# --- Multiple Item Fixtures ---
+                @property
+                def card(self):
+                    return random.choice(self.cards)
 
-@pytest_asyncio.fixture(scope="function")
-async def setup_users(init_db, user_manager, user_test_data):
-    """Create test users for read operations."""
-    users = []
-    for user_data in user_test_data:
-        user = await user_manager.create_from_dict(user_data)
-        users.append(user)
-    return users
+                @property
+                def deck(self):
+                    return random.choice(self.decks)
 
+            return DataDict(user_test_data, game_test_data, card_test_data, deck_test_data)
 
-@pytest_asyncio.fixture(scope="function")
-async def setup_games(init_db, game_manager, game_test_data, setup_users):
-    """Create test games for read operations."""
-    games = []
-    for game_data in game_test_data:
-        num1 = random.randint(1,len(setup_users))
-        num2 = random.randint(1,len(setup_users))
-        designer_ids = list({user.id for user in random.sample(setup_users, num1)})
-        developer_ids = list({user.id for user in random.sample(setup_users, num2)})
-        game_data["designer_ids"] = designer_ids
-        game_data["developer_ids"] = developer_ids
-        created_game = await game_manager.create_from_dict(game_data)
-        games.append(created_game)
-    return games
-    
+        async def users(self):
+            if self._users is None:
+                self._users = []
+                for user_data in user_test_data:
+                    user = await user_manager.create_from_dict(user_data)
+                    self._users.append(user)
+            return self._users
 
+        async def games(self):
+            if self._games is None:
+                users = await self.users()
+                self._games = []
+                for game_data in game_test_data:
+                    num1 = random.randint(1, len(users))
+                    num2 = random.randint(1, len(users))
+                    designer_ids = list({user.id for user in random.sample(users, num1)})
+                    developer_ids = list({user.id for user in random.sample(users, num2)})
+                    game_data["designer_ids"] = designer_ids
+                    game_data["developer_ids"] = developer_ids
+                    created_game = await game_manager.create_from_dict(game_data)
+                    self._games.append(created_game)
+            return self._games
 
-@pytest_asyncio.fixture(scope="function")
-async def setup_cards(init_db, card_manager,
-                    card_test_data, setup_games):
-    """Create test cards for read operations."""
-    cards = []
-    for card_data in card_test_data:
-        card_data["game_id"] = random.choice(setup_games).id
-        created_card = await card_manager.create_from_dict(card_data)
-        cards.append(created_card)
-    return cards
+        async def decks(self):
+            if self._decks is None:
+                users = await self.users()
+                games = await self.games()
+                self._decks = []
+                for deck_data in deck_test_data:
+                    deck_data["owner_id"] = random.choice(users).id
+                    deck_data["game_id"] = random.choice(games).id
+                    created_deck = await deck_manager.create_from_dict(deck_data)
+                    self._decks.append(created_deck)
+            return self._decks
 
-@pytest_asyncio.fixture(scope="function")
-async def setup_decks_no_cards(init_db, deck_manager, 
-                            deck_test_data, setup_users, setup_games):
-    """Create test decks for read operations."""
-    # Create decks
-    created_decks = []
-    for deck_data in deck_test_data:
-        deck_data["owner_id"] = random.choice(setup_users).id
-        deck_data["game_id"] = random.choice(setup_games).id
-        created_deck = await deck_manager.create_from_dict(deck_data)
-        created_decks.append(created_deck)
-    return created_decks
+        async def cards(self):
+            if self._cards is None:
+                games = await self.games()
+                self._cards = []
+                for card_data in card_test_data:
+                    card_data["game_id"] = random.choice(games).id
+                    created_card = await card_manager.create_from_dict(card_data)
+                    self._cards.append(created_card)
+            return self._cards
+        @property
+        async def card(self):
+            if self._cards is None:
+                await self.cards()
+            return random.choice(self._cards)
+        @property
+        async def deck(self):
+            if self._decks is None:
+                await self.decks()
+            return random.choice(self._decks)
+
+        @property
+        async def user(self):
+            if self._users is None:
+                await self.users()
+            return random.choice(self._users)
+        @property
+        async def game(self):
+            if self._games is None:
+                await self.games()
+            return random.choice(self._games)
+
+        async def begin(self):
+            await self.users()
+            await self.games()
+            await self.decks()
+            await self.cards()
+    setup_instance = Setup()
+    await setup_instance.begin()
+    return setup_instance

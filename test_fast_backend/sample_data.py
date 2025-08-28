@@ -144,6 +144,7 @@ def game_test_data() -> list[dict[str, Any]]:
             "release_date": datetime(1999, 2, 4),
         },
     ]
+
 @pytest.fixture
 def all_test_data(user_test_data, card_test_data, deck_test_data, game_test_data):
     """Composite fixture that provides all test data."""

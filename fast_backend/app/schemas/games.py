@@ -3,10 +3,10 @@ from datetime import datetime
 
 from beanie.odm.fields import PydanticObjectId
 
-from .base import BaseSchema
+from .base import SettingsSchema
 from .users import UserListItem
 
-class GameBase(BaseSchema):
+class GameBase(SettingsSchema):
     name: str
     version: str = "0.0.0"
 

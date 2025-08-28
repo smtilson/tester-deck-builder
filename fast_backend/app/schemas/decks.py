@@ -7,13 +7,13 @@ from fast_backend.app.schemas import UserResponse
 from .deck_cards import DeckCardListItem
 from .users import UserListItem
 from .games import GameListItem
-from .base import BaseSchema
+from .base import SettingsSchema
 
-class DeckBase(BaseSchema):
+class DeckBase(SettingsSchema):
     name: str
     # maybe this should just be set to 1.0 or something in the create method of the manager.
     # it is already set in the base schema
-    # version: str = "0.0.0"
+    version: str = "1.0.0"
 
 class DeckCreate(DeckBase):
     owner_id: PydanticObjectId
@@ -25,6 +25,7 @@ class DeckCreate(DeckBase):
 class DeckUpdate(DeckBase):
     name: Optional[str] = None
     is_public: Optional[bool] = None
+    # should the version number be something that is computed?
     version: Optional[str] = None
 
 

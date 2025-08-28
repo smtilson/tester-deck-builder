@@ -2,11 +2,11 @@ from typing import Optional
 from beanie.odm.fields import PydanticObjectId
 from datetime import datetime
 
-from .base import BaseSchema
+from .base import SettingsSchema
 from .games import GameListItem
 
 
-class CardBase(BaseSchema):
+class CardBase(SettingsSchema):
     name: str
     version: str = "0.0.0"
     
