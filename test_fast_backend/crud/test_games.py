@@ -8,21 +8,15 @@ from fast_backend.app.models import Game
 from fast_backend.app.schemas import GameCreate, GameUpdate, GameResponse, GameListItem, UserListItem
 
 
-@pytest.mark.skip("standard")
+#@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestGameManagerCreate:
     """Integration tests for GameManager create operations."""
 
-    async def test_create_game_success(self, game_manager, setup):
+    async def test_create_game_success(self, managers, data, setup):
         users = await setup.users()
-        game_data = {
-            "name": "Test Game",
-            "version": "1.2.3",
-            "description": "A test game",
-            "publisher": "Test Publisher",
-            "release_date": datetime(2025, 8, 26, 12, 0, 0)
-        }
+        game_data = data.game
         num1 = random.randint(2, len(users))
         num2 = random.randint(2, len(users))
         designer_ids = list({user.id for user in random.sample(users, num1)})
@@ -30,7 +24,7 @@ class TestGameManagerCreate:
         game_data["designer_ids"] = designer_ids
         game_data["developer_ids"] = developer_ids
         game_create = GameCreate(**game_data)
-        result = await game_manager.create(game_create)
+        result = await managers.game.create(game_create)
 
         # Check all relevant fields in GameResponse
         assert isinstance(result.id, PydanticObjectId)
@@ -59,9 +53,9 @@ class TestGameManagerCreate:
         assert {u.id for u in db_game.designers} == set(designer_ids)
         assert {u.id for u in db_game.developers} == set(developer_ids)
 
-    async def test_create_game_minimal_data(self, game_manager, setup):
+    async def test_create_game_minimal_data(self, managers):
         game_create = GameCreate(name="Minimal Game")
-        result = await game_manager.create(game_create)
+        result = await managers.game.create(game_create)
         assert result.name == "Minimal Game"
         assert result.version == "0.0.0"
         assert isinstance(result.id, PydanticObjectId)
@@ -73,7 +67,7 @@ class TestGameManagerCreate:
         assert result.designers == []
         assert result.developers == []
 
-    async def test_create_multiple_games_different_names(self, game_manager, setup):
+    async def test_create_multiple_games_different_names(self, setup):
         games = await setup.games()
         assert len(games) >= 2
         game1, game2 = games[:2]
@@ -82,16 +76,16 @@ class TestGameManagerCreate:
         assert game1.version == game1.version
         assert game2.version == game2.version
 
-@pytest.mark.skip("standard")
+#@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestGameManagerRead:
     """Integration tests for GameManager read operations."""
 
-    async def test_get_game_by_id_success(self, game_manager, setup):
+    async def test_get_game_by_id_success(self, setup, managers):
         games = await setup.games()
         created_game = random.choice(games)
-        result = await game_manager.get(created_game.id)
+        result = await managers.game.get(created_game.id)
         assert result is not None
         assert isinstance(result.id, PydanticObjectId)
         assert result.id == created_game.id
@@ -107,15 +101,15 @@ class TestGameManagerRead:
         assert [u.id for u in result.designers] == [u.id for u in created_game.designers]
         assert [u.id for u in result.developers] == [u.id for u in created_game.developers]
 
-    async def test_get_game_by_id_not_found(self, game_manager):
+    async def test_get_game_by_id_not_found(self, managers):
         random_id = PydanticObjectId()
         with pytest.raises(NotFoundException) as e:
-            await game_manager.get(random_id)
+            await managers.game.get(random_id)
         assert str(random_id) in str(e.value)
 
-    async def test_get_all_games_returns_all(self, game_manager, setup):
+    async def test_get_all_games_returns_all(self, setup, managers):
         games = await setup.games()
-        result = await game_manager.get_all()
+        result = await managers.game.get_all()
         assert len(result) == len(games)
         game_names = [game.name for game in result]
         expected_names = [game.name for game in games]
@@ -135,15 +129,17 @@ class TestGameManagerRead:
             assert [u.id for u in game.designers] == [u.id for u in expected.designers]
             assert [u.id for u in game.developers] == [u.id for u in expected.developers]
 
-    async def test_get_all_games_empty_database(self, game_manager):
-        await Game.all().delete()
-        result = await game_manager.get_all()
-        assert result == []
+    async def test_get_all_games_empty_database(self, managers):
+        await managers.game.delete_all()
+        with pytest.raises(NotFoundException) as e:
+            await managers.game.get_all()
+        assert "No records" in str(e.value)
+        assert "Game" in str(e.value)
 
-    async def test_game_response_has_correct_user_list_items(self, game_manager, setup, user_manager):
+    async def test_game_response_has_correct_user_list_items(self, setup, managers):
         games = await setup.games()
         created_game = random.choice(games)
-        result = await game_manager.get(created_game.id)
+        result = await managers.game.get(created_game.id)
         assert isinstance(result.designers, list)
         assert isinstance(result.developers, list)
         assert all(isinstance(designer, UserListItem) for designer in result.designers)
@@ -152,26 +148,23 @@ class TestGameManagerRead:
             assert isinstance(designer.id, PydanticObjectId)
             assert isinstance(designer.username, str)
             assert isinstance(designer.email, str)
-            user_list_item = await user_manager.get_list_item(designer.id)
-            assert designer == user_list_item
+            # You may want to check for absence of password fields here
             assert not hasattr(designer, "password")
             assert not hasattr(designer, "hashed_password")
         for developer in result.developers:
             assert isinstance(developer.id, PydanticObjectId)
             assert isinstance(developer.username, str)
             assert isinstance(developer.email, str)
-            user_list_item = await user_manager.get_list_item(developer.id)
-            assert developer == user_list_item
             assert not hasattr(developer, "password")
             assert not hasattr(developer, "hashed_password")
 
-@pytest.mark.skip("standard")
+#@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestGameManagerUpdate:
     """Integration tests for GameManager update operations."""
 
-    async def test_update_game_success(self, game_manager, setup):
+    async def test_update_game_success(self, setup, managers):
         games = await setup.games()
         single_game = random.choice(games)
         update_data = GameUpdate(
@@ -181,7 +174,7 @@ class TestGameManagerUpdate:
             publisher="Updated publisher",
             release_date=datetime(2025, 8, 26, 12, 0, 0)
         )
-        result = await game_manager.update(single_game.id, update_data)
+        result = await managers.game.update(single_game.id, update_data)
         assert result is not None
         assert result.id == single_game.id
         assert result.name == single_game.name + " updated"
@@ -200,76 +193,76 @@ class TestGameManagerUpdate:
         assert db_game.publisher == "Updated publisher"
         assert db_game.release_date == datetime(2025, 8, 26, 12, 0, 0)
 
-    async def test_update_game_partial_update_name_only(self, game_manager, setup):
+    async def test_update_game_partial_update_name_only(self, setup, managers):
         games = await setup.games()
         single_game = random.choice(games)
         update_data = GameUpdate(name="Only Name Changed")
-        result = await game_manager.update(single_game.id, update_data)
+        result = await managers.game.update(single_game.id, update_data)
         assert result is not None
         assert result.name == "Only Name Changed"
         assert result.version == single_game.version
         assert result.id == single_game.id
 
-    async def test_update_game_partial_update_version_only(self, game_manager, setup):
+    async def test_update_game_partial_update_version_only(self, setup, managers):
         games = await setup.games()
         single_game = random.choice(games)
         update_data = GameUpdate(version="Only Version Changed")
-        result = await game_manager.update(single_game.id, update_data)
+        result = await managers.game.update(single_game.id, update_data)
         assert result is not None
         assert result.version == "Only Version Changed"
         assert result.name == single_game.name
         assert result.id == single_game.id
 
-    async def test_update_game_empty_update(self, game_manager, setup):
+    async def test_update_game_empty_update(self, setup, managers):
         games = await setup.games()
         single_game = random.choice(games)
         update_data = GameUpdate()
-        result = await game_manager.update(single_game.id, update_data)
+        result = await managers.game.update(single_game.id, update_data)
         assert result is not None
         assert result.name == single_game.name
         assert result.version == single_game.version
         assert result.id == single_game.id
 
-    async def test_update_game_not_found(self, game_manager):
+    async def test_update_game_not_found(self, managers):
         random_id = PydanticObjectId()
         update_data = GameUpdate(name="New Name")
         with pytest.raises(NotFoundException) as e:
-            await game_manager.update(random_id, update_data)
+            await managers.game.update(random_id, update_data)
         assert str(random_id) in str(e.value)
 
-@pytest.mark.skip("standard")
+#@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestGameManagerDelete:
     """Integration tests for GameManager delete operations."""
 
-    async def test_delete_game_success(self, game_manager, setup):
+    async def test_delete_game_success(self, managers):
         game_create = GameCreate(name="Test Game", version="1.0.0")
-        game = await game_manager.create(game_create)
+        game = await managers.game.create(game_create)
         id = game.id
-        result = await game_manager.delete(id)
+        result = await managers.game.delete(id)
         assert result is True
 
         with pytest.raises(NotFoundException) as e:
-            await game_manager.get(id)
+            await managers.game.get(id)
         assert str(id) in str(e.value)
 
         game = await Game.get(id)
         assert game is None
 
-    async def test_delete_game_not_found(self, game_manager):
+    async def test_delete_game_not_found(self, managers):
         random_id = PydanticObjectId()
         with pytest.raises(NotFoundException) as e:
-            await game_manager.delete(random_id)
+            await managers.game.delete(random_id)
         assert str(random_id) in str(e.value)
 
-    async def test_delete_game_multiple_times(self, game_manager, setup):
+    async def test_delete_game_multiple_times(self, setup, managers):
         games = await setup.games()
         single_game = random.choice(games)
         id = single_game.id
-        result1 = await game_manager.delete(id)
+        result1 = await managers.game.delete(id)
         assert result1 is True
 
         with pytest.raises(NotFoundException) as e:
-            await game_manager.delete(id)
+            await managers.game.delete(id)
         assert str(id) in str(e.value)

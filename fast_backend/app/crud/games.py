@@ -19,13 +19,14 @@ class GameManager(BaseManager[GameModel, GameCreate, GameUpdate, GameResponse, G
         await game.fetch_link(self.doc_model.developers)
         return game
 
-    async def create(self, item_in: GameCreate) -> Optional[GameResponse]:
-        game_data = item_in.model_dump(exclude={"designer_ids", "developer_ids"})
-        designer_id_set = set(item_in.designer_ids or [])
-        developer_id_set = set(item_in.developer_ids or [])
-        game_obj = self.doc_model(**game_data)
+    async def create_from_dict(self, item_data: dict) -> GameModel:
+        designer_id_set = set(item_data["designer_ids"] or [])
+        developer_id_set = set(item_data["developer_ids"] or [])
+        del item_data["designer_ids"]
+        del item_data["developer_ids"]
+        game_obj = self.doc_model(**item_data)
         if designer_id_set:
-            designers = await User.find({"_id": 
+            designers = await User.find({"_id":
                 {"$in": list(designer_id_set)}}).to_list()
             if designers:
                 game_obj.designers = cast(Sequence[Link[User]], designers)
@@ -35,14 +36,7 @@ class GameManager(BaseManager[GameModel, GameCreate, GameUpdate, GameResponse, G
             if developers:
                 game_obj.developers = cast(Sequence[Link[User]], developers)
         await game_obj.insert()
-        
-        if game_obj.id:
-            return await self.get(game_obj.id)
-        raise Exception(f"There was an error when attemption to create game based on {item_in}")
-    
-    async def get(self, game_id:PydanticObjectId) ->GameResponse:
-        game = await self.get_model(game_id)
-        return GameResponse.model_validate(game)
-    
+        return game_obj
+
     async def get_by_name(self, name: str) -> GameResponse:
         return await self._get_by_key("name", name)

@@ -23,16 +23,14 @@ class DeckManager(BaseManager[DeckModel, DeckCreate, DeckUpdate, DeckResponse, D
         await deck.fetch_link(self.doc_model.owner)
         await deck.fetch_link(self.doc_model.game)
         return deck
-        
-    async def create(self, item_in: DeckCreate) -> DeckResponse:
-        deck_data = item_in.model_dump(exclude={"owner_id","game_id"})
-        owner = await User.get(item_in.owner_id)
-        game = await Game.get(item_in.game_id)
-        #del deck_data["version"]
-        deck_obj = self.doc_model(**deck_data)
+    async def create_from_dict(self, item_data: dict) -> DeckModel:
+        owner = await User.get(item_data["owner_id"])
+        game = await Game.get(item_data["game_id"])
+        del item_data["owner_id"]
+        del item_data["game_id"]
+        deck_obj = self.doc_model(**item_data)
         deck_obj.owner = cast(Link[User], owner)
         deck_obj.game = cast(Link[Game],game)
         await deck_obj.insert()
-        if deck_obj.id:
-            return await self.get(deck_obj.id)
-        raise Exception(f"There was an error creating a deck based on {item_in}.")
+        return deck_obj
+    #refactor this to use create_from_dict   

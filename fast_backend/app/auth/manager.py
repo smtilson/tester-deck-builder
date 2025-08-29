@@ -54,6 +54,12 @@ class UserManager(ObjectIDIDMixin, BaseUserManager[User, PydanticObjectId]):
         await super().delete(user)
         return True
 
+    async def delete_all(self) -> bool:
+        users = await User.find_all().to_list()
+        for user in users:
+            await super().delete(user)
+        return True
+
     async def _get_by_key(self, key: str, value: str) -> UserResponse:
         try:
             user = await User.find_one({key: value})

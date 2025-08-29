@@ -1,1 +1,0 @@
-# see the UserManager class in fast_backend.app.auth.manager

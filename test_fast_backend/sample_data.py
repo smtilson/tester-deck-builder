@@ -145,24 +145,39 @@ def game_test_data() -> list[dict[str, Any]]:
         },
     ]
 
-@pytest.fixture
-def all_test_data(user_test_data, card_test_data, deck_test_data, game_test_data):
-    """Composite fixture that provides all test data."""
 
-    class TestData:
-        def __init__(self, already_picked=None):
-            self.user_data = user_test_data
-            self.card_data = card_test_data
-            #self.deck_card_data = deck_card_test_data
-            self.game_data = game_test_data
-            self.deck_data = deck_test_data
-            # I don't think I need the id business
-            #self.default_user_id = deck_test_data[0]["owner_id"]
-            if already_picked is None:
-                self.already_picked = {"users":set(),"cards":set(),"decks":set(),"deck_cards":set(),"games":set()}
-            else:
-                self.already_picked = already_picked            
-        
+@pytest.fixture(scope="function")
+def data(user_test_data, game_test_data, card_test_data, deck_test_data):
+    class DataDict:
+        def __init__(self, users, games, cards, decks, picked=None):
+            self.users = users
+            self.games = games
+            self.cards = cards
+            self.decks = decks
+            
+        def _pick_random(self, data_list):
+            random.shuffle(data_list)
+            try:
+                return data_list.pop()
+            except IndexError:
+                raise ValueError("All items have been picked.")
+
+        @property
+        def user(self):
+            return self._pick_random(self.users)
+
+        @property
+        def game(self):
+            return self._pick_random(self.games)
+
+        @property
+        def card(self):
+            return self._pick_random(self.cards)
+
+        @property
+        def deck(self):
+            return self._pick_random(self.decks)
+
         def _get_by_key(self, data_list, key, value) -> dict[str, Any]:
             """Generic method to get an item by key from a list of dicts."""
             for item in data_list:
@@ -188,31 +203,8 @@ def all_test_data(user_test_data, card_test_data, deck_test_data, game_test_data
             return [dc for dc in self.deck_card_data if dc["deck_id"] == deck_id]
         '''
 
-        def _pick_random(self, data_list, data_type, attr):
-            if len(self.already_picked[data_type]) == len(data_list):
-                raise ValueError(f"All {data_type}s have been picked")
-            item = random.choice(data_list)
-            while item[attr] in self.already_picked[data_type]:
-                item = random.choice(data_list)
-            self.already_picked[data_type].add(item[attr])
-            return item
+       
+        
+    return DataDict(user_test_data, game_test_data, card_test_data, deck_test_data, picked=None)
 
-        @property
-        def game(self) -> dict[str, Any]:
-            return self._pick_random(self.game_data, "games", "name")
-
-        @property
-        def card(self) -> dict[str, Any]:
-            return self._pick_random(self.card_data, "cards", "name")
-
-        @property
-        def user(self) -> dict[str, Any]:
-            return self._pick_random(self.user_data, "users", "username")
-
-        @property
-        def deck(self) -> dict[str, Any]:
-            return self._pick_random(self.deck_data, "decks", "name")
-
-
-    return TestData()
 

@@ -117,3 +117,42 @@ async def anext(agen):
     except AttributeError:
         # Fallback for Python < 3.10 if anext is not built-in
         return await agen.asend(None)
+    
+@pytest.fixture(scope="function")
+async def managers(game_manager, card_manager, deck_manager, deck_card_manager, user_manager) -> dict[str, Any]:
+
+    class ManagersRepo:
+        """Fixture to provide all manager instances."""
+        def __init__(self, game, card, deck, deck_card, user):
+            self._game = game
+            self._card = card
+            self._deck = deck
+            self._deck_card = deck_card
+            self._user = user
+
+        @property
+        def game(self):
+            return self._game
+        @property
+        def card(self):
+            return self._card
+        @property
+        def deck(self):
+            return self._deck
+        @property
+        def deck_card(self):
+            return self._deck_card
+        @property
+        def user(self):
+            return self._user
+
+        
+    manager = ManagersRepo(
+        game_manager,
+        card_manager,
+        deck_manager,
+        deck_card_manager,
+        user_manager
+    )
+    
+    return manager

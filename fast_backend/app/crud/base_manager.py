@@ -47,6 +47,12 @@ class BaseManager(Generic[DocType, CreateSchemaType, UpdateSchemaType, ResponseS
             The created item as a Pydantic schema instance.
         """
         db_obj = await self.create_from_dict(item_in.model_dump())
+        if db_obj.id:
+            return await self.get(db_obj.id)
+        raise Exception(f"There was an error when attempting to create "
+                        f"{self.doc_model.__name__} based on {item_in}.")
+
+    def present(self, db_obj:DocType) -> ResponseSchemaType:
         return self.response_schema.model_validate(db_obj)
 
     async def get_model(self, item_id: PydanticObjectId) -> DocType:
@@ -143,6 +149,10 @@ class BaseManager(Generic[DocType, CreateSchemaType, UpdateSchemaType, ResponseS
         """
         item_obj = await self.get_model(item_id)
         await item_obj.delete()
+        return True
+
+    async def delete_all(self) -> bool:
+        await self.doc_model.find_all().delete()
         return True
 
     def validate_fields(self, item_data: dict) -> bool:
