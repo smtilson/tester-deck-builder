@@ -17,6 +17,7 @@ class TestGameManagerCreate:
     async def test_create_game_success(self, managers, data, setup):
         users = await setup.users()
         game_data = data.game
+        game_data["name"] += " - new"
         num1 = random.randint(2, len(users))
         num2 = random.randint(2, len(users))
         designer_ids = list({user.id for user in random.sample(users, num1)})

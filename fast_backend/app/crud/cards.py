@@ -31,15 +31,8 @@ class CardManager(BaseManager[CardModel, CardCreate, CardUpdate, CardResponse, C
             return await self.get(card_obj.id)
         return None
 
-    async def get_model(self, item_id: PydanticObjectId) -> CardModel:
-        """Retrieve a card model by its ID."""
-        card = await super().get_model(item_id)
-        await card.fetch_link(self.doc_model.game)
-        return card
     
-    async def get_all(self) -> list[CardResponse]:
-        cards = await self.doc_model.find_all().to_list()
-        for card in cards:
-            await card.fetch_link(self.doc_model.game)
-        return [self.response_schema.model_validate(card) for card in cards]
+    async def fetch_related(self, item):
+        await item.fetch_link(self.doc_model.game)
+        
     

@@ -1,7 +1,8 @@
-from typing import Optional
+from typing import Annotated, Optional
 from beanie import Link, Indexed
 from pydantic import Field
 from datetime import datetime
+from pymongo import IndexModel, ASCENDING
 
 from .deck_cards import DeckCard
 from .users import User
@@ -10,9 +11,9 @@ from .games import Game
 
 
 class Deck(BaseDocument):
-    owner: Link[User]=Indexed()
-    name: str=Indexed()
-    game: Link[Game]=Indexed()
+    owner: Link[User]
+    name: str
+    game: Link[Game]
     description: Optional[str] = None
     version: str = "1.0.0"
     is_public: bool = Field(default=False)
@@ -27,4 +28,6 @@ class Deck(BaseDocument):
         name = "decks"
         use_state_management = True  # Enable state management for this model
         is_root = True
-        unique_together = (("name", "game", "version"),)
+        indexes = [
+            IndexModel([("name", ASCENDING), ("owner", ASCENDING), ("game", ASCENDING), ("version", ASCENDING)], unique=True)
+        ]

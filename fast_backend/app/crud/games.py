@@ -13,11 +13,9 @@ class GameManager(BaseManager[GameModel, GameCreate, GameUpdate, GameResponse, G
     def __init__(self):
         super().__init__(doc_model=GameModel, response_schema=GameResponse, list_item_schema=GameListItem)
 
-    async def get_model(self, item_id: PydanticObjectId) -> GameModel:
-        game = await super().get_model(item_id)
-        await game.fetch_link(self.doc_model.designers)
-        await game.fetch_link(self.doc_model.developers)
-        return game
+    async def fetch_related(self, item: GameModel):
+        await item.fetch_link(self.doc_model.designers)
+        await item.fetch_link(self.doc_model.developers)
 
     async def create_from_dict(self, item_data: dict) -> GameModel:
         designer_id_set = set(item_data["designer_ids"] or [])

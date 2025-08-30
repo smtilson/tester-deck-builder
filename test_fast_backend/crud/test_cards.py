@@ -103,8 +103,9 @@ class TestCardManagerRead:
 
     async def test_get_all_cards_empty_database(self, managers):
         await managers.card.delete_all()
-        result = await managers.card.get_all()
-        assert result == []
+        with pytest.raises(NotFoundException) as e:
+            await managers.card.get_all()
+        assert "No records" in str(e.value)
 
 #@pytest.mark.skip("standard")
 @pytest.mark.asyncio

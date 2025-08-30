@@ -1,15 +1,16 @@
 from datetime import datetime
-from typing import Optional
+from typing import Annotated, Optional
 
 from pydantic import Field
 from beanie import Document, Indexed, Link
+from pymongo import IndexModel, ASCENDING
 
 from .base import BaseDocument
 from .games import Game
 
 
 class Card(BaseDocument):
-    name: str = Indexed(str, unique=True)
+    name: str
     game: Optional[Link[Game]] = None
     text: Optional[str] = None
     version: str = "1.0.0"
@@ -22,4 +23,6 @@ class Card(BaseDocument):
         name = "cards"
         use_state_management = True  # Enable state management for this model
         is_root = True
-        unique_together = (("name", "game", "version"),)
+        indexes = [
+            IndexModel([("name", ASCENDING), ("game", ASCENDING), ("version", ASCENDING)], unique=True)
+        ]

@@ -3,6 +3,7 @@ from typing import Optional, Sequence
 from beanie import Link, Indexed
 from pydantic import Field
 from datetime import datetime
+from pymongo import IndexModel, ASCENDING
 
 from .base import BaseDocument
 from .users import User
@@ -21,4 +22,6 @@ class Game(BaseDocument):
         name = "games"
         use_state_management = True  # Enable state management for this model
         is_root = True
-        unique_together = (("name", "version"),)
+        indexes = [
+            IndexModel([("name", ASCENDING), ("version", ASCENDING)], unique=True)
+        ]

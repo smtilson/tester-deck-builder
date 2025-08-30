@@ -68,6 +68,7 @@ class BaseManager(Generic[DocType, CreateSchemaType, UpdateSchemaType, ResponseS
         item = await self.doc_model.get(item_id)
         if not item:
             raise NotFoundException(f"No {self.doc_model.__name__} with ID {item_id} was found.")
+        await self.fetch_related(item)
         return item
 
     async def get_list_item(self, item_id: PydanticObjectId) -> Optional[ListItemSchemaType]:
@@ -104,6 +105,10 @@ class BaseManager(Generic[DocType, CreateSchemaType, UpdateSchemaType, ResponseS
             raise NotFoundException(f"No {self.doc_model.__name__} was found with Id: {item_id}.")
         return self.response_schema.model_validate(item)
 
+    async def fetch_related(self, item: DocType):
+        #this is to be implemented by the derived class.
+        pass
+    
     async def get_all(self) -> list[ResponseSchemaType]:
         """
         Get all items.
@@ -114,6 +119,8 @@ class BaseManager(Generic[DocType, CreateSchemaType, UpdateSchemaType, ResponseS
         item_objs = await self.doc_model.find_all().to_list()
         if not item_objs:
             raise NotFoundException(f"No records were found in the {self.doc_model.__name__} table.")
+        for item in item_objs:
+            await self.fetch_related(item)
         return [self.response_schema.model_validate(item) for item in item_objs]
 
     async def update(self,

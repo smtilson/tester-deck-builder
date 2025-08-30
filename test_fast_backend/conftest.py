@@ -29,13 +29,11 @@ async def init_db():
     client = AsyncIOMotorClient("mongodb://localhost:27017")
     db = client["test_db"]
     # IMPORTANT: register your models here
-    await init_beanie(database=db, document_models=DOCUMENT_MODELS)
-
+    
     for name in await db.list_collection_names():
         await db.drop_collection(name)
-
+    await init_beanie(database=db, document_models=DOCUMENT_MODELS)
     yield db
-
     # cleanup after test
     await client.drop_database("test_db")
     client.close()

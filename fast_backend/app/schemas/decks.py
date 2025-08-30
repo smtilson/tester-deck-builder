@@ -13,7 +13,7 @@ class DeckBase(SettingsSchema):
     name: str
     # maybe this should just be set to 1.0 or something in the create method of the manager.
     # it is already set in the base schema
-    version: str = "1.0.0"
+    #version: str = "1.0.0"
 
 class DeckCreate(DeckBase):
     owner_id: PydanticObjectId
@@ -34,6 +34,7 @@ class DeckResponse(DeckBase):
     owner: UserListItem
     game: GameListItem
     description: Optional[str] = None
+    version: str
     is_public: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
