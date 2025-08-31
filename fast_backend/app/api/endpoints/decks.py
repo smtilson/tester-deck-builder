@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
+from beanie.odm.fields import PydanticObjectId
 
-from fast_backend.app.crud.decks import DeckManager as crud
+from fast_backend.app.crud.decks import DeckManager
 from fast_backend.app.schemas import (
     DeckResponse,
     DeckCreate,
@@ -14,13 +15,15 @@ router = APIRouter()
 @router.get("/", response_model=list[DeckResponse])
 async def get_decks():
     """Get all decks."""
-    return await crud.get_all_decks()
+    manager = DeckManager()
+    return await manager.get_all()
 
 
-@router.get("/{deck_id}", response_model=DeckResponse)
-async def get_deck(deck_id: int):
+@router.get("/{item_id}", response_model=DeckResponse)
+async def get_deck(item_id: PydanticObjectId):
     """Get a specific deck by ID."""
-    deck = await crud.get_deck(deck_id=deck_id)
+    manager = DeckManager()
+    deck = await manager.get(item_id)
     if not deck:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

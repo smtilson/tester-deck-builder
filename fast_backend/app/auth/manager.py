@@ -14,6 +14,7 @@ import os
 from datetime import datetime
 
 from fast_backend.app.models import User, get_user_db
+
 from fast_backend.app.schemas import UserCreate, UserUpdate, UserResponse, UserUpdatePermissions, UserListItem
 from fast_backend.app.schemas import GameListItem
 from fast_backend.app.core.exceptions import NotFoundException
@@ -33,12 +34,12 @@ class UserManager(ObjectIDIDMixin, BaseUserManager[User, PydanticObjectId]):
         # the API to be clean
         return await self.create(user)
     
-    async def create(self, user_create: UserCreate) -> UserResponse:
+    async def create(self, user_create: UserCreate, safe:bool=False, request: Optional[Request]=None) -> UserResponse:
         username = user_create.username
         exists = await User.find_one({"username": username})
         if exists is not None:
             raise UserAlreadyExists(f"A user with username: {username} already exists")
-        user = await super().create(user_create=user_create)
+        user = await super().create(user_create=user_create, safe=safe, request=request)
         return UserResponse.model_validate(user)  # type: ignore
     
     async def update(self, user_update:UserUpdate) -> UserResponse:

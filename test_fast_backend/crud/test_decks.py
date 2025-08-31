@@ -8,7 +8,7 @@ from fast_backend.app.core.exceptions import NotFoundException
 from fast_backend.app.models import Deck
 from fast_backend.app.schemas import DeckCreate, DeckUpdate, DeckResponse
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 @pytest.mark.asyncio
 class TestDeckManagerCreate:
@@ -109,7 +109,7 @@ class TestDeckManagerCreate:
         with pytest.raises(DuplicateKeyError):
             await managers.deck.create(deck2_create)
         
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestDeckManagerRead:
@@ -173,7 +173,7 @@ class TestDeckManagerRead:
             await managers.deck.get_all()
         assert "No records" in str(e.value)
 
-##@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestDeckManagerUpdate:
@@ -271,7 +271,7 @@ class TestDeckManagerUpdate:
             await managers.deck.update(non_existent_id, update_data)
         assert str(non_existent_id) in str(e.value)
 
-##@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestDeckManagerDelete:

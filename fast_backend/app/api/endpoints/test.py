@@ -35,15 +35,6 @@ async def test_db_connection():
             raise HTTPException(
                 status_code=500, detail="Test document not found after insertion."
             )
-        return {
-            "status": "success",
-            "message": "Database connection is working",
-            "data": {
-                "deck_count": deck_count,
-                "card_count": card_count,
-                "deck_card_count": deck_card_count,
-            },
-        }
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Database connection error: {str(e)}"
@@ -53,52 +44,3 @@ async def test_db_connection():
 @router.get("/")
 async def test_route():
     return {"message": "Test route"}
-
-
-@router.get("/add-test")
-async def test_add_card(request: Request):
-    try:
-        await drop_db(client=request.app.state.db_client)
-        msg = "Database dropped successfully"
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Error dropping database: {str(e)}"
-        )
-    sample_data = {"name": "test card", "text": "This is a test card"}
-    try:
-        print("in try block")
-        card_in = CardCreate(**sample_data)
-        print("card_in schema created")
-        card = await CardManager.create(card_in=card_in)
-        print("cardrepo method called")
-        return {
-            "earlier_message": msg,
-            "message": "Card added successfully",
-            "card": card,
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error adding card: {str(e)}")
-
-
-@router.get("/get_test")
-async def test_get_card():
-    try:
-        cards = await CardManager.get_all()
-        if cards:
-            return {"message": "Cards retrieved successfully", "cards": cards}
-        else:
-            raise HTTPException(status_code=404, detail="No cards found")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving card: {str(e)}")
-
-
-@router.get("/drop-db")
-async def test_drop_db(request: Request):
-    try:
-        client = request.app.state.db_client
-        await drop_db(client=client)
-        return {"message": "Database dropped successfully"}
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Error dropping database: {str(e)}"
-        )

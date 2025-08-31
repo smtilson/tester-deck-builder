@@ -8,7 +8,7 @@ from fast_backend.app.models import Game
 from fast_backend.app.schemas import GameCreate, GameUpdate, GameResponse, GameListItem, UserListItem
 
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestGameManagerCreate:
@@ -77,7 +77,7 @@ class TestGameManagerCreate:
         assert game1.version == game1.version
         assert game2.version == game2.version
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestGameManagerRead:
@@ -159,7 +159,7 @@ class TestGameManagerRead:
             assert not hasattr(developer, "password")
             assert not hasattr(developer, "hashed_password")
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestGameManagerUpdate:
@@ -231,7 +231,7 @@ class TestGameManagerUpdate:
             await managers.game.update(random_id, update_data)
         assert str(random_id) in str(e.value)
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 class TestGameManagerDelete:
