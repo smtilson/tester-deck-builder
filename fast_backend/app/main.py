@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from fast_backend.app.core.config_app import Environment, settings
 from fast_backend.app.db.config_db import init_db, close_db
 from fast_backend.app.health import router as health_check_router
-#from fast_backend.app.auth.fast_api_users_instance import fastapi_users
+from fast_backend.app.exceptions import validation_exception_handler, ValidationError
 
 # from fast_backend.app.users.routes import router as users_router
 from fast_backend.app.api.routes import router as api_router

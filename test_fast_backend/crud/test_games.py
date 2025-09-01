@@ -3,7 +3,7 @@ import random
 from beanie.odm.fields import PydanticObjectId
 from datetime import datetime
 
-from fast_backend.app.core.exceptions import NotFoundException
+from fast_backend.app.exceptions import NotFoundException
 from fast_backend.app.models import Game
 from fast_backend.app.schemas import GameCreate, GameUpdate, GameResponse, GameListItem, UserListItem
 

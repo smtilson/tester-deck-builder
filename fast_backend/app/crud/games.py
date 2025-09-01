@@ -6,7 +6,7 @@ from beanie import Link
 from fast_backend.app.models import Game as GameModel
 from fast_backend.app.schemas import GameCreate, GameUpdate, GameResponse, GameListItem
 from fast_backend.app.models import User
-from fast_backend.app.core.exceptions import NotFoundException
+from fast_backend.app.exceptions import NotFoundException
 from fast_backend.app.crud.base_manager import BaseManager
 
 class GameManager(BaseManager[GameModel, GameCreate, GameUpdate, GameResponse, GameListItem]):

@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from fast_backend.app.models import Card as CardModel
 from fast_backend.app.schemas import CardCreate, CardUpdate, CardResponse
-from fast_backend.app.core.exceptions import NotFoundException
+from fast_backend.app.exceptions import NotFoundException
 
 
 # Define generic types for our models and schemas

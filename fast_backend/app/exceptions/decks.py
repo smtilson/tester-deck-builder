@@ -1,5 +1,5 @@
 from fast_backend.app.models import Deck
-from .base import BaseCustomException
+from .general import BaseCustomException
 
 
 class DecksException(BaseCustomException):

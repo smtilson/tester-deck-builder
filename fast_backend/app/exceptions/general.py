@@ -1,5 +1,6 @@
-# app/core/exceptions.py
-
+class BaseCustomException(Exception):
+    """Base exception for app"""
+    pass
 
 class NotFoundException(Exception):
     def __init__(self, message: str = "Record not found"):

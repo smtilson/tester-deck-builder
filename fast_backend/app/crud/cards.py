@@ -5,7 +5,7 @@ from datetime import datetime
 
 from fast_backend.app.models import Card as CardModel
 from fast_backend.app.schemas import CardCreate, CardUpdate, CardResponse, CardListItem
-from fast_backend.app.core.exceptions import NotFoundException
+from fast_backend.app.exceptions import NotFoundException
 from fast_backend.app.crud.base_manager import BaseManager
 from fast_backend.app.models import Game as GameModel
 

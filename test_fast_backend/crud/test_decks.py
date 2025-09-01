@@ -4,7 +4,7 @@ from beanie.odm.fields import PydanticObjectId
 from pymongo.errors import DuplicateKeyError
 from datetime import datetime
 
-from fast_backend.app.core.exceptions import NotFoundException
+from fast_backend.app.exceptions import NotFoundException
 from fast_backend.app.models import Deck
 from fast_backend.app.schemas import DeckCreate, DeckUpdate, DeckResponse
 

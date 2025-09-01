@@ -3,7 +3,7 @@ import random
 from beanie.odm.fields import PydanticObjectId
 from pydantic_core import ValidationError
 
-from fast_backend.app.core.exceptions import NotFoundException
+from fast_backend.app.exceptions import NotFoundException
 from fast_backend.app.models import Card
 from fast_backend.app.schemas import CardCreate, CardUpdate, CardResponse
 

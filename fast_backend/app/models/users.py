@@ -7,6 +7,7 @@ from pydantic import Field
 from pymongo import IndexModel, ASCENDING
 
 from .base import BaseDocument
+from fast_backend.app.schemas import UserResponse, UserListItem
 
 # Docs say it should be BeanieBaseUser[PydanticObjectId]
 # but the documentation on the github repo is different.
@@ -20,6 +21,7 @@ class User(BeanieBaseUser, Document):
     developing: list[Link["Game"]] = Field(default_factory=list)  # type: ignore
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
+    hashed_password: str
     class Settings(BeanieBaseUser.Settings):
         name = "users"
         use_state_management = True  # Enable state management for this model
@@ -28,6 +30,12 @@ class User(BeanieBaseUser, Document):
             IndexModel([("username", ASCENDING)], unique=True),
             IndexModel([("email", ASCENDING)], unique=True),
         ]
+        
+    def to_resp(self) -> "UserResponse":
+        return UserResponse.model_validate(self)
+
+    def to_list_item(self) -> "UserListItem":
+        return UserListItem.model_validate(self)
 
 
 async def get_user_db():
