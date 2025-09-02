@@ -3,7 +3,7 @@ from beanie.odm.fields import PydanticObjectId
 from datetime import datetime
 
 from .base import SettingsSchema
-from .games import GameListItem
+from .games import GameLink
 
 
 class CardBase(SettingsSchema):
@@ -21,9 +21,9 @@ class CardUpdate(CardBase):
     text: Optional[str] = None
     version: Optional[str] = None
 
-class CardListItem(CardBase):
+class CardLink(CardBase):
     id: PydanticObjectId
-    game: Optional[GameListItem] = None
+    game: Optional[GameLink] = None
 
 class CardResponse(CardListItem):
     text: Optional[str] = None

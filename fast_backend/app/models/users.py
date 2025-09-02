@@ -6,7 +6,7 @@ from beanie.odm.fields import PydanticObjectId
 from pydantic import Field
 from pymongo import IndexModel, ASCENDING
 
-from .base import BaseDocument
+from .base import BaseDocument, MinLink
 from fast_backend.app.schemas import UserResponse, UserListItem
 
 # Docs say it should be BeanieBaseUser[PydanticObjectId]
@@ -37,6 +37,15 @@ class User(BeanieBaseUser, Document):
     def to_list_item(self) -> "UserListItem":
         return UserListItem.model_validate(self)
 
+    def to_link(self) -> "UserLink":
+        return UserLink(
+            link=Link[User](self.id, User),
+            id=self.id,
+            username=self.username,
+        )
+class UserLink(MinLink):
+    link: Link[User]
+    username: str
 
 async def get_user_db():
     yield BeanieUserDatabase(User)  # type: ignore

@@ -5,15 +5,15 @@ from datetime import datetime
 from pymongo import IndexModel, ASCENDING
 
 from .deck_cards import DeckCard
-from .users import User
-from .base import BaseDocument
-from .games import Game
+from .users import UserLink
+from .base import BaseDocument, BaseLink
+from .games import GameLink
 
 
 class Deck(BaseDocument):
-    owner: Link[User]
+    owner: UserLink
     name: str
-    game: Link[Game]
+    game: GameLink
     description: Optional[str] = None
     version: str = "1.0.0"
     is_public: bool = Field(default=False)
@@ -24,6 +24,17 @@ class Deck(BaseDocument):
     #
     cards: list[DeckCard] = Field(default_factory=list)
 
+    def to_link(self) -> "DeckLink":
+        return DeckLink(
+            link=Link[Deck](self.id, Deck),
+            id=self.id,
+            name=self.name,
+            version=self.version,
+            owner=self.owner,
+            game=self.game,
+            is_public=self.is_public
+        )
+
     class Settings(BaseDocument.Settings):
         name = "decks"
         use_state_management = True  # Enable state management for this model
@@ -31,3 +42,9 @@ class Deck(BaseDocument):
         indexes = [
             IndexModel([("name", ASCENDING), ("owner", ASCENDING), ("game", ASCENDING), ("version", ASCENDING)], unique=True)
         ]
+
+class DeckLink(BaseLink):
+    link: Link[Deck]
+    owner: UserLink
+    game: GameLink
+    is_public: bool

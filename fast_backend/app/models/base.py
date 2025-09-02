@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import Field
-from beanie import Document
+from pydantic import Field, BaseModel
+from beanie import Document, PydanticObjectId, Link
 
 
 class BaseDocument(Document):
@@ -12,3 +12,11 @@ class BaseDocument(Document):
     class Settings:
         is_root = False
         use_state_management = True
+class MinLink(BaseModel):
+    link: Link
+    id: PydanticObjectId
+    
+class BaseLink(MinLink):
+    name: str
+    version: str
+

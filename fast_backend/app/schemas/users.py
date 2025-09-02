@@ -48,10 +48,9 @@ class UserResponse(UserBase):
     updated_at: Optional[datetime] = None
 
 
-class UserListItem(UserBase):
+class UserLink(MinUserBase):
     id: PydanticObjectId
-    # there should maybe be two of these, one for staff and one for users
-
+    username: str
 
 class UserUpdatePermissions(SettingsSchema):
     is_staff: Optional[bool] = None

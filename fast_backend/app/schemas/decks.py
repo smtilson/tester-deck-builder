@@ -4,9 +4,10 @@ from beanie.odm.fields import PydanticObjectId
 from datetime import datetime
 
 from fast_backend.app.schemas import UserResponse
+from fast_backend.app.schemas import GameResponse
 from .deck_cards import DeckCardListItem
-from .users import UserListItem
-from .games import GameListItem
+from .users import UserLink
+from .games import GameLink
 from .base import SettingsSchema
 
 class DeckBase(SettingsSchema):
@@ -31,8 +32,8 @@ class DeckUpdate(DeckBase):
 
 class DeckResponse(DeckBase):
     id: PydanticObjectId
-    owner: UserListItem
-    game: GameListItem
+    owner: UserLink
+    game: GameLink
     description: Optional[str] = None
     version: str
     is_public: bool
@@ -43,6 +44,12 @@ class DeckListItem(DeckBase):
     id: PydanticObjectId
     owner: UserListItem
     game: GameListItem
+    is_public: bool
+
+class DeckLink(DeckBase):
+    id: PydanticObjectId
+    owner: UserLink
+    game: GameLink
     is_public: bool
 
 class DeckResponseWithCards(DeckResponse):

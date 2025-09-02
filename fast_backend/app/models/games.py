@@ -1,20 +1,20 @@
 from datetime import datetime
 from typing import Optional, Sequence
-from beanie import Link, Indexed
-from pydantic import Field
+from beanie import Link, Indexed, PydanticObjectId
+from pydantic import Field, BaseModel
 from datetime import datetime
 from pymongo import IndexModel, ASCENDING
 
-from .base import BaseDocument
-from .users import User
+from .base import BaseDocument, BaseLink
+from .users import UserLink
 
 
 class Game(BaseDocument):
     name: str=Indexed(unique=True)
     version: str = "0.0.0"
     description: Optional[str] = None
-    designers: Sequence[Link[User]] = Field(default_factory=list)
-    developers: Sequence[Link[User]] = Field(default_factory=list)
+    designers: Sequence[UserLink] = Field(default_factory=list)
+    developers: Sequence[UserLink] = Field(default_factory=list)
     publisher: Optional[str] = None
     release_date: Optional[datetime] = None
 
@@ -25,3 +25,6 @@ class Game(BaseDocument):
         indexes = [
             IndexModel([("name", ASCENDING), ("version", ASCENDING)], unique=True)
         ]
+
+class GameLink(BaseLink):
+    link: Link[Game]
