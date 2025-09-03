@@ -8,11 +8,10 @@ from fastapi_users.schemas import CreateUpdateDictModel as CUDM
 from datetime import datetime
 
 from .base import SettingsSchema
+from .list_items import GameListItem
 
-
-class MinUserBase(SettingsSchema, CUDM):
-    pass
-class UserBase(MinUserBase):
+    
+class UserBase(SettingsSchema, CUDM):
     username: str
     email: str
 
@@ -20,7 +19,6 @@ class UserBase(MinUserBase):
 class UserCreate(UserBase):
     password: str
     confirm_password: str
-
 
 class UserLogin(UserBase):
     username: Optional[str] = None
@@ -34,23 +32,18 @@ class UserUpdate(UserBase):
     name: Optional[str] = None
     email: Optional[str] = None
     password: Optional[str] = None
-    
 
 
 class UserResponse(UserBase):
     id: PydanticObjectId
     is_staff: bool = False
     name: Optional[str] = None
-    playtesting: list["GameListItem"] = Field(default_factory=list)
-    designing: list["GameListItem"] = Field(default_factory=list)
-    developing: list["GameListItem"] = Field(default_factory=list)
+    playtesting: list[GameListItem] = Field(default_factory=list)
+    designing: list[GameListItem] = Field(default_factory=list)
+    developing: list[GameListItem] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
 
-
-class UserLink(MinUserBase):
-    id: PydanticObjectId
-    username: str
 
 class UserUpdatePermissions(SettingsSchema):
     is_staff: Optional[bool] = None

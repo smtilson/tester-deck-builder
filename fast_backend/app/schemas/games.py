@@ -4,7 +4,7 @@ from datetime import datetime
 from beanie.odm.fields import PydanticObjectId
 
 from .base import SettingsSchema
-from .users import UserLink
+from .list_items import UserListItem, GameListItem
 
 class GameBase(SettingsSchema):
     name: str
@@ -24,14 +24,10 @@ class GameUpdate(GameCreate):
     version: Optional[str] = None
     
 
-class GameLink(GameBase):
-    id: PydanticObjectId
-
-
-class GameResponse(GameLink):
+class GameResponse(GameListItem):
     description: Optional[str] = None
-    designers: Optional[list[UserLink]] = None
-    developers: Optional[list[UserLink]] = None
+    designers: Optional[list[UserListItem]] = None
+    developers: Optional[list[UserListItem]] = None
     publisher: Optional[str] = None
     release_date: Optional[datetime] = None
     created_at: datetime

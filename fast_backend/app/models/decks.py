@@ -3,11 +3,12 @@ from beanie import Link, Indexed
 from pydantic import Field
 from datetime import datetime
 from pymongo import IndexModel, ASCENDING
+from bson import ObjectId
 
 from .deck_cards import DeckCard
-from .users import UserLink
-from .base import BaseDocument, BaseLink
-from .games import GameLink
+from .links import UserLink, GameLink
+from .base import BaseDocument
+from fast_backend.app.schemas import DeckListItem
 
 
 class Deck(BaseDocument):
@@ -24,17 +25,6 @@ class Deck(BaseDocument):
     #
     cards: list[DeckCard] = Field(default_factory=list)
 
-    def to_link(self) -> "DeckLink":
-        return DeckLink(
-            link=Link[Deck](self.id, Deck),
-            id=self.id,
-            name=self.name,
-            version=self.version,
-            owner=self.owner,
-            game=self.game,
-            is_public=self.is_public
-        )
-
     class Settings(BaseDocument.Settings):
         name = "decks"
         use_state_management = True  # Enable state management for this model
@@ -43,8 +33,3 @@ class Deck(BaseDocument):
             IndexModel([("name", ASCENDING), ("owner", ASCENDING), ("game", ASCENDING), ("version", ASCENDING)], unique=True)
         ]
 
-class DeckLink(BaseLink):
-    link: Link[Deck]
-    owner: UserLink
-    game: GameLink
-    is_public: bool

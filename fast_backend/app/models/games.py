@@ -1,12 +1,12 @@
 from datetime import datetime
-from typing import Optional, Sequence
+from typing import Optional, Sequence, ClassVar, Type
 from beanie import Link, Indexed, PydanticObjectId
 from pydantic import Field, BaseModel
 from datetime import datetime
 from pymongo import IndexModel, ASCENDING
 
-from .base import BaseDocument, BaseLink
-from .users import UserLink
+from .base import BaseDocument, LinkHelper
+from .links import UserLink, GameLink   
 
 
 class Game(BaseDocument):
@@ -18,6 +18,8 @@ class Game(BaseDocument):
     publisher: Optional[str] = None
     release_date: Optional[datetime] = None
 
+    link_helper: ClassVar[LinkHelper] = LinkHelper(GameLink)
+
     class Settings(BaseDocument.Settings):
         name = "games"
         use_state_management = True  # Enable state management for this model
@@ -26,5 +28,6 @@ class Game(BaseDocument):
             IndexModel([("name", ASCENDING), ("version", ASCENDING)], unique=True)
         ]
 
-class GameLink(BaseLink):
-    link: Link[Game]
+    
+    def to_link(self) -> GameLink:
+        return self.link_helper.to_link(self)

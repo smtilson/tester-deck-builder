@@ -15,6 +15,7 @@ from datetime import datetime
 
 from fast_backend.app.exceptions.users import ValidationError
 from fast_backend.app.models import User, get_user_db
+from fast_backend.app.models import UserLink as UserLinkModel
 
 from fast_backend.app.schemas import (
     UserCreate,
@@ -185,7 +186,6 @@ class UserManager(ObjectIDIDMixin, BaseUserManager[User, PydanticObjectId]):
             await user.reload()
         await UserManager.update_user(user.id, update_query)
         return user
-
 
 async def get_user_manager(user_db: BeanieUserDatabase = Depends(get_user_db)):
     yield UserManager(user_db)

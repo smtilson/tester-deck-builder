@@ -6,3 +6,4 @@ class SettingsSchema(BaseModel):
         from_attributes=True,
         extra="forbid"
     )
+    

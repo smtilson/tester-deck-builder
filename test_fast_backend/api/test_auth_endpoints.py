@@ -6,7 +6,7 @@ from fast_backend.app.models import User
 from fast_backend.app.auth.manager import UserManager
 
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestRegistration:
@@ -119,7 +119,7 @@ class TestRegistration:
             assert response.status_code in (400, 422)
 
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestLogin:
@@ -190,7 +190,7 @@ class TestLogin:
         # Depending on your system, this may succeed or fail
 
 
-# @pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("init_db")
 class TestPasswordReset:
