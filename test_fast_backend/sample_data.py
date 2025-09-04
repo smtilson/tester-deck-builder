@@ -157,7 +157,14 @@ class DataDict:
     def user(self) -> Dict[str, Any]:
         """Pick a random user that hasn't been picked yet."""
         return self._pick_random(self._users, "users")
-
+    
+    @property
+    def hashed_user(self) -> dict[str, Any]:
+        """Pick a random user that hasn't been picked yet."""
+        user = self.user
+        user["hashed_password"] = "hashed_" + user["password"]
+        return user
+    
     @property
     def game(self) -> Dict[str, Any]:
         """Pick a random game that hasn't been picked yet."""

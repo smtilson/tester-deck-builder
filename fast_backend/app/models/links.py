@@ -83,7 +83,7 @@ class DeckLink(BaseLink):
     def to_list_item(self):
         if self.list_item_class is None:
             raise NotImplementedError("to_list_item method must be implemented in subclasses")
-        data = self.model_dump(exclude={"link"})
+        data = self.model_dump(exclude={"link", "version"})
         data["game"] = self.game.to_list_item()
         data["owner"] = self.owner.to_list_item()
         # Convert nested game link to GameListItem if present

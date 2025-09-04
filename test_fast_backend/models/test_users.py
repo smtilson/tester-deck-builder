@@ -13,12 +13,11 @@ from fast_backend.app.schemas import UserListItem
 @pytest.mark.asyncio
 class TestUserModelCreate:
     async def test_create_user_success(self, data):
-        user_data = data.user
+        user_data = data.hashed_user
         user = User(
             username=user_data["username"],
             email=user_data["email"],
-            hashed_password="hashed_" + user_data["password"],
-            created_at=datetime.now(),
+            hashed_password=user_data["hashed_password"],
         )
         await user.insert()
         assert isinstance(user.id, PydanticObjectId)
@@ -38,8 +37,8 @@ class TestUserModelCreate:
         assert db_user.updated_at is None
 
     async def test_create_user_duplicate_username_fails(self, data):
-        user_data1 = data.user
-        user_data2 = data.user
+        user_data1 = data.hashed_user
+        user_data2 = data.hashed_user
         user1 = User(
             username=user_data1["username"],
             email=user_data1["email"],
@@ -59,8 +58,8 @@ class TestUserModelCreate:
         assert "username" in str(e.value)
 
     async def test_create_user_duplicate_email_fails(self, data):
-        user_data1 = data.user
-        user_data2 = data.user
+        user_data1 = data.hashed_user
+        user_data2 = data.hashed_user
         user1 = User(
             username=user_data1["username"],
             email=user_data1["email"],
@@ -81,7 +80,7 @@ class TestUserModelCreate:
         assert "email" in str(e.value)
 
     async def test_create_user_missing_fields(self, data):
-        user_data = data.user
+        user_data = data.hashed_user
         user_data["hashed_password"] = "hashed_" + user_data["password"]
         user_data["created_at"] = datetime.now()
         for key in ["username", "email", "hashed_password"]:
@@ -98,11 +97,11 @@ class TestUserModelCreate:
 @pytest.mark.asyncio
 class TestUserModelRead:
     async def test_read_existing_user(self, data):
-        user_data = data.user
+        user_data = data.hashed_user
         user = User(
             username=user_data["username"],
             email=user_data["email"],
-            hashed_password="hashed_" + user_data["password"],
+            hashed_password=user_data["hashed_password"],
             created_at=datetime.now(),
         )
         await user.insert()
@@ -119,11 +118,11 @@ class TestUserModelRead:
     async def test_read_all_users(self, data):
         users = []
         for _ in range(3):
-            user_data = data.user
+            user_data = data.hashed_user
             user = User(
                 username=user_data["username"],
                 email=user_data["email"],
-                hashed_password="hashed_" + user_data["password"],
+                hashed_password=user_data["hashed_password"],
                 created_at=datetime.now(),
             )
             await user.insert()
@@ -140,11 +139,11 @@ class TestUserModelRead:
 @pytest.mark.asyncio
 class TestUserModelUpdate:
     async def test_update_username(self, data):
-        user_data = data.user
+        user_data = data.hashed_user
         user = User(
             username=user_data["username"],
             email=user_data["email"],
-            hashed_password="hashed_" + user_data["password"],
+            hashed_password=user_data["hashed_password"],
             created_at=datetime.now(),
         )
         await user.insert()
@@ -155,11 +154,11 @@ class TestUserModelUpdate:
         assert updated.username == "new_username"
 
     async def test_update_email(self, data):
-        user_data = data.user
+        user_data = data.hashed_user
         user = User(
             username=user_data["username"],
             email=user_data["email"],
-            hashed_password="hashed_" + user_data["password"],
+            hashed_password=user_data["hashed_password"],
             created_at=datetime.now(),
         )
         await user.insert()
@@ -175,11 +174,11 @@ class TestUserModelUpdate:
 @pytest.mark.asyncio
 class TestUserModelDelete:
     async def test_delete_user(self, data):
-        user_data = data.user
+        user_data = data.hashed_user
         user = User(
             username=user_data["username"],
             email=user_data["email"],
-            hashed_password="hashed_" + user_data["password"],
+            hashed_password=user_data["hashed_password"],
             created_at=datetime.now(),
         )
         await user.insert()
@@ -193,11 +192,11 @@ class TestUserModelDelete:
 @pytest.mark.asyncio
 class TestUserLinkModel:
     async def test_userlink_creation(self, data):
-        user_data = data.user
+        user_data = data.hashed_user
         user = User(
             username=user_data["username"],
             email=user_data["email"],
-            hashed_password="hashed_" + user_data["password"],
+            hashed_password=user_data["hashed_password"],
             created_at=datetime.now(),
         )
         await user.insert()
@@ -208,13 +207,12 @@ class TestUserLinkModel:
         assert hasattr(user_link, "link")
         assert isinstance(user_link.link, Link)
 
-
     async def test_userlink_to_list_item(self, data):
-        user_data = data.user
+        user_data = data.hashed_user
         user = User(
             username=user_data["username"],
             email=user_data["email"],
-            hashed_password="hashed_" + user_data["password"],
+            hashed_password=user_data["hashed_password"],
             created_at=datetime.now(),
         )
         await user.insert()
@@ -223,7 +221,7 @@ class TestUserLinkModel:
         assert isinstance(list_item, UserListItem)
         assert list_item.username == user.username
         assert list_item.id == user.id
-        
+
     async def test_userlink_missing_fields_raises(self):
         data = {"id": PydanticObjectId(), "username": "sample", "link": Link}
         for key in data:

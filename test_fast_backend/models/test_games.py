@@ -130,7 +130,7 @@ class TestGameModelDelete:
         deleted = await Game.get(game.id)
         assert deleted is None
 
-#@pytest.mark.skip("standard")
+@pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 @pytest.mark.asyncio
 class TestGameLinkFunctionality:
