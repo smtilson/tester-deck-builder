@@ -264,3 +264,53 @@ The goal is to develop a web application for building and managing game decks du
 
 ---
 
+## Testing
+
+### Stages of Unit Testing
+
+#### 1. Model Creation
+- Required fields and default values
+- Validation errors for missing or invalid fields
+- Handling of nested links and relationships (e.g., UserLink, GameLink)
+- Enforcement of uniqueness and duplicate constraints
+
+#### 2. Model Read
+- Retrieval by ID
+- Retrieval of all objects
+- Filtering and querying
+- Handling of non-existent objects
+
+#### 3. Model Update
+- Updating individual fields
+- Updating nested links and relationships
+- Validation during update
+- Enforcement of update constraints (e.g., uniqueness)
+
+#### 4. Model Delete
+- Deletion by ID
+- Cascading deletes (if applicable)
+- Handling deletion of non-existent objects
+
+#### 5. Link and List Item Conversion
+- Conversion to link objects (e.g., `to_link()`)
+- Conversion to list item objects (e.g., `to_list_item()`)
+- Proper handling of nested conversions
+
+#### 6. API/CRUD Layer
+- Creation via API/CRUD methods
+- Reading via API/CRUD methods
+- Updating via API/CRUD methods
+- Deletion via API/CRUD methods
+- Error handling and validation at the API layer
+
+---
+
+### Testing Practices
+
+*(To be filled out: e.g., use of fixtures, mocking strategies, coverage requirements,
+
+# TO-DO
+
+1. Edit the CRUD tests so that they look return models and not responses.
+2. Add methods that produce responses.
+3. Add tests for responses.

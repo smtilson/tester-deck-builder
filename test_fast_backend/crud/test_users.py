@@ -143,7 +143,7 @@ class TestUserManagerCreate:
             assert hasattr(db_user, field)
 
 
-@pytest.mark.skip("standard")
+#@pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 @pytest.mark.asyncio
 class TestUserManagerRead:
@@ -225,7 +225,7 @@ class TestUserManagerRead:
         assert result == []
 
 
-@pytest.mark.skip("standard")
+#@pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db")
 @pytest.mark.asyncio
 class TestUserManagerUpdate:
@@ -310,15 +310,15 @@ class TestUserManagerUpdate:
         assert str(non_existent_id) in str(e.value)
 
 
-@pytest.mark.skip("standard")
+#@pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db")
 @pytest.mark.asyncio
 class TestUserManagerDelete:
     """Integration tests for UserManager delete operations."""
 
-    async def test_delete_user_success(self, managers, setup) -> None:
+    async def test_delete_by_id_user_success(self, managers, setup) -> None:
         user: User = await setup.user
-        result: bool = await managers.user.delete(user.id)
+        result: bool = await managers.user.delete_by_id(user.id)
         assert result is True
         with pytest.raises(UserNotExists) as e:
             await managers.user.get(user.id)
@@ -326,13 +326,26 @@ class TestUserManagerDelete:
         db_user: Optional[User] = await User.get(user.id)
         assert db_user is None
 
-    async def test_delete_user_not_found(self, managers) -> None:
+    async def test_delete_user(self, managers, setup) -> None:
+        user: User = await setup.user
+        result: bool = await managers.user.delete(user)
+        assert result is True
+        with pytest.raises(UserNotExists) as e:
+            await managers.user.get(user.id)
+        assert str(user.id) in str(e.value)
+        db_user: Optional[User] = await User.get(user.id)
+        assert db_user is None
+
+    async def test_delete_by_id_user_not_found(self, managers) -> None:
         non_existent_id: PydanticObjectId = PydanticObjectId()
         with pytest.raises(UserNotExists) as e:
             await managers.user.delete(non_existent_id)
         assert str(non_existent_id) in str(e.value)
 
-
+    async def delete_non_user_not_found(self, managers, setup) -> None:
+        non_user = await setup.game
+        await managers.user.delete(non_user)  # type: ignore
+        
 @pytest.mark.skip("standard")
 @pytest.mark.usefixtures("init_db", "cleanup_db")
 @pytest.mark.asyncio

@@ -13,23 +13,15 @@ class CardManager(BaseManager[CardModel, CardCreate, CardUpdate, CardResponse, C
     def __init__(self):
         super().__init__(doc_model=CardModel, response_schema=CardResponse, list_item_schema=CardListItem)
 
-    async def create(self, item_in: CardCreate) -> Optional[CardResponse]:
-        """Create a new card in the database."""
-        linked_game : Optional[Link[GameModel]] = None
-        card_data = item_in.model_dump(exclude={"game_id"})
-        if item_in.game_id:
-            game_doc = await GameModel.get(item_in.game_id)
-            if not game_doc:
-                raise NotFoundException(f"No Game with ID {item_in.game_id} was found.")
-            else:
-                linked_game = Link(game_doc, document_class=GameModel)
-        if linked_game:
-            card_data["game"] = linked_game
-        card_obj = self.doc_model(**card_data)
+    async def create_from_dict(self, item_data: dict) -> CardModel:
+        if "game_id" in item_data:
+            game = await GameModel.get(item_data["game_id"])
+            if game is None:
+                raise NotFoundException(f"No Game with ID {item_data['game_id']} was found.")
+            item_data["game"] = game.to_link()
+        card_obj = self.doc_model(**item_data)
         await card_obj.insert()
-        if card_obj.id:
-            return await self.get(card_obj.id)
-        return None
+        return card_obj
 
     
     async def fetch_related(self, item):

@@ -13,6 +13,7 @@ from fast_backend.app.schemas import (
 )
 
 from fast_backend.app.crud.base_manager import BaseManager
+from fast_backend.app.exceptions import NotFoundException, UserNotExists
 
 class DeckManager(BaseManager[DeckModel, DeckCreate, DeckUpdate, DeckResponse, DeckListItem]):
     def __init__(self):
@@ -24,11 +25,13 @@ class DeckManager(BaseManager[DeckModel, DeckCreate, DeckUpdate, DeckResponse, D
 
     async def create_from_dict(self, item_data: dict) -> DeckModel:
         owner = await User.get(item_data["owner_id"])
+        if owner is None:
+            raise UserNotExists(f"User with id {item_data['owner_id']} does not exist")
         game = await Game.get(item_data["game_id"])
-        owner = cast(Link[User], owner)
-        game = cast(Link[Game], game)
-        item_data["owner"] = owner
-        item_data["game"] = game
+        if game is None:
+            raise NotFoundException(f"Game with id {item_data['game_id']} does not exist")
+        item_data["owner"] = owner.to_link() if owner else None
+        item_data["game"] = game.to_link() if game else None
         del item_data["owner_id"]
         del item_data["game_id"]
         deck_obj = self.doc_model(**item_data)

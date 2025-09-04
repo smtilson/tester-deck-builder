@@ -3,6 +3,13 @@ import pytest
 import random
 
 
+def remove_duplicates(seq:list) -> list:
+    new = []
+    for item in seq:
+        if item not in new:
+            new.append(item)
+    return new
+
 @pytest_asyncio.fixture(scope="function")
 async def setup(init_db, managers, data):
     class Setup:

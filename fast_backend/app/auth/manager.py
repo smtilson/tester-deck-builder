@@ -102,15 +102,15 @@ class UserManager(ObjectIDIDMixin, BaseUserManager[User, PydanticObjectId]):
         return errors
 
     async def update(self, user_update: UserUpdate) -> UserResponse:
-        user = await self.get_model(user_update.id)
+        user = await self.get(user_update.id)
         updated_user = await super().update(user=user, user_update=user_update)
         updated_at = datetime.utcnow()
         updated_user.updated_at = updated_at
         updated_user = await updated_user.save()
         return UserResponse.model_validate(updated_user)
 
-    async def delete(self, id: PydanticObjectId) -> bool:
-        user = await self.get_model(id)
+    async def delete_by_id(self, id: PydanticObjectId) -> bool:
+        user = await self.get(id)
         await super().delete(user)
         return True
 
@@ -141,10 +141,24 @@ class UserManager(ObjectIDIDMixin, BaseUserManager[User, PydanticObjectId]):
         user = await self._get_by_key("_id", id)
         return UserResponse.model_validate(user)  # type: ignore
 
+    async def get_by_email(self, user_email: str) -> User:
+        try:
+            user = await super().get_by_email(user_email)
+        except UserNotExists:
+            raise UserNotExists(f"User with email: {user_email} does not exist")
+        return user
+    
     async def get_all(self) -> list[UserResponse]:
         users = await User.find().to_list()
         return [UserResponse.model_validate(user) for user in users]
 
+    async def get(self, id: PydanticObjectId) -> User:
+        try:
+            user = await super().get(id)
+        except UserNotExists:
+            raise UserNotExists(f"User with ID {id} was not found.")
+        return user
+    
     async def validate_password(self, password: str, user: UserCreate | User) -> None:
         # this is to determine if the password is strong enough
         return await super().validate_password(password, user)

@@ -27,12 +27,12 @@ class GameManager(BaseManager[GameModel, GameCreate, GameUpdate, GameResponse, G
             designers = await User.find({"_id":
                 {"$in": list(designer_id_set)}}).to_list()
             if designers:
-                game_obj.designers = cast(Sequence[Link[User]], designers)
+                game_obj.designers = [user.to_link() for user in designers]
         if developer_id_set:
             developers = await User.find({"_id": 
                 {"$in": list(developer_id_set)}}).to_list()
             if developers:
-                game_obj.developers = cast(Sequence[Link[User]], developers)
+                game_obj.developers = [user.to_link() for user in developers]
         await game_obj.insert()
         return game_obj
 
